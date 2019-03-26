@@ -41,14 +41,21 @@ query.open_db()
 
 # query new keys
 for game in games:
-    print("Parsing {:4} keys...".format(game), end="")
+    print("Parsing {:4} keys...".format(game.upper()), end="")
     sys.stdout.flush()
     keys = query.get_keys(platform, game, True)
+
+    # parse all keys
     query.parse_keys(game)
+
     new_keys = query.get_keys(platform, game, True)
+
+    # count the new keys
     diff = len(new_keys) - len(keys)
     print("done. ({} new Keys)".format(diff if diff else "no"))
-    print(len(keys))
+    n_golden, g_keys = query.get_golden_keys(platform, game)
+    print("You have {} golden {} keys to redeem for {}"
+          .format(n_golden, game.upper(), platform.upper()))
 
 # print("=====")
 # print(query.get_special_keys("ps", BL2))
