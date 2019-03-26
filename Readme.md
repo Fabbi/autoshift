@@ -4,11 +4,17 @@ WIP
 you need to run
 
 ```
-pip install requests, bs4, lxml
+pip3 install requests, bs4, lxml
 ```
 
 and if you want scheduling, also
 
 ```
-pip install apscheduler
+pip3 install apscheduler
+```
+
+# Usage
+
+```
+./auto.py --help
 ```
