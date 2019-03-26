@@ -169,7 +169,9 @@ if __name__ == "__main__":
         import os
         from apscheduler.schedulers.blocking import BlockingScheduler
         scheduler = BlockingScheduler()
-        scheduler.add_job(main, "interval", args=(args,), hours=1)
+        # fire every 1h5m
+        #  (5min safe margin because it somtimes fires a few seconds too early)
+        scheduler.add_job(main, "interval", args=(args,), hours=1, minutes=5)
         print('Press Ctrl+{} to exit'.format('Break' if os.name == 'nt'
                                              else 'C'))
 
