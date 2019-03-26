@@ -18,6 +18,10 @@ def getLogger(name):
     logger = logging.getLogger(name)
 
     def rec_filter(record):
+        record.module_lineno = ""
+        if record.levelno == DEBUG:
+            record.module_lineno = "\033[1;36m{}:{} - ".format(record.module,
+                                                               record.lineno)
         record.color = colors[record.levelno]
         record.spaces = " " * (8 - len(record.levelname))
         return True
@@ -25,10 +29,9 @@ def getLogger(name):
     h = logging.StreamHandler()
     h.setFormatter(
         logging.Formatter("\r{bcolor}%(asctime)s "
-                          "[\033[1;%(color)sm%(levelname)s{bcolor}] "
+                          "[\033[1;%(color)sm%(levelname)s\033[0m{bcolor}] "
                           "\033[0m%(spaces)s"
-                          "{bcolor}%(module)s:%(lineno)d"
-                          " - "
+                          "%(module_lineno)s"
 
 
                           "\033[0m%(message)s"
