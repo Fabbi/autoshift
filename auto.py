@@ -95,19 +95,18 @@ def setup_argparser():
                         Max number of golden Keys you want to redeem.
                         (default 200)
                         NOTE: You can only have 255 keys at any given time!""")) # noqa
+    parser.add_argument("--schedule",
+                        action="store_true",
+                        help="Keep checking for keys and redeeming every hour")
 
     return parser
 
 
-def main():
+def main(args):
     import re
     g_reg = re.compile(r"^(\d+).*gold.*", re.I)
 
     query.open_db()
-
-    # build argument parser
-    parser = setup_argparser()
-    args = parser.parse_args()
 
     # query all keys
     all_keys = query_keys(args.games, args.platforms)
@@ -157,4 +156,24 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # build argument parser
+    parser = setup_argparser()
+    args = parser.parse_args()
+
+    # always execute at least once
+    main(args)
+
+    # scheduling will start after first trigger (so in an hour..)
+    if args.schedule:
+        _L.info("Scheduling to run once an hour")
+        import os
+        from apscheduler.schedulers.blocking import BlockingScheduler
+        scheduler = BlockingScheduler()
+        scheduler.add_job(main, "interval", args=(args,), hours=1)
+        print('Press Ctrl+{} to exit'.format('Break' if os.name == 'nt'
+                                             else 'C'))
+
+        try:
+            scheduler.start()
+        except (KeyboardInterrupt, SystemExit):
+            pass
