@@ -113,3 +113,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# cookies
+.cookies.save
+
+# key database
+keys.db
+
+# notebooks folder
+notebooks/
