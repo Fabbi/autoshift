@@ -86,13 +86,17 @@ def get_special_keys(platform, game):
 
 
 def get_golden_keys(platform, game, all_keys=False):
+    import re
+    # quite general regex..
+    # you never know what they write in those tables..
+    g_reg = re.compile(r"^(\d+).*gold.*", re.I)
     keys = get_keys(platform, game, all_keys)
     num = 0
     ret = []
     for k in keys:
-        if "gold" in k.description.lower():
-            spl = k.description.split(" ")
-            num += int(spl[0])
+        m = g_reg.match(k.description)
+        if m:
+            num += int(m.group(1))
             ret.append(k)
     return num, ret
 
