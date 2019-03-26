@@ -4,7 +4,7 @@ WIP
 you need to run
 
 ```
-pip3 install requests, bs4, lxml
+pip3 install requests bs4 lxml
 ```
 
 and if you want scheduling, also
