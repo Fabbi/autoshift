@@ -4,6 +4,11 @@ from functools import namedtuple
 import requests
 from bs4 import BeautifulSoup as BSoup
 
+from common import getLogger, INFO, DEBUG, GLOBAL_LVL # noqa
+
+_L = getLogger("Query")
+_L.setLevel(GLOBAL_LVL)
+
 BLPS = "blps"
 BL2 = "bl2"
 PC = "pc"
@@ -14,7 +19,8 @@ platforms = [PC, PS, XBOX]
 
 conn = None
 c = None
-Key = namedtuple("Key", ["id", "description", "key", "game"])
+Key = namedtuple("Key",
+                 ["id", "description", "key", "game"])
 
 
 def open_db():

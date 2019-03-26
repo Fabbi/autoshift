@@ -3,11 +3,15 @@ import pickle
 import requests
 from bs4 import BeautifulSoup as BSoup
 
+from common import getLogger, INFO, DEBUG, GLOBAL_LVL # noqa
+
 base_url = "https://shift.gearboxsoftware.com"
 
-DEBUG = True
+_L = getLogger("Shift")
+_L.setLevel(GLOBAL_LVL)
 
 
+# filthy enum hack with auto convert
 def Status(n):
     els = ["NONE", "REDIRECT", "TRYLATER",
            "EXPIRED", "REDEEMED",
@@ -15,12 +19,6 @@ def Status(n):
     return els[n]
 for i in range(7): # noqa
     setattr(Status, Status(i), i)
-
-
-def dprint(*msg):
-    if DEBUG:
-        print("[DEBUG]: ", end="")
-        print(*msg)
 
 
 def getch():
@@ -39,6 +37,7 @@ def getch():
 
 
 def input_pw(qry):
+    """Input Password with * replacing chars"""
     import sys
     print(qry, end="")
     sys.stdout.flush()
@@ -49,6 +48,7 @@ def input_pw(qry):
         if ord(c) == 3:
             sys.exit(0)
 
+        # on return
         if c == '\r':
             break
 
@@ -56,6 +56,7 @@ def input_pw(qry):
         if ord(c) < 32:
             continue
 
+        # backspace
         if ord(c) == 127:
             pw = pw[:-1]
             print("\r{}{}".format(qry, "*" * len(pw)), end=" \b")
@@ -85,9 +86,9 @@ class ShiftClient:
         form_data = self.__get_redemption_form(code)
         if not form_data:
             return Status.UNKNOWN
-        dprint("trying to redeem {}".format(code))
+        _L.debug("trying to redeem {}".format(code))
         status, result = self.__redeem_form(form_data)
-        dprint(Status(status), result)
+        _L.debug(Status(status), result)
         return status
 
     def __save_cookie(self):
@@ -136,7 +137,7 @@ class ShiftClient:
         the_url = "{}/code_redemptions/new".format(base_url)
         token = self.__get_token(the_url)
         if not token:
-            dprint("no token")
+            _L.debug("no token")
             return None
         headers = {'x-csrf-token': token,
                    'x-requested-with': 'XMLHttpRequest'}
@@ -144,7 +145,7 @@ class ShiftClient:
                             headers=headers)
         soup = BSoup(r.text, "html.parser")
         if not soup.find("form", class_="new_archway_code_redemption"):
-            print("Error: {}".format(r.text.strip()))
+            _L.Error(r.text.strip())
             return {}
 
         inp = soup.find("input", attrs=dict(name="authenticity_token"))
@@ -196,12 +197,12 @@ class ShiftClient:
 
         status, alert = self.__get_alert(r)
         if alert:
-            dprint(alert)
+            _L.debug(alert)
             return status, alert
 
         get_status, url = self.__get_status(r)
         if get_status:
-            print(get_status)
+            _L.info(get_status)
             # wait 500
             sleep(0.5)
             r2 = self.client.get("{}/{}".format(base_url, url),
@@ -220,7 +221,7 @@ class ShiftClient:
         status, redirect = self.__check_redemption_status(r)
         # if status == Status.REDIRECT:
         while status == Status.REDIRECT:
-            dprint("redirect to '{}'".format(redirect))
+            _L.debug("redirect to '{}'".format(redirect))
             r2 = self.client.get(redirect)
             # import ipdb; ipdb.set_trace()
             # print(r2.text)

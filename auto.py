@@ -2,9 +2,13 @@
 import sys
 
 import query
-from query import BL2, BLPS, PC, PS, XBOX, Status # noqa
+from query import BL2, BLPS, PC, PS, XBOX # noqa
 # from query import BL3
-from shift import ShiftClient
+from shift import ShiftClient, Status
+from common import getLogger, INFO, DEBUG, GLOBAL_LVL # noqa
+
+_L = getLogger("Auto")
+_L.setLevel(GLOBAL_LVL)
 """
 TODO
 - argsParser:
