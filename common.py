@@ -1,7 +1,8 @@
 import logging
 from logging import NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
-GLOBAL_LVL = DEBUG
+GLOBAL_LVL = INFO
+# GLOBAL_LVL = DEBUG
 
 colors = {
     NOTSET: 36,
