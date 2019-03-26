@@ -223,12 +223,5 @@ class ShiftClient:
         while status == Status.REDIRECT:
             _L.debug("redirect to '{}'".format(redirect))
             r2 = self.client.get(redirect)
-            # import ipdb; ipdb.set_trace()
-            # print(r2.text)
             status, redirect = self.__check_redemption_status(r2)
         return status, redirect
-
-
-# client = ShiftClient()
-# import ipdb; ipdb.set_trace()
-# client.redeem("C5WTB-K5R59-HSBW3-H3K3T-KCC6J")

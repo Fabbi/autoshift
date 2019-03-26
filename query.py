@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import sqlite3
-from functools import namedtuple
 import requests
 from bs4 import BeautifulSoup as BSoup
 
@@ -19,8 +18,24 @@ platforms = [PC, PS, XBOX]
 
 conn = None
 c = None
-Key = namedtuple("Key",
-                 ["id", "description", "key", "game"])
+
+
+class Key:
+    """small class like `functools.namedtuple` but with settable attributes"""
+    __slots__ = ("id", "description", "key", "game", "redeemed")
+    def __init__(self, *args, **kwargs): # noqa
+        for el in Key.__slots__:
+            setattr(self, el, None)
+        for i, el in enumerate(args):
+            setattr(self, Key.__slots__[i], el)
+        for k in kwargs:
+            setattr(self, k, kwargs[k])
+    def __str__(self): # noqa
+        return "Key({})".format(
+            ", ".join([str(getattr(self, k))
+                       for k in Key.__slots__]))
+    def __repr__(self): # noqa
+        return str(self)
 
 
 def open_db():
@@ -69,7 +84,7 @@ def get_keys(platform, game, all_keys=False):
 
     keys = []
     for row in ex:
-        keys.append(Key(row[0], row[1], row[3], row[4]))
+        keys.append(Key(row[0], row[1], row[3], row[4], row[5]))
 
     return keys
 
@@ -102,6 +117,7 @@ def get_golden_keys(platform, game, all_keys=False):
 
 
 def set_redeemed(key):
+    key.redeemed = 1
     c.execute("UPDATE keys SET redeemed=1 WHERE id=(?)", (key.id, ))
     conn.commit()
 
