@@ -71,6 +71,7 @@ class ShiftClient:
     def __init__(self):
         from os import path
         self.client = requests.session()
+        self.last_status = Status.NONE
         filepath = path.realpath(__file__)
         dirname = path.dirname(filepath)
         self.cookie_file = path.join(dirname, ".cookies.save")
@@ -86,9 +87,9 @@ class ShiftClient:
         form_data = self.__get_redemption_form(code)
         if not form_data:
             return Status.UNKNOWN
-        _L.debug("trying to redeem {}".format(code))
         status, result = self.__redeem_form(form_data)
-        _L.debug(Status(status), result)
+        self.last_status = status
+        _L.debug("{}: {}".format(Status(status), result))
         return status
 
     def __save_cookie(self):
