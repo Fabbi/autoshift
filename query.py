@@ -114,6 +114,7 @@ def get_keys(platform, game, all_keys=False):
         AND game=?"""
     if not all_keys:
         cmd += " AND redeemed=0"
+    cmd += " ORDER BY id DESC"
     ex = c.execute(cmd, (platform, game))
 
     keys = []
