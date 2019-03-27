@@ -4,12 +4,9 @@ import pickle
 import requests
 from bs4 import BeautifulSoup as BSoup
 
-from common import getLogger, INFO, DEBUG, GLOBAL_LVL # noqa
+from common import _L
 
 base_url = "https://shift.gearboxsoftware.com"
-
-_L = getLogger("Shift")
-_L.setLevel(GLOBAL_LVL)
 
 
 # filthy enum hack with auto convert

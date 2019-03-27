@@ -3,10 +3,8 @@ import sqlite3
 import requests
 from bs4 import BeautifulSoup as BSoup
 
-from common import getLogger, INFO, DEBUG, GLOBAL_LVL # noqa
+from common import _L
 
-_L = getLogger("Query")
-_L.setLevel(GLOBAL_LVL)
 
 BLPS = "blps"
 BL2 = "bl2"

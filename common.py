@@ -1,27 +1,27 @@
 import logging
 from logging import NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
-GLOBAL_LVL = INFO
-# GLOBAL_LVL = DEBUG
 
-colors = {
-    NOTSET: 36,
-    DEBUG: 33,
-    INFO: 34,
-    WARNING: .35,
-    ERROR: 31,
-    CRITICAL: "5;31"
-}
+def initLogger():
 
+    colors = {
+        NOTSET: 36,
+        DEBUG: 33,
+        INFO: 34,
+        WARNING: .35,
+        ERROR: 31,
+        CRITICAL: "5;31"
+    }
+    logger = None
 
-def getLogger(name):
-    logger = logging.getLogger(name)
+    logger = logging.getLogger("autoshift")
 
     def rec_filter(record):
         record.module_lineno = ""
         if record.levelno == DEBUG:
-            record.module_lineno = "\033[1;36m{}:{} - ".format(record.module,
-                                                               record.lineno)
+            record.module_lineno = "\033[1;36m{}:{} - ".format(
+                record.module,
+                record.lineno)
         record.color = colors[record.levelno]
         record.spaces = " " * (8 - len(record.levelname))
         return True
@@ -40,3 +40,6 @@ def getLogger(name):
     logger.handlers = []
     logger.addHandler(h)
     return logger
+
+
+_L = initLogger()

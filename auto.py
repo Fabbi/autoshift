@@ -3,31 +3,10 @@ from __future__ import print_function
 import sys
 
 import query
-from query import BL2, BLPS, PC, PS, XBOX # noqa
+from query import games, platforms # noqa
 # from query import BL3
 from shift import ShiftClient, Status
-from common import getLogger, INFO, DEBUG, GLOBAL_LVL # noqa
-
-_L = getLogger("Auto")
-_L.setLevel(GLOBAL_LVL)
-"""
-TODO
-- argsParser:
-  - #keys to redeem
-  - game
-  - platform
-- all messages
-"""
-# ###### PLATFORM
-platforms = [PC, PS, XBOX]
-# platform = PC
-platform = PS
-# platform = XBOX
-
-# ###### GAME
-games = [BL2, BLPS]
-# game = BL2
-game = BLPS
+from common import _L, INFO, DEBUG
 
 client = ShiftClient()
 
@@ -102,6 +81,9 @@ def setup_argparser():
     parser.add_argument("--schedule",
                         action="store_true",
                         help="Keep checking for keys and redeeming every hour")
+    parser.add_argument("-v", dest="verbose",
+                        action="store_true",
+                        help="Verbose mode")
 
     return parser
 
@@ -162,6 +144,11 @@ if __name__ == "__main__":
     # build argument parser
     parser = setup_argparser()
     args = parser.parse_args()
+
+    _L.setLevel(INFO)
+    if args.verbose:
+        _L.setLevel(DEBUG)
+        _L.debug("Debug mode on")
 
     # always execute at least once
     main(args)
