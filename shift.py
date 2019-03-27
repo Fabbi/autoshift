@@ -163,7 +163,7 @@ class ShiftClient:
                             headers=headers)
         soup = BSoup(r.text, "html.parser")
         if not soup.find("form", class_="new_archway_code_redemption"):
-            _L.Error(r.text.strip())
+            _L.error(r.text.strip())
             return {}
 
         inp = soup.find("input", attrs=dict(name="authenticity_token"))
