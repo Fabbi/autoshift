@@ -82,6 +82,9 @@ def setup_argparser():
     parser.add_argument("--golden",
                         action="store_true",
                         help="Only redeem golden keys")
+    parser.add_argument("--non-golden", dest="non_golden",
+                        action="store_true",
+                        help="Only redeem non-golden keys")
     parser.add_argument("--games",
                         type=str, required=True,
                         choices=games, nargs="+",
@@ -123,25 +126,26 @@ def main(args):
             t_keys = all_keys[game][platform]
             for key in t_keys:
                 if key.redeemed:
+                    # we could query only unredeemed keys
+                    # but we have them already so it doesn't matter
                     continue
-                num_g_keys = 0  # number of golden keys in this one
+                num_g_keys = 0  # number of golden keys in this code
                 m = g_reg.match(key.description)
 
-                # skip non-golden keys if we're told to
-                if (args.golden and not m):
+                # skip keys we don't want
+                if ((args.golden and not m) or (args.non_golden and m)):
                     continue
 
                 if m:
                     num_g_keys = int(m.group(1))
-                    # skip golden Keys if we reached the limit
+                    # skip golden keys if we reached the limit
                     if args.limit <= 0:
                         continue
 
-                    # skip if this key has too many golden keys
+                    # skip if this code has too many golden keys
                     if (args.limit - num_g_keys) < 0:
                         continue
 
-                # redeemed = True
                 redeemed = redeem(key)
                 if redeemed:
                     args.limit -= num_g_keys
