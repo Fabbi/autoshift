@@ -1,9 +1,29 @@
-#!/usr/bin/env python
+#############################################################################
+#
+# Copyright (C) 2018 Fabian Schweinfurth
+# Contact: autoshift <at> derfabbi.de
+#
+# This file is part of autoshift
+#
+# autoshift is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# autoshift is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with autoshift.  If not, see <http://www.gnu.org/licenses/>.
+#
+#############################################################################
 import sqlite3
 import requests
 from bs4 import BeautifulSoup as BSoup
 
-from common import _L
+from common import _L, DIRNAME
 
 platforms = ["pc", "ps", "xbox"]
 # will be filled later
@@ -56,9 +76,7 @@ class Key:
 def open_db():
     from os import path
     global conn, c
-    filepath = path.realpath(__file__)
-    dirname = path.dirname(filepath)
-    conn = sqlite3.connect(path.join(dirname, "keys.db"),
+    conn = sqlite3.connect(path.join(DIRNAME, "keys.db"),
                            detect_types=sqlite3.PARSE_DECLTYPES)
     c = conn.cursor()
 

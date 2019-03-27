@@ -1,10 +1,30 @@
-#!/usr/bin/env python
+#############################################################################
+#
+# Copyright (C) 2018 Fabian Schweinfurth
+# Contact: autoshift <at> derfabbi.de
+#
+# This file is part of autoshift
+#
+# autoshift is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# autoshift is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with autoshift.  If not, see <http://www.gnu.org/licenses/>.
+#
+#############################################################################
 from __future__ import print_function
 import pickle
 import requests
 from bs4 import BeautifulSoup as BSoup
 
-from common import _L
+from common import _L, DIRNAME
 
 base_url = "https://shift.gearboxsoftware.com"
 
@@ -70,9 +90,7 @@ class ShiftClient:
         from os import path
         self.client = requests.session()
         self.last_status = Status.NONE
-        filepath = path.realpath(__file__)
-        dirname = path.dirname(filepath)
-        self.cookie_file = path.join(dirname, ".cookies.save")
+        self.cookie_file = path.join(DIRNAME, ".cookies.save")
         # try to load cookies. Query for login data if not present
         if not self.__load_cookie():
             print("First time usage: You need to login...")

@@ -1,4 +1,25 @@
 #!/usr/bin/env python
+#############################################################################
+#
+# Copyright (C) 2018 Fabian Schweinfurth
+# Contact: autoshift <at> derfabbi.de
+#
+# This file is part of autoshift
+#
+# autoshift is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# autoshift is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with autoshift.  If not, see <http://www.gnu.org/licenses/>.
+#
+#############################################################################
 from __future__ import print_function
 import sys
 
@@ -6,9 +27,18 @@ import query
 from query import games, platforms # noqa
 # from query import BL3
 from shift import ShiftClient, Status
-from common import _L, INFO, DEBUG
+from common import _L, INFO, DEBUG, DIRNAME
 
 client = ShiftClient()
+
+LICENSE_TEXT = """\
+========================================================================
+autoshift  Copyright (C) 2019  Fabian Schweinfurth
+This program comes with ABSOLUTELY NO WARRANTY; for details see LICENSE.
+This is free software, and you are welcome to redistribute it
+under certain conditions; see LICENSE for details.
+========================================================================
+"""
 
 
 def redeem(key):
@@ -141,6 +171,11 @@ def main(args):
 
 
 if __name__ == "__main__":
+    import os
+    # only print license text on first use
+    if not os.path.exists(os.path.join(DIRNAME, ".cookies.save")):
+        print(LICENSE_TEXT)
+
     # build argument parser
     parser = setup_argparser()
     args = parser.parse_args()
@@ -156,7 +191,6 @@ if __name__ == "__main__":
     # scheduling will start after first trigger (so in an hour..)
     if args.schedule:
         _L.info("Scheduling to run once an hour")
-        import os
         from apscheduler.schedulers.blocking import BlockingScheduler
         scheduler = BlockingScheduler()
         # fire every 1h5m
