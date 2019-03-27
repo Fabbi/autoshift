@@ -111,10 +111,8 @@ def main(args):
     # query all keys
     all_keys = query_keys(args.games, args.platforms)
 
-    num_keys = args.limit
-
     # redeem 0 golden keys but only golden??... duh
-    if not num_keys and args.golden:
+    if not args.limit and args.golden:
         _L.info("Not redeeming anything ...")
         return
 
@@ -135,17 +133,17 @@ def main(args):
                 if m:
                     num_g_keys = int(m.group(1))
                     # skip golden Keys if we reached the limit
-                    if num_keys <= 0:
+                    if args.limit <= 0:
                         continue
 
                     # skip if this key has too many golden keys
-                    if (num_keys - num_g_keys) < 0:
+                    if (args.limit - num_g_keys) < 0:
                         continue
 
                 # redeemed = True
                 redeemed = redeem(key)
                 if redeemed:
-                    num_keys -= num_g_keys
+                    args.limit -= num_g_keys
                 else:
                     # don't spam if we reached the hourly limit
                     if client.last_status == Status.TRYLATER:
