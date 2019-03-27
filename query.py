@@ -5,22 +5,39 @@ from bs4 import BeautifulSoup as BSoup
 
 from common import _L
 
+platforms = ["pc", "ps", "xbox"]
+# will be filled later
+games = []
+game_funcs = {}
 
-BLPS = "blps"
-BL2 = "bl2"
-PC = "pc"
-PS = "ps"
-XBOX = "xbox"
-
-platforms = [PC, PS, XBOX]
 
 conn = None
 c = None
 
 
+def registerParser(*the_games):
+    """Register parser for specified games.
+
+    e.g:
+
+        @registerParser("bl3")
+        def parse_bl3(game, platform):
+            description = "some key"
+            code = "AAAA-BBBBB-CCCCC-DDDDD"
+            yield description, code, platform, game
+    """
+    def decorator(f):
+        global game_funcs, games
+        for game in the_games:
+            game_funcs[game] = f
+            games.append(game)
+        return f
+    return decorator
+
+
 class Key:
     """small class like `functools.namedtuple` but with settable attributes"""
-    __slots__ = ("id", "description", "key", "game", "redeemed")
+    __slots__ = ("id", "description", "key", "redeemed")
     def __init__(self, *args, **kwargs): # noqa
         for el in Key.__slots__:
             setattr(self, el, None)
@@ -47,7 +64,7 @@ def open_db():
 
     c.execute("CREATE TABLE IF NOT EXISTS keys "
               "(id INTEGER primary key, description TEXT, "
-              "platform TEXT, key TEXT, game TEXT, redeemed INTEGER)")
+              "key TEXT, platform TEXT, game TEXT, redeemed INTEGER)")
 
 
 def close_db():
@@ -55,25 +72,26 @@ def close_db():
     conn.close()
 
 
-def insert(desc, platform, key, game):
+def insert(desc, code, platform, game):
     """Insert Key"""
-    el = c.execute("select * from keys "
-                   "where platform = ? "
-                   "and key = ? "
-                   "and game = ?",
-                   (platform, key, game))
+    el = c.execute("""SELECT * FROM keys
+                   WHERE platform = ?
+                   AND key = ?
+                   AND game = ?""",
+                   (platform, code, game))
     if el.fetchone():
         return
-    print("=== inserting {} Key '{}' for '{}' ===".format(game, key, platform))
-    c.execute("INSERT INTO keys(description, platform, key, game, redeemed) "
-              "VAlUES (?,?,?,?,0)", (desc, platform, key, game))
+    _L.debug("== inserting {} Key '{}' for {} ==".format(game.upper(), code,
+                                                         platform.upper()))
+    c.execute("INSERT INTO keys(description, key, platform, game, redeemed) "
+              "VAlUES (?,?,?,?,0)", (desc, code, platform, game))
     conn.commit()
 
 
 def get_keys(platform, game, all_keys=False):
     """Get all (unredeemed) keys of given platform and game"""
     cmd = """
-        SELECT * FROM keys
+        SELECT id, description, key, redeemed FROM keys
         WHERE platform=?
         AND game=?"""
     if not all_keys:
@@ -82,7 +100,7 @@ def get_keys(platform, game, all_keys=False):
 
     keys = []
     for row in ex:
-        keys.append(Key(row[0], row[1], row[3], row[4], row[5]))
+        keys.append(Key(*row))
 
     return keys
 
@@ -120,11 +138,22 @@ def set_redeemed(key):
     conn.commit()
 
 
-def parse_keys(game):
+def parse_keys(game, platform):
+    if game not in games:
+        _L.error("No known method of retrieving new SHiFT codes "
+                 "for the game `{}`".format(game))
+        return
+
+    for code in game_funcs[game](game, platform):
+        insert(*code)
+
+
+@registerParser("bl2", "blps")
+def parse_bl2blps(game, platform):
     """Get all Keys from orcz"""
-    key_urls = {BL2: "http://orcz.com/Borderlands_2:_Golden_Key",
-                BLPS: "http://orcz.com/Borderlands_Pre-Sequel:_Shift_Codes",
-                # BL3: "http://orcz.com/Borderlands_3:_Golden_Key"
+    key_urls = {"bl2": "http://orcz.com/Borderlands_2:_Golden_Key",
+                "blps": "http://orcz.com/Borderlands_Pre-Sequel:_Shift_Codes",
+                # "bl3": "http://orcz.com/Borderlands_3:_Golden_Key"
                 }
 
     def check(key):
@@ -151,13 +180,14 @@ def parse_keys(game):
     for row in rows:
         cols = row.find_all("td")
         desc = cols[1].text.strip()
-        the_keys = [None, None, None]
+        codes = [None, None, None]
         for i in range(4, 7):
             try:
-                the_keys[i - 4] = check(cols[i])
-            except: # noqa
+                codes[i - 4] = check(cols[i])
+            except Exception as e: # noqa
+                _L.debug(e)
                 pass
 
         for i in range(3):
-            if the_keys[i]:
-                insert(desc, platforms[i], the_keys[i], game)
+            if codes[i]:
+                yield desc, codes[i], platforms[i], game

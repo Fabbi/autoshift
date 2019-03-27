@@ -39,7 +39,7 @@ def query_keys(games, platforms):
             keys = query.get_keys(platform, game, True)
 
             # parse all keys
-            query.parse_keys(game)
+            query.parse_keys(game, platform)
 
             new_keys = query.get_keys(platform, game, True)
             all_keys[game][platform] = new_keys
