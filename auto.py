@@ -45,7 +45,7 @@ def redeem(key):
     """Redeem key and set as redeemed if successfull"""
     _L.debug("Trying to redeem {} ({})".format(key.description, key.key))
     status = client.redeem(key.key)
-    if status in (Status.SUCCESS, Status.REDEEMED):
+    if status in (Status.SUCCESS, Status.REDEEMED, Status.EXPIRED):
         query.set_redeemed(key)
         if status == Status.SUCCESS:
             _L.info("Redeemed {}".format(key.description))
