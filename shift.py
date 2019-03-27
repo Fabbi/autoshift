@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import pickle
 import requests
 from bs4 import BeautifulSoup as BSoup
@@ -142,7 +143,8 @@ class ShiftClient:
             return None
         headers = {'x-csrf-token': token,
                    'x-requested-with': 'XMLHttpRequest'}
-        r = self.client.get(f"{base_url}/entitlement_offer_codes?code={code}",
+        r = self.client.get("{base_url}/entitlement_offer_codes?code={code}"
+                            .format(base_url=base_url, **locals()),
                             headers=headers)
         soup = BSoup(r.text, "html.parser")
         if not soup.find("form", class_="new_archway_code_redemption"):

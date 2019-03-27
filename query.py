@@ -163,22 +163,3 @@ def parse_keys(game):
         for i in range(3):
             if the_keys[i]:
                 insert(desc, platforms[i], the_keys[i], game)
-
-
-if __name__ == "__main__":
-    # TESTING
-
-    # parse_keys(base_url)
-    # keys = get_keys("ps")
-    # print("\n".join([str(el) for el in keys]))
-
-    # keys = get_golden_keys("ps")
-    keys = get_special_keys("ps")
-    print(keys[0])
-    print("\n".join([str(el) for el in keys[1]]))
-    # set_redeemed(keys[0])
-    # print("--")
-    # keys = get_keys("ps")
-    # print(keys)
-
-    # print(get_keys("ps"))
