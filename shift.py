@@ -30,12 +30,12 @@ base_url = "https://shift.gearboxsoftware.com"
 
 
 # filthy enum hack with auto convert
-def Status(n):
-    els = ["NONE", "REDIRECT", "TRYLATER",
-           "EXPIRED", "REDEEMED",
-           "SUCCESS", "UNKNOWN"]
-    return els[n]
-for i in range(7): # noqa
+__els = ["NONE", "REDIRECT", "TRYLATER",
+         "EXPIRED", "REDEEMED",
+         "SUCCESS", "INVALID", "UNKNOWN"]
+def Status(n): # noqa
+    return __els[n]
+for i in range(len(__els)): # noqa
     setattr(Status, Status(i), i)
 
 
@@ -100,9 +100,20 @@ class ShiftClient:
             self.__save_cookie()
 
     def redeem(self, code):
-        form_data = self.__get_redemption_form(code)
-        if not form_data:
+        found, status_code, form_data = self.__get_redemption_form(code)
+        # the expired message comes from even wanting to redeem
+        if not found:
+            # entered key was invalid
+            if status_code == 500:
+                return Status.INVALID
+            # entered key expired by now
+            if "expired" in form_data:
+                return Status.EXPIRED
+            # unknown
+            _L.error(form_data)
             return Status.UNKNOWN
+
+        # the key is valid and all.
         status, result = self.__redeem_form(form_data)
         self.last_status = status
         _L.debug("{}: {}".format(Status(status), result))
@@ -131,13 +142,13 @@ class ShiftClient:
         soup = BSoup(r.text, "html.parser")
         meta = soup.find("meta", attrs=dict(name="csrf-token"))
         if not meta:
-            return None
-        return meta["content"]
+            return r.status_code, None
+        return r.status_code, meta["content"]
 
     def __login(self, user, pw):
         """Login with user/pw"""
         the_url = "{}/home".format(base_url)
-        token = self.__get_token(the_url)
+        status_code, token = self.__get_token(the_url)
         if not token:
             return None
         login_data = {"authenticity_token": token,
@@ -152,10 +163,11 @@ class ShiftClient:
     def __get_redemption_form(self, code):
         """Get Form data for code redemption"""
         the_url = "{}/code_redemptions/new".format(base_url)
-        token = self.__get_token(the_url)
+        status_code, token = self.__get_token(the_url)
         if not token:
             _L.debug("no token")
-            return None
+            return False, status_code, "Could not retrieve Token"
+
         headers = {'x-csrf-token': token,
                    'x-requested-with': 'XMLHttpRequest'}
         r = self.client.get("{base_url}/entitlement_offer_codes?code={code}"
@@ -163,18 +175,18 @@ class ShiftClient:
                             headers=headers)
         soup = BSoup(r.text, "html.parser")
         if not soup.find("form", class_="new_archway_code_redemption"):
-            _L.error(r.text.strip())
-            return {}
+            return False, r.status_code, r.text.strip()
 
         inp = soup.find("input", attrs=dict(name="authenticity_token"))
         form_code = soup.find(id="archway_code_redemption_code")["value"]
         check = soup.find(id="archway_code_redemption_check")["value"]
         service = soup.find(id="archway_code_redemption_service")["value"]
 
-        return {"authenticity_token": inp["value"],
-                "archway_code_redemption[code]": form_code,
-                "archway_code_redemption[check]": check,
-                "archway_code_redemption[service]": service}
+        form_data = {"authenticity_token": inp["value"],
+                     "archway_code_redemption[code]": form_code,
+                     "archway_code_redemption[check]": check,
+                     "archway_code_redemption[service]": service}
+        return True, r.status_code, form_data
 
     def __get_alert(self, r):
         """Get Alert Answer after redemption"""

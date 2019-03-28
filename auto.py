@@ -43,16 +43,28 @@ under certain conditions; see LICENSE for details.
 
 def redeem(key):
     """Redeem key and set as redeemed if successfull"""
+    messages = {
+        Status.SUCCESS: "Redeemed {key.description}",
+        Status.EXPIRED: "This code expired by now.. ({key.description})",
+        Status.REDEEMED: "Already redeemed {key.description}",
+        Status.INVALID: "The code `{key.key}` is invalid",
+        Status.TRYLATER: "Please launch a SHiFT-enabled title or wait 1 hour.",
+        Status.UNKNOWN: "A unknown Error occured"
+    }
+
     _L.debug("Trying to redeem {} ({})".format(key.description, key.key))
     status = client.redeem(key.key)
-    if status in (Status.SUCCESS, Status.REDEEMED, Status.EXPIRED):
+    _L.debug("Status: {}".format(Status(status)))
+
+    # set redeemed status
+    if status in (Status.SUCCESS, Status.REDEEMED,
+                  Status.EXPIRED, Status.INVALID):
         query.set_redeemed(key)
-        if status == Status.SUCCESS:
-            _L.info("Redeemed {}".format(key.description))
-        else:
-            _L.info("Already redeemed {}".format(key.description))
-        return True
-    return False
+
+    # notify user
+    _L.info(messages[status].format(**locals()))
+
+    return status == Status.SUCCESS
 
 
 def query_keys(games, platforms):
@@ -123,7 +135,6 @@ def main(args):
     g_reg = re.compile(r"^(\d+).*gold.*", re.I)
 
     query.open_db()
-
     # query all keys
     all_keys = query_keys(args.games, args.platforms)
 
@@ -161,10 +172,10 @@ def main(args):
                 redeemed = redeem(key)
                 if redeemed:
                     args.limit -= num_g_keys
+                    _L.info("Redeeming another {} Keys".format(args.limit))
                 else:
                     # don't spam if we reached the hourly limit
                     if client.last_status == Status.TRYLATER:
-                        _L.info("Please launch a SHiFT-enabled title or wait 1 hour.") # noqa
                         return
 
     query.close_db()
