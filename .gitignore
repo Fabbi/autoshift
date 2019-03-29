@@ -149,3 +149,5 @@ dmypy.json
 *.app
 
 /build
+/extern_libs
+compile_commands.json

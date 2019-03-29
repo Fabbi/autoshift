@@ -1,0 +1,11 @@
+function(message)
+  if (NOT MESSAGE_QUIET)
+    _message(${ARGN})
+  endif()
+endfunction()
+
+macro(find_package_quiet)
+  set (MESSAGE_QUIET ON)
+  find_package(${ARGN} QUIET)
+  unset (MESSAGE_QUIET)
+endmacro(find_package_quiet)
