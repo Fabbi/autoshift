@@ -198,6 +198,13 @@ public:
             [&, opt](int v)
             {setValue(opt, v);});
   }
+  void observe(QComboBox* w, const QString& opt)
+  {
+    setValue(opt, w->currentIndex());
+    connect(w, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            [&, opt](int v)
+            {setValue(opt, v);});
+  }
   /***********************************************************/
 
   bool eventFilter(QObject* obj, QEvent* ev)
