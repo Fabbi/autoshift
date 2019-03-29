@@ -100,10 +100,56 @@
             <string>Options</string>
            </property>
            <layout class="QGridLayout" name="gridLayout_2">
+            <item row="1" column="0">
+             <widget class="QLabel" name="labelGame">
+              <property name="text">
+               <string>Game</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QComboBox" name="dropDGame"/>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="labelPlatform">
+              <property name="text">
+               <string>Platform</string>
+              </property>
+             </widget>
+            </item>
             <item row="0" column="0">
              <widget class="QCheckBox" name="limitCB">
               <property name="text">
                <string>limit</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0">
+             <widget class="QPushButton" name="redeemButton">
+              <property name="toolTip">
+               <string>Redeem once now</string>
+              </property>
+              <property name="text">
+               <string>redeem x1</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="QPushButton" name="controlButton">
+              <property name="toolTip">
+               <string>Start auto redeeming</string>
+              </property>
+              <property name="text">
+               <string>Start</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+              <property name="flat">
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -126,7 +172,10 @@
               </property>
              </widget>
             </item>
-            <item row="1" column="1">
+            <item row="2" column="1">
+             <widget class="QComboBox" name="dropDPlatform"/>
+            </item>
+            <item row="4" column="1">
              <spacer name="verticalSpacer">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -139,23 +188,36 @@
               </property>
              </spacer>
             </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Code type</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QComboBox" name="dropDType">
+              <property name="currentIndex">
+               <number>0</number>
+              </property>
+              <item>
+               <property name="text">
+                <string>All</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Golden</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Non-Golden</string>
+               </property>
+              </item>
+             </widget>
+            </item>
            </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="controlButton">
-           <property name="text">
-            <string>Start</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-           <property name="flat">
-            <bool>false</bool>
-           </property>
           </widget>
          </item>
         </layout>

@@ -53,9 +53,14 @@ CW::ControlWindow(QWidget *parent) :
     ashift::logger_error.withCallback(logging_cb, ui->std_out);
   }
 
+  // automatically set setting values from ui input
   FSETTINGS.observe(ui->limitCB, "limit_keys");
   FSETTINGS.observe(ui->limitBox, "limit_num");
+  FSETTINGS.observe(ui->dropDGame, "game");
+  FSETTINGS.observe(ui->dropDPlatform, "platform");
+  FSETTINGS.observe(ui->dropDType, "code_type");
 
+  // change button text
   connect(ui->controlButton, &QPushButton::toggled,
           [&](bool val) {
             if (val) {
@@ -63,6 +68,7 @@ CW::ControlWindow(QWidget *parent) :
               start();
             } else {
               ui->controlButton->setText("Start");
+              stop();
             }
           });
 
@@ -76,8 +82,34 @@ CW::ControlWindow(QWidget *parent) :
 CW::~ControlWindow()
 {}
 
+void CW::registerParser(const QString& game, const QString& platform, const QIcon& icon)
+{
+  // add game to dropdown if not already there
+  if (ui->dropDGame->findText(game) >= 0)
+    // add it with icon if there is one
+    if (!icon.isNull())
+      ui->dropDGame->addItem(icon, game);
+    else
+      ui->dropDGame->addItem(game);
+
+  // add platform to dropdown if not already there
+  if (ui->dropDPlatform->findText(platform) >= 0)
+    ui->dropDPlatform->addItem(platform);
+}
+
 void CW::start()
 {
   // TODO write logic
+}
+
+void CW::stop()
+{
+  // TODO write logic
+}
+
+bool CW::redeem()
+{
+  // TODO write logic
+  return false;
 }
 #undef CW

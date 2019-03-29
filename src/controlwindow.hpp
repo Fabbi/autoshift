@@ -38,13 +38,37 @@ public:
     activateWindow();
     setFocus();
   }
+
+  /**
+   * Register SHiFT code parser for querying new codes.
+   *
+   * @param game the game this parser searches codes for.
+   * @param platform the platform this parser searches codes for.
+   */
+  void registerParser(const QString&, const QString&, const QIcon& = QIcon());
+
+  // /**
+  //  * Register SHiFT code parser for querying new codes.
+  //  *
+  //  * @param games the games this parser searches codes for.
+  //  * @param platforms the platforms this parser searches codes for.
+  //  */
+  // void registerParser(const QStringList&,
+  //                     const QStringList&);
 private:
   /**
-   * Start the Magic.
-   *
    * Starts redeeming SHiFT codes
    */
   void start();
+  /**
+   * Stop redeeming SHiFT codes
+   */
+  void stop();
+
+  /**
+   * Redeem one SHiFT code
+   */
+  bool redeem();
 
 private:
   Ui::ControlWindow *ui;
