@@ -32,6 +32,8 @@ Logger logger_null = Logger();
 #include "controlwindow.hpp"
 #include <fsettings.hpp>
 
+#include "shift.hpp"
+
 namespace po = boost::program_options;
 
 int main(int argc, char *argv[])

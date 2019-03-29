@@ -23,6 +23,7 @@
 #pragma once
 
 #include "ui_controlwindow.h"
+#include "shift.hpp"
 
 class ControlWindow : public QMainWindow
 {
@@ -73,4 +74,5 @@ private:
 private:
   Ui::ControlWindow *ui;
 
+  ShiftClient sClient;
 };

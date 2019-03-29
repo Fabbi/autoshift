@@ -6,6 +6,7 @@ add_executable(autoshift
 
   main.cpp
   controlwindow.cpp
+  shift.cpp
   )
 
 target_link_libraries(autoshift Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::PrintSupport)
