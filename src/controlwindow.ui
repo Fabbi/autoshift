@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>808</width>
-    <height>717</height>
+    <height>802</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -59,6 +59,12 @@
          <property name="sortingEnabled">
           <bool>true</bool>
          </property>
+         <attribute name="horizontalHeaderStretchLastSection">
+          <bool>false</bool>
+         </attribute>
+         <attribute name="verticalHeaderStretchLastSection">
+          <bool>false</bool>
+         </attribute>
          <column>
           <property name="text">
            <string>R</string>
@@ -134,6 +140,28 @@
               </property>
              </widget>
             </item>
+            <item row="3" column="1">
+             <widget class="QComboBox" name="dropDType">
+              <property name="currentIndex">
+               <number>0</number>
+              </property>
+              <item>
+               <property name="text">
+                <string>All</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Golden</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Non-Golden</string>
+               </property>
+              </item>
+             </widget>
+            </item>
             <item row="5" column="1">
              <widget class="QPushButton" name="controlButton">
               <property name="toolTip">
@@ -193,28 +221,6 @@
               <property name="text">
                <string>Code type</string>
               </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <widget class="QComboBox" name="dropDType">
-              <property name="currentIndex">
-               <number>0</number>
-              </property>
-              <item>
-               <property name="text">
-                <string>All</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Golden</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Non-Golden</string>
-               </property>
-              </item>
              </widget>
             </item>
            </layout>

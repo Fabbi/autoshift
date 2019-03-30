@@ -60,6 +60,43 @@ struct StatusC
   void reset() { code = Status::NONE; message = ""; data=0; }
 };
 
+FENUM(request_t,
+      GET,
+      POST);
+
+class Request : public QObject
+{
+  Q_OBJECT
+
+public:
+  Request(QNetworkAccessManager& _manager, const QUrl& _url,
+          const QUrlQuery& _data, request_t _type = request_t::GET);
+  Request(QNetworkAccessManager& _manager, const QUrl& _url,
+          request_t _type = request_t::GET);
+  ~Request();
+
+  template<typename FUNC>
+  void send(FUNC, bool=false);
+
+  void send(bool=false);
+
+public:
+  QNetworkAccessManager* manager;
+  QUrl url;
+  QNetworkReply* reply;
+
+  // StatusC status;
+  QByteArray data; ///< reply data
+  QByteArray query_data; ///< post data
+
+  QNetworkRequest req;
+
+private:
+  request_t type;
+
+signals:
+  void finished(QByteArray);
+};
 
 class ShiftClient : public QObject
 {
@@ -84,11 +121,10 @@ private:
    *
    * @param url The URL to query
    */
-  template<typename FUNC> // (bool) -> void
-  void getToken(const QUrl&, FUNC&);
+  StatusC& getToken(const QUrl&);
 
 private slots:
-  void save_cookie();
+  bool save_cookie();
   bool load_cookie();
 
 
@@ -108,13 +144,13 @@ private slots:
   // void redeemForm(??);
 
 private:
-  QUrl current_url;
+  bool logged_in;
 
   QNetworkAccessManager network_manager;
-  QNetworkReply* reply;
+  // QNetworkReply* reply;
 
-  QString current_token;
-  QByteArray current_data;
+  // QString current_token;
+  // QByteArray current_data;
   StatusC current_status;
   // QDataStream stream;
 
