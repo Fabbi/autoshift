@@ -22,6 +22,9 @@
 
 #pragma once
 
+#include <QTimer>
+#include <QEventLoop>
+
 #define ENUM_FUNCS(name, first)                                   \
   typedef name ## _enum::name ## _enum name;                      \
   inline bool is_ ## name (int i) {                               \
@@ -68,3 +71,29 @@ typedef Foo_enum::Foo_enum Foo;
         };                                      \
   }                                             \
   ENUM_FUNCS(name, first)
+
+/**
+ * Wait for signal to fire
+ *
+ * @args obj The Object this signal belongs to.
+ * @args signal The Signal.
+ * @args ms Miliseconds timeout.
+ *
+ * @return Whether the signal did fire or timeout occurred
+ */
+template<typename FUNC>
+bool wait(QObject* obj, FUNC signal, int ms = 5000)
+{
+  QTimer timer;
+  timer.setSingleShot(true);
+
+  QEventLoop loop;
+  QObject::connect(obj, signal, &loop, &QEventLoop::quit);
+  QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+  timer.start(ms);
+  loop.exec();
+
+  bool ret = timer.isActive();
+  timer.stop();
+  return ret;
+}
