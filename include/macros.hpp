@@ -81,8 +81,8 @@ typedef Foo_enum::Foo_enum Foo;
  *
  * @return Whether the signal did fire or timeout occurred
  */
-template<typename FUNC>
-bool wait(QObject* obj, FUNC signal, int ms = 5000)
+template<class T, typename FUNC>
+bool wait(const T* obj, FUNC signal, int ms = 5000)
 {
   QTimer timer;
   timer.setSingleShot(true);
