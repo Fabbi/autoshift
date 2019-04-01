@@ -11,7 +11,8 @@ Request::Request(QNetworkAccessManager& _manager, const QUrl& _url,
 }
 Request::Request(QNetworkAccessManager& _manager, const QUrl& _url,
                  request_t _type)
-  : manager(&_manager), url(_url), reply(0), data(""), type(_type), req(url)
+  : manager(&_manager), url(_url), reply(0), data(""),
+    type(_type), req(url), follow_redirects(false)
 {
   // fake user-agent
   req.setHeader(QNetworkRequest::UserAgentHeader,
@@ -22,15 +23,15 @@ Request::~Request()
 {if (reply) reply->deleteLater();}
 
 template<typename FUNC>
-void Request::send(FUNC fun, bool follow)
+void Request::send(FUNC fun)
 {
   // connect to this
   connect(this, &Request::finished, fun);
 
-  send(follow);
+  send();
 }
 
-void Request::send(bool follow)
+void Request::send()
 {
   data.clear();
   if (reply) {
@@ -52,7 +53,7 @@ void Request::send(bool follow)
   });
 
   // connect to reply
-  connect(reply, &QNetworkReply::finished, this, [&, follow]() {
+  connect(reply, &QNetworkReply::finished, this, [&]() {
     QVariant statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute );
     const QList<QPair<QByteArray,QByteArray>>& hdr_list = reply->rawHeaderPairs();
     // DEBUG << "== HDRS ==" << endl;
@@ -62,7 +63,7 @@ void Request::send(bool follow)
     DEBUG << "    STATUS CODE " << statusCode.toInt() << endl;
     // follow redirects
     const QVariant redirectionTarget = reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
-    if (follow && redirectionTarget.isValid()) {
+    if (follow_redirects && redirectionTarget.isValid()) {
       // change to http GET
       type = request_t::GET;
 
@@ -74,7 +75,7 @@ void Request::send(bool follow)
       DEBUG << "auto redirect to " << url.toString() << endl;
 
       // recursive call with 500ms delay (don't spam)
-      QTimer::singleShot(500, [&, follow](){send(follow);});
+      QTimer::singleShot(500, [&](){send();});
     } else {
       // our job here is done
       emit finished(data);

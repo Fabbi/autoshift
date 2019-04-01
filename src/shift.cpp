@@ -210,7 +210,7 @@ void SC::login(const QString& user, const QString& pw)
     return;
   }
 
-  QString& token = s.message;
+  QString& token(s.message);
 
   // setup post data
   QUrlQuery postData;
@@ -218,7 +218,7 @@ void SC::login(const QString& user, const QString& pw)
   postData.addQueryItem("user[email]", user);
   postData.addQueryItem("user[password]", pw);
 
-  Request* req = new Request(network_manager, baseUrl.resolved(QUrl("/sessions")),
+  Request* req = new REQUEST(baseUrl.resolved(QUrl("/sessions")),
                             postData, request_t::POST);
   // setup request
   // QNetworkRequest request(baseUrl.resolved(QUrl("/sessions")));
@@ -226,12 +226,14 @@ void SC::login(const QString& user, const QString& pw)
                     "application/x-www-form-urlencoded");
   req->req.setRawHeader("Referer", the_url.toEncoded());
 
+  req->followRedirects(true);
   // send request and follow redirects
   req->send([&, req](QByteArray data) mutable {
     DEBUG << "============= LOGIN ============" << endl;
     logged_in = save_cookie();
     req->deleteLater();
-  }, true);
+  });
+}
 }
 // void SC::getRedemptionForm(const QString&);
 

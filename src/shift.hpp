@@ -49,13 +49,18 @@ struct StatusC
 {
   Status code;
   QString message;
-  void* data;
+  QVariant data;
 
   StatusC()
-    :code(Status::NONE), message(""), data(0)
+    :code(Status::NONE), message(""), data()
   {}
-  StatusC(Status c, const QString& msg, void* _data = 0)
+  StatusC(Status c, const QString& msg, const QVariant& _data)
     :code(c), message(msg), data(_data)
+  {}
+  StatusC(Status c, const QString& msg)
+    :StatusC(c, msg, QVariant())
+  {}
+  ~StatusC()
   {}
   void reset() { code = Status::NONE; message = ""; data=0; }
 };

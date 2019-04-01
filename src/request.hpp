@@ -49,10 +49,12 @@ public:
   ~Request();
 
   template<typename FUNC>
-  void send(FUNC, bool=false);
+  void send(FUNC);
 
-  void send(bool=false);
+  void send();
 
+  void followRedirects(bool v=true)
+  { follow_redirects = v; }
 public:
   QNetworkAccessManager* manager;
   QUrl url;
@@ -66,6 +68,8 @@ public:
 
 private:
   request_t type;
+
+  bool follow_redirects;
 
 signals:
   void finished(QByteArray);
