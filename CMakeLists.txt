@@ -96,6 +96,7 @@ if (Qt5Core_FOUND)
 else()
   message (FATAL_ERROR "Qt5 not found.")
 endif()
+set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${ROOT}/include/ui)
 
 ## boost
 # find_package_quiet(BoostExtern REQUIRED)

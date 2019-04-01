@@ -24,10 +24,13 @@
 #include <QUrl>
 #include <QDataStream>
 
+#include <QDialog>
+
 #include <logger.hpp>
 #include <macros.hpp>
 
 #include "shift.hpp"
+#include "ui_loginwindow.h"
 
 #include "request.hpp"
 
@@ -42,28 +45,46 @@ const QString cookieFile(".cookie.sav");
 SC::ShiftClient(QObject* parent)
   :QObject(parent), logged_in(false)
 {
-  connect(&network_manager, &QNetworkAccessManager::authenticationRequired,
-          this, &SC::slotAuthenticationRequired);
-  connect(&network_manager, &QNetworkAccessManager::sslErrors,
-          this, &SC::sslErrors);
-
   // auto login
   if (load_cookie()) {
     DEBUG << "COOKIE LOADED" << endl;
-    Request* req = new Request(network_manager, baseUrl.resolved(QUrl("/account")));
-    req->send([&, req]() {
-      // std::string str = req->data.toStdString();
-      // if (str.size() < 200)
-        DEBUG << "\n" << req->data.toStdString() << endl;
-      // save_cookie();
-      req->deleteLater();
-    });
+    // Request* req = new Request(network_manager, baseUrl.resolved(QUrl("/account")));
+    // req->send([&, req]() {
+    //   // std::string str = req->data.toStdString();
+    //   // if (str.size() < 200)
+    //     DEBUG << "\n" << req->data.toStdString() << endl;
+    //   // save_cookie();
+    //   req->deleteLater();
+    // });
   } else {
-    DEBUG << "no cookie? :(" << endl;
+    // show login window
+    QDialog loginDialog;
+    Ui::Login loginWin;
+    loginWin.setupUi(&loginDialog);
+
+    // when clicked "Ok"
+    if (loginDialog.exec()) {
+      QString user = loginWin.userInput->text();
+      QString pw = loginWin.pwInput->text();
+
+      INFO << "trying to log in" << endl;
+      login(user, pw);
+    }
+    // DEBUG << "login: " << loginDialog.exec() << endl;
+    // DEBUG << loginWin.userInput->text() << endl;
+    // DEBUG << "no cookie? :(" << endl;
   }
 }
+
 SC::~ShiftClient()
-{}
+{
+  // if (logged_in) {
+  //   DEBUG << "logout" << endl;
+  //   Request REQ(baseUrl.resolved(QUrl("/logout")));
+  //   req.send();
+  //   wait(&req, &Request::finished);
+  // }
+}
 
 Status SC::redeem(const QString& code)
 {
@@ -76,7 +97,6 @@ bool SC::save_cookie()
   QList<QNetworkCookie> cookies = network_manager.cookieJar()->cookiesForUrl(baseUrl);
   QByteArray data;
   for (auto& cookie: cookies) {
-    DEBUG << "COOKIE " << cookie.name().toStdString() << endl;
     if (cookie.name().toStdString() == "si") {
       data = cookie.toRawForm();
       break;
@@ -119,6 +139,7 @@ bool SC::load_cookie()
   network_manager.cookieJar()->setCookiesFromUrl(cookies, baseUrl);
 
   cookie_f.close();
+  logged_in = true;
   return true;
 }
 
@@ -141,7 +162,7 @@ StatusC& SC::getToken(const QUrl& url)
     DEBUG << "timeout" << endl;
     DEBUG << "\n" << req.data.toStdString() << endl;
     current_status.code = Status::UNKNOWN;
-    current_status.message = "Timout on Token Request";
+    current_status.message = "Timeout on Token Request";
     return current_status;
   }
 
@@ -173,7 +194,6 @@ StatusC& SC::getToken(const QUrl& url)
 
   if (found) {
     current_status.code = Status::SUCCESS;
-    DEBUG << "FOUND TOKEN: " << current_status.message << endl;
   }
 
   return current_status;
@@ -186,10 +206,9 @@ void SC::login(const QString& user, const QString& pw)
   StatusC& s = getToken(the_url);
 
   if (s.code != Status::SUCCESS) {
-    DEBUG << "NO TOKEN" << endl;
+    ERROR << "Token Request Error: " << s.message << endl;
     return;
   }
-
 
   QString& token = s.message;
 
@@ -207,53 +226,12 @@ void SC::login(const QString& user, const QString& pw)
                     "application/x-www-form-urlencoded");
   req->req.setRawHeader("Referer", the_url.toEncoded());
 
-
-  // post
-  // reply = network_manager.post(request, postData.toString(QUrl::FullyEncoded).toUtf8());
-  // read all data
-  // connect(reply, &QIODevice::readyRead, this, [&]() {
-  //   DEBUG << "new login post data" << endl;
-  //   current_data.append(reply->readAll());
-  // });
-
-  // connect(reply, &QNetworkReply::finished, this,
+  // send request and follow redirects
   req->send([&, req](QByteArray data) mutable {
     DEBUG << "============= LOGIN ============" << endl;
-    // DEBUG << "\n" << current_data.toStdString() << endl;
-    // DEBUG << data.toStdString() << endl;
-    // const QVariant redirectionTarget = req->reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
     logged_in = save_cookie();
     req->deleteLater();
-
-    // req = new Request(network_manager, baseUrl.resolved(QUrl("/account")));
-    // req->send([&, req]() {
-    //   std::string str = req->data.toStdString();
-    //   if (str.size() < 200)
-    //     DEBUG << "\n" << req->data.toStdString() << endl;
-    //   save_cookie();
-    //   req->deleteLater();
-    // });
-    // // automatic redirection following does not work....
-    // if (!redirectionTarget.isNull()) {
-    //   const QUrl redirectedUrl = redirectionTarget.toUrl();
-    //   DEBUG << "redirect to " << redirectedUrl.toString() << endl;
-
-    //   req = new Request(network_manager, redirectedUrl);
-    //   // reply = network_manager.get(QNetworkRequest(redirectedUrl));
-    //   req->send([&, req]() mutable {
-    //     DEBUG << "\n" << req->data.toStdString() << endl;
-    //     // reply->deleteLater();
-    //     // reply = nullptr;
-    //     save_cookie();
-    //   req->deleteLater();
-    //   });
-    // }
-
-
   }, true);
-  // };
-  // down the JS-style rabbit hole.. :(
-  // getToken(the_url, callback);
 }
 // void SC::getRedemptionForm(const QString&);
 
