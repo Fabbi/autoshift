@@ -35,7 +35,8 @@
 
 FENUM(request_t,
       GET,
-      POST);
+      POST,
+      HEAD);
 
 class Request : public QObject
 {
@@ -49,7 +50,14 @@ public:
   ~Request();
 
   template<typename FUNC>
-  void send(FUNC);
+  void send(FUNC fun)
+  {
+    // connect to this
+    connect(this, &Request::finished, fun);
+
+    send();
+  }
+
 
   void send();
 
@@ -63,6 +71,7 @@ public:
   // StatusC status;
   QByteArray data; ///< reply data
   QByteArray query_data; ///< post data
+  int status_code;
 
   QNetworkRequest req;
 

@@ -12,7 +12,7 @@ Request::Request(QNetworkAccessManager& _manager, const QUrl& _url,
 Request::Request(QNetworkAccessManager& _manager, const QUrl& _url,
                  request_t _type)
   : manager(&_manager), url(_url), reply(0), data(""),
-    type(_type), req(url), follow_redirects(false)
+    type(_type), req(url), follow_redirects(false), status_code(-1)
 {
   // fake user-agent
   req.setHeader(QNetworkRequest::UserAgentHeader,
@@ -22,30 +22,32 @@ Request::Request(QNetworkAccessManager& _manager, const QUrl& _url,
 Request::~Request()
 {if (reply) reply->deleteLater();}
 
-template<typename FUNC>
-void Request::send(FUNC fun)
-{
-  // connect to this
-  connect(this, &Request::finished, fun);
-
-  send();
-}
-
 void Request::send()
 {
+  status_code = -1;
   data.clear();
   if (reply) {
     delete reply;
     reply = nullptr;
   }
 
-  // get or post
-  if (type == request_t::GET) {
+  switch (type) {
+  case request_t::GET:
+  {
     DEBUG << "GET " << url.toString() << endl;
     reply = manager->get(req);
-  } else {
+  } break;
+  case request_t::POST:
+  {
     DEBUG << "POST " << url.toString() << endl;
     reply = manager->post(req, query_data);
+  } break;
+  case request_t::HEAD:
+  {
+    DEBUG << "HEAD " << url.toString() << endl;
+    reply = manager->head(req);
+  } break;
+  default: break;
   }
 
   connect(reply, &QIODevice::readyRead, this, [&]() {
@@ -54,7 +56,8 @@ void Request::send()
 
   // connect to reply
   connect(reply, &QNetworkReply::finished, this, [&]() {
-    QVariant statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute );
+    QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    status_code = statusCode.toInt();
     const QList<QPair<QByteArray,QByteArray>>& hdr_list = reply->rawHeaderPairs();
     // DEBUG << "== HDRS ==" << endl;
     // for (auto& pair: hdr_list) {

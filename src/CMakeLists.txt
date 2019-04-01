@@ -4,6 +4,8 @@ add_executable(autoshift
   widgets/qansitextedit.cpp
   ${ROOT}/include/fsettings.hpp
 
+  request.cpp
+
   main.cpp
   controlwindow.cpp
   shift.cpp
