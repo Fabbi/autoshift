@@ -60,43 +60,6 @@ struct StatusC
   void reset() { code = Status::NONE; message = ""; data=0; }
 };
 
-FENUM(request_t,
-      GET,
-      POST);
-
-class Request : public QObject
-{
-  Q_OBJECT
-
-public:
-  Request(QNetworkAccessManager& _manager, const QUrl& _url,
-          const QUrlQuery& _data, request_t _type = request_t::GET);
-  Request(QNetworkAccessManager& _manager, const QUrl& _url,
-          request_t _type = request_t::GET);
-  ~Request();
-
-  template<typename FUNC>
-  void send(FUNC, bool=false);
-
-  void send(bool=false);
-
-public:
-  QNetworkAccessManager* manager;
-  QUrl url;
-  QNetworkReply* reply;
-
-  // StatusC status;
-  QByteArray data; ///< reply data
-  QByteArray query_data; ///< post data
-
-  QNetworkRequest req;
-
-private:
-  request_t type;
-
-signals:
-  void finished(QByteArray);
-};
 
 class ShiftClient : public QObject
 {

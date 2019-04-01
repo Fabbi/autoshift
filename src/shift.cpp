@@ -29,74 +29,12 @@
 
 #include "shift.hpp"
 
-Request::Request(QNetworkAccessManager& _manager, const QUrl& _url,
-                 const QUrlQuery& _data, request_t _type)
-  :Request(_manager, _url, _type)
-{
-  query_data = _data.toString(QUrl::FullyEncoded).toUtf8();
-}
-Request::Request(QNetworkAccessManager& _manager, const QUrl& _url,
-                 request_t _type)
-  : manager(&_manager), url(_url), reply(0), data(""), type(_type), req(url)
-{}
-Request::~Request()
-{if (reply) reply->deleteLater();}
-
-template<typename FUNC>
-void Request::send(FUNC fun, bool follow)
-{
-  // connect to this
-  connect(this, &Request::finished, fun);
-
-  send(follow);
-}
-void Request::send(bool follow)
-{
-  data.clear();
-  if (reply) {
-    delete reply;
-    reply = nullptr;
-  }
-
-  // get or post
-  if (type == request_t::GET) {
-    DEBUG << "GET " << url.toString() << endl;
-    reply = manager->get(req);
-  } else {
-    DEBUG << "POST " << url.toString() << endl;
-    reply = manager->post(req, query_data);
-  }
-
-  connect(reply, &QIODevice::readyRead, this, [&]() {
-    data.append(reply->readAll());
-  });
-
-  // connect to reply
-  connect(reply, &QNetworkReply::finished, this, [&, follow]() {
-    DEBUG << "request finished" << endl;
-    const QVariant redirectionTarget = reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
-    if (follow && redirectionTarget.isValid()) {
-      // change to http GET
-      type = request_t::GET;
-
-      // change referer
-      url = url.resolved(redirectionTarget.toUrl());
-      req.setUrl(url);
-      DEBUG << "auto redirect to " << url.toString() << endl;
-
-      // recursive call
-      send(follow);
-    } else {
-      emit finished(data);
-      deleteLater();
-    }
-  });
-
-
-  // deleteLater();
-}
+#include "request.hpp"
 
 #define SC ShiftClient
+
+#define REQUEST(args...) Request(network_manager, args)
+#define REQ(args...) req(network_manager, args)
 
 const QUrl baseUrl("https://shift.gearboxsoftware.com");
 const QString cookieFile(".cookie.sav");
@@ -333,3 +271,5 @@ void SC::sslErrors(QNetworkReply*, const QList<QSslError>& err)
 
 }
 #undef SC
+#undef REQ
+#undef REQUEST
