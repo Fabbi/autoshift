@@ -58,12 +58,19 @@ void Request::send()
   connect(reply, &QNetworkReply::finished, this, [&]() {
     QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     status_code = statusCode.toInt();
-    const QList<QPair<QByteArray,QByteArray>>& hdr_list = reply->rawHeaderPairs();
-    // DEBUG << "== HDRS ==" << endl;
-    // for (auto& pair: hdr_list) {
+    DEBUG << "    STATUS CODE " << statusCode.toInt() << endl;
+    // DEBUG << "==================" << endl;
+    // DEBUG << "== REQUEST HDRS ==" << endl;
+    // const QList<QByteArray>& hdr_list = reply->request().rawHeaderList();
+    // for (auto& hdr: hdr_list) {
+    //   DEBUG << hdr.toStdString() << ": " << reply->request().rawHeader(hdr).toStdString() << endl;
+    // }
+    // DEBUG << "== REPLY   HDRS ==" << endl;
+    // const QList<QPair<QByteArray,QByteArray>>& hdr_list2 = reply->rawHeaderPairs();
+    // for (auto& pair: hdr_list2) {
     //   DEBUG << pair.first.toStdString() << ": " << pair.second.toStdString() << endl;
     // }
-    DEBUG << "    STATUS CODE " << statusCode.toInt() << endl;
+    // DEBUG << "==================" << endl;
     // follow redirects
     const QVariant redirectionTarget = reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
     if (follow_redirects && redirectionTarget.isValid()) {

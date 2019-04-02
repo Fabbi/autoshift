@@ -28,6 +28,8 @@
 #include <QNetworkAccessManager>
 #include <QUrl>
 
+class Request;
+
 class QSslError;
 class QAuthenticator;
 class QNetworkReply;
@@ -70,6 +72,7 @@ class ShiftClient : public QObject
 {
   Q_OBJECT
 
+  typedef std::function<bool(Request&)> ReqCallback;
 public:
   explicit ShiftClient(QObject* parent = 0);
   ~ShiftClient();
@@ -104,8 +107,16 @@ private slots:
    */
   void login(const QString&, const QString&);
 
-  // void getRedemptionForm(const QString&);
+  /**
+   * Get POST data for code redemption
+   *
+   * @params code The SHiFT code
+   *
+   * @return QUrlQuery with POST data.
+   */
+  StatusC getRedemptionData(const QString&);
 
+  StatusC getFormData(const QUrl&, ReqCallback=0, ReqCallback=0);
   // void getAlert(??);
   // void getStatus(??);
   // void checkRedemptionStatus(??);
@@ -123,8 +134,11 @@ private:
   // QDataStream stream;
 
 public slots:
-  void slotAuthenticationRequired(QNetworkReply*, QAuthenticator*);
-  void sslErrors(QNetworkReply*, const QList<QSslError>&);
+  /**
+   * Login via Cookie or data-prompt
+   */
+  void login();
 
 signals:
+  void loggedin();
 };

@@ -96,6 +96,7 @@ CW::ControlWindow(QWidget *parent) :
   cout_font.setStyleHint(QFont::TypeWriter);
   ui->std_out->setFont(cout_font);
 
+  login();
 }
 
 CW::~ControlWindow()
@@ -103,6 +104,13 @@ CW::~ControlWindow()
 
 void CW::login()
 {
+  ui->loginButton->setText("");
+  spinner->start();
+
+  sClient.login();
+  // ui->loginButton->tit
+
+  spinner->setAttribute(Qt::WA_TransparentForMouseEvents);
 }
 void CW::loggedin()
 {
