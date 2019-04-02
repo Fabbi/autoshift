@@ -206,28 +206,27 @@ void SC::login()
   // auto login
   if (load_cookie()) {
     DEBUG << "COOKIE LOADED" << endl;
-    Request REQ(baseUrl.resolved(QUrl("/account")), request_t::HEAD);
-    req.send();
-    wait(&req, &Request::finished);
-    DEBUG << "\n" << req.data.toStdString() << endl;
-  } else {
-    // show login window
-    QDialog loginDialog;
-    Ui::Login loginWin;
-    loginWin.setupUi(&loginDialog);
-
-    // when clicked "Ok"
-    if (loginDialog.exec()) {
-      QString user = loginWin.userInput->text();
-      QString pw = loginWin.pwInput->text();
-
-      INFO << "trying to log in" << endl;
-      login(user, pw);
-    }
-    // DEBUG << "login: " << loginDialog.exec() << endl;
-    // DEBUG << loginWin.userInput->text() << endl;
-    // DEBUG << "no cookie? :(" << endl;
+    logged_in = true;
+    emit loggedin();
+    return;
   }
+
+  // show login window
+  QDialog loginDialog;
+  Ui::Login loginWin;
+  loginWin.setupUi(&loginDialog);
+
+  // when clicked "Ok"
+  if (loginDialog.exec()) {
+    QString user = loginWin.userInput->text();
+    QString pw = loginWin.pwInput->text();
+
+    INFO << "trying to log in" << endl;
+    login(user, pw);
+  }
+  // DEBUG << "login: " << loginDialog.exec() << endl;
+  // DEBUG << loginWin.userInput->text() << endl;
+  // DEBUG << "no cookie? :(" << endl;
 }
 
 void SC::login(const QString& user, const QString& pw)
