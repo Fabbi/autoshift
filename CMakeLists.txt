@@ -156,6 +156,10 @@ if (NOINFO MATCHES yes)
   add_definitions(-DNOINFO)
 endif()
 
+# add extra libs
+add_subdirectory(extern_libs/QtWaitingSpinner)
+include_directories(extern_libs/QtWaitingSpinner)
+
 # setup directories
 include_directories(include)
 

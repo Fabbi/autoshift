@@ -28,6 +28,7 @@
 #include <fsettings.hpp>
 
 #include <widgets/qansitextedit.hpp>
+#include <waitingspinnerwidget.h>
 
 void logging_cb(const std::string& str, void* ud)
 {
@@ -37,9 +38,12 @@ void logging_cb(const std::string& str, void* ud)
 #define CW ControlWindow
 
 CW::ControlWindow(QWidget *parent) :
-  QMainWindow(parent), ui(new Ui::ControlWindow)
+  QMainWindow(parent), ui(new Ui::ControlWindow),
+  sClient(this)
 {
   ui->setupUi(this);
+  connect(ui->loginButton, &QPushButton::pressed,
+          this, &ControlWindow::login);
 
   if (FSETTINGS["no_gui"].toBool()) {
     DEBUG << "no_gui" << endl;
@@ -47,6 +51,21 @@ CW::ControlWindow(QWidget *parent) :
     ashift::logger_info.withCallback(0, 0);
     ashift::logger_error.withCallback(0, 0);
   } else {
+    spinner = new WaitingSpinnerWidget(ui->loginButton);
+
+    QGuiApplication* app = static_cast<QGuiApplication*>(QGuiApplication::instance());
+    QPalette palette = app->palette();
+    QColor bgcolor = palette.color(QPalette::Window);
+
+    // setup waiting spinner
+    spinner->setNumberOfLines(10);
+    spinner->setLineLength(5);
+    spinner->setLineWidth(2);
+    spinner->setInnerRadius(3);
+    // spinner->setRevolutionsPerSecond(1);
+    spinner->setColor(QColor(255-bgcolor.red(), 255-bgcolor.green(), 255-bgcolor.blue()));
+
+    connect(&sClient, &ShiftClient::loggedin, this, &ControlWindow::loggedin);
     // installEventFilter(this);
     ashift::logger_debug.withCallback(logging_cb, ui->std_out);
     ashift::logger_info.withCallback(logging_cb, ui->std_out);
@@ -81,6 +100,16 @@ CW::ControlWindow(QWidget *parent) :
 
 CW::~ControlWindow()
 {}
+
+void CW::login()
+{
+}
+void CW::loggedin()
+{
+  spinner->stop();
+  ui->loginButton->setText("signed in");
+  ui->loginButton->setEnabled(false);
+}
 
 void CW::registerParser(const QString& game, const QString& platform, const QIcon& icon)
 {

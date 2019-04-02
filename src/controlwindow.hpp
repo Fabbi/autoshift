@@ -25,6 +25,7 @@
 #include "ui_controlwindow.h"
 #include "shift.hpp"
 
+class WaitingSpinnerWidget;
 class ControlWindow : public QMainWindow
 {
   Q_OBJECT
@@ -56,6 +57,10 @@ public:
   //  */
   // void registerParser(const QStringList&,
   //                     const QStringList&);
+public slots:
+  void login();
+  void loggedin();
+
 private:
   /**
    * Starts redeeming SHiFT codes
@@ -73,6 +78,7 @@ private:
 
 private:
   Ui::ControlWindow *ui;
+  WaitingSpinnerWidget* spinner;
 
   ShiftClient sClient;
 };
