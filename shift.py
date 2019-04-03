@@ -29,6 +29,11 @@ from common import _L, DIRNAME
 base_url = "https://shift.gearboxsoftware.com"
 
 
+def json_headers(token):
+    return {'x-csrf-token': token,
+            'x-requested-with': 'XMLHttpRequest'}
+
+
 # filthy enum hack with auto convert
 __els = ["NONE", "REDIRECT", "TRYLATER",
          "EXPIRED", "REDEEMED",
@@ -142,9 +147,13 @@ class ShiftClient:
             self.client.cookies.update(pickle.load(f))
         return True
 
-    def __get_token(self, url):
+    def __get_token(self, url_or_reply):
         """Get CSRF-Token from given URL"""
-        r = self.client.get(url)
+        if type(url_or_reply) == str:
+            r = self.client.get(url_or_reply)
+        else:
+            r = url_or_reply
+
         soup = BSoup(r.text, "html.parser")
         meta = soup.find("meta", attrs=dict(name="csrf-token"))
         if not meta:
@@ -174,11 +183,9 @@ class ShiftClient:
             _L.debug("no token")
             return False, status_code, "Could not retrieve Token"
 
-        headers = {'x-csrf-token': token,
-                   'x-requested-with': 'XMLHttpRequest'}
         r = self.client.get("{base_url}/entitlement_offer_codes?code={code}"
                             .format(base_url=base_url, **locals()),
-                            headers=headers)
+                            headers=json_headers(token))
         soup = BSoup(r.text, "html.parser")
         if not soup.find("form", class_="new_archway_code_redemption"):
             return False, r.status_code, r.text.strip()
@@ -194,62 +201,54 @@ class ShiftClient:
                      "archway_code_redemption[service]": service}
         return True, r.status_code, form_data
 
-    def __get_alert(self, r):
-        """Get Alert Answer after redemption"""
-        soup = BSoup(r.text, "html.parser")
-        notice = soup.find("div", class_="notice")
-        if not notice:
-            return Status.NONE, None
-
-        alert = notice.text.strip()
-
+    def __get_status(self, alert):
         status = Status.NONE
-        if "to continue to redeem" in alert.lower():
-            status = Status.TRYLATER
-        elif "expired" in alert.lower():
-            status = Status.EXPIRED
-        elif "success" in alert.lower():
+        if "success" in alert.lower():
             status = Status.SUCCESS
         elif "failed" in alert.lower():
             status = Status.REDEEMED
 
         return status, alert
 
-    def __get_status(self, r):
+    def __get_redemption_status(self, r):
         # return None
         soup = BSoup(r.text, "lxml")
         div = soup.find("div", id="check_redemption_status")
-        ret = [None, None]
+        ret = [None, None, None]
         if div:
             ret[0] = div.text.strip()
             ret[1] = div["data-url"]
+            ret[2] = div["data-fallback-url"]
         return ret
 
     def __check_redemption_status(self, r):
         """Check redemption"""
+        import json
         from time import sleep
         if (r.status_code == 302):
             return Status.REDIRECT, r.headers["location"]
 
-        status, alert = self.__get_alert(r)
-        if alert:
-            _L.debug(alert)
-            return status, alert
-
-        get_status, url = self.__get_status(r)
+        get_status, url, fallback = self.__get_redemption_status(r)
         if get_status:
-            _L.info(get_status)
-            # wait 500
-            sleep(0.5)
-            r2 = self.client.get("{}/{}".format(base_url, url),
-                                 allow_redirects=False)
-            return self.__check_redemption_status(r2)
+            status_code, token = self.__get_token(r)
+            cnt = 0
+            while True:
+                if cnt > 5:
+                    return Status.REDIRECT, fallback
+                _L.info(get_status)
+                # wait 500
+                raw_json = self.client.get("{}/{}".format(base_url, url),
+                                           allow_redirects=False,
+                                           headers=json_headers(token))
+                data = json.loads(raw_json.text)
 
-        # workaround for new SHiFT website
-        # it doesn't tell you whether your redemption was successful or not
-        new_rewards = self.__query_rewards()
-        if (new_rewards != self.old_rewards):
-            return Status.SUCCESS, ""
+                if "text" in data:
+                    get_status = self.__get_status(data["text"])
+                    return get_status
+
+                sleep(0.5)
+                cnt += 1
+
         return Status.NONE, None
 
     def __query_rewards(self):
@@ -279,7 +278,7 @@ class ShiftClient:
         redemption = False
         # keep following redirects
         while status == Status.REDIRECT:
-            if "code_redemptions" in redirect:
+            if "code_redemptions/" in redirect:
                 redemption = True
             _L.debug("redirect to '{}'".format(redirect))
             r2 = self.client.get(redirect)
