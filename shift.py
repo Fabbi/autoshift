@@ -20,6 +20,7 @@
 #
 #############################################################################
 from __future__ import print_function
+import getpass
 import pickle
 import requests
 from bs4 import BeautifulSoup as BSoup
@@ -59,37 +60,6 @@ except ImportError:
         return ch
 
 
-def input_pw(qry):
-    """Input Password with * replacing chars"""
-    import sys
-    print(qry, end="")
-    sys.stdout.flush()
-    pw = ""
-    while True:
-        c = getch()
-        # C^c
-        if ord(c) == 3:
-            sys.exit(0)
-
-        # on return
-        if c == '\r':
-            break
-
-        # ignore non-chars
-        if ord(c) < 32:
-            continue
-
-        # backspace
-        if ord(c) == 127:
-            pw = pw[:-1]
-            print("\r{}{}".format(qry, "*" * len(pw)), end=" \b")
-        else:
-            pw += c
-            print("\r{}{}".format(qry, "*" * len(pw)), end="")
-        sys.stdout.flush()
-    return pw
-
-
 class ShiftClient:
     def __init__(self):
         from os import path
@@ -100,7 +70,7 @@ class ShiftClient:
         if not self.__load_cookie():
             print("First time usage: You need to login...")
             user = input("Username: ")
-            pw = input_pw("Password: ")
+            pw = getpass.getpass("Password: ")
             self.__login(user, pw)
             self.__save_cookie()
 
