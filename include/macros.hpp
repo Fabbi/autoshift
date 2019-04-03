@@ -25,7 +25,7 @@
 #include <QTimer>
 #include <QEventLoop>
 
-#define ENUM_FUNCS(name, first)                                   \
+#define ENUM_FUNCS(name, first, ...)                              \
   typedef name ## _enum::name ## _enum name;                      \
   inline bool is_ ## name (int i) {                               \
     return (i >= ((int) name::first) && i < ((int) name::SIZE));  \
@@ -33,6 +33,15 @@
   inline name to ## name(int i) {                                 \
     if (!is_ ## name(i)) return name::NONE;                       \
     return (name)i;                                               \
+  }                                                               \
+  inline std::string s ## name(name i) {                                                 \
+    static std::vector<std::string> names;                        \
+    if (names.empty()) {                                          \
+    std::string str = #first ", " #__VA_ARGS__; \
+    for(char* token = std::strtok(&str[0], ", "); token != 0x0; token = std::strtok(0x0, ", ")) \
+        names.push_back(token);                                        \
+    }                                                             \
+      return names[i];                                            \
   }
 
 // scoped enum that is explicitly convertible to int
@@ -45,7 +54,7 @@
         NONE                                    \
         };                                      \
   }                                             \
-  ENUM_FUNCS(name, first)
+  ENUM_FUNCS(name, first, __VA_ARGS__)
 
 /*
 FENUM(Foo,
@@ -70,7 +79,7 @@ typedef Foo_enum::Foo_enum Foo;
         NONE                                    \
         };                                      \
   }                                             \
-  ENUM_FUNCS(name, first)
+  ENUM_FUNCS(name, first, __VA_ARGS__)
 
 /**
  * Wait for signal to fire
@@ -87,6 +96,7 @@ bool wait(const T* obj, FUNC signal, int ms = 5000)
   QTimer timer;
   timer.setSingleShot(true);
 
+  // TODO timer that fires every 100ms and calls main eventloop
   QEventLoop loop;
   QObject::connect(obj, signal, &loop, &QEventLoop::quit);
   QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
