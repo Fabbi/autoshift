@@ -94,6 +94,11 @@ private:
    */
   StatusC& getToken(const QUrl&);
 
+  /**
+   * Get Reward list
+   */
+  QStringList queryRewards();
+
 private slots:
   bool save_cookie();
   bool load_cookie();
@@ -117,10 +122,12 @@ private slots:
   StatusC getRedemptionData(const QString&);
 
   StatusC getFormData(const QUrl&, ReqCallback=0, ReqCallback=0);
-  // void getAlert(??);
-  // void getStatus(??);
-  // void checkRedemptionStatus(??);
-  // void redeemForm(??);
+
+  StatusC getAlert(const QString&);
+  StatusC getStatus(const QString&);
+  StatusC checkRedemptionStatus(const Request&);
+
+  StatusC redeemForm(const QUrlQuery&);
 
 private:
   bool logged_in;
@@ -132,6 +139,7 @@ private:
   // QByteArray current_data;
   StatusC current_status;
   // QDataStream stream;
+  QStringList old_rewards;
 
 public slots:
   /**

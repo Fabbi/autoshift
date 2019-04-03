@@ -96,7 +96,7 @@ CW::ControlWindow(QWidget *parent) :
   cout_font.setStyleHint(QFont::TypeWriter);
   ui->std_out->setFont(cout_font);
 
-  login();
+  // login();
 }
 
 CW::~ControlWindow()

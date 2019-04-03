@@ -42,10 +42,13 @@
 const QUrl baseUrl("https://shift.gearboxsoftware.com");
 const QString cookieFile(".cookie.sav");
 
+const QRegExp rBody("<body[^>]*>(.*)</body>");
+
 SC::ShiftClient(QObject* parent)
   :QObject(parent), logged_in(false)
 {
 
+  getAlert("<body><div class='notice'>hallo welt</div></body>");
   // if (logged_in) {
   //   DEBUG << "LOGGED IN; TRYING TO REDEEM TEST CODE" << endl;
   //   getRedemptionData("W55J3-BXJ9R-SBRKJ-STWJ3-F6C99");
@@ -64,7 +67,28 @@ SC::~ShiftClient()
 
 Status SC::redeem(const QString& code)
 {
-  // TODO implement
+  StatusC formData = getRedemptionData(code);
+
+  if (formData.code != Status::SUCCESS) {
+    int status_code = formData.data.toInt();
+    if (status_code == 500)
+      return Status::INVALID;
+    if (formData.message.contains("expired"))
+      return Status::EXPIRED;
+    // unknown
+    ERROR << formData.message << endl;
+    return Status::UNKNOWN;
+  }
+
+  QStringList lis = formData.data.value<QStringList>();
+  QUrlQuery postData;
+  for(size_t i = 0; i < lis.size(); i += 2) {
+    postData.addQueryItem(lis[i], lis[i+1]);
+  }
+
+  StatusC status = redeemForm(postData);
+  DEBUG << sStatus(status.code) << ": " << status.message << endl;
+  return status.code;
 }
 
 bool SC::save_cookie()
@@ -297,14 +321,13 @@ StatusC SC::getFormData(const QUrl& url, ReqCallback before, ReqCallback after)
 
   QStringList formData;
   // only parse body as the parser doesn't like <meta .. > tags
-  QRegExp body_r("<body[^>]*>(.*)</body>");
-  if (body_r.indexIn(req.data) == -1) {
+  if (rBody.indexIn(req.data) == -1) {
     ret.code = Status::UNKNOWN;
     ret.message = "Error in Document";
     return ret;
   }
 
-  QString body = body_r.cap(1);
+  QString body = rBody.cap(1);
 
   // find form on url
   QXmlStreamReader xml(body);
@@ -337,7 +360,6 @@ StatusC SC::getFormData(const QUrl& url, ReqCallback before, ReqCallback after)
 
 StatusC SC::getRedemptionData(const QString& code)
 {
-
   StatusC ret;
 
   ReqCallback cb = [&](Request& req) -> bool {
@@ -364,7 +386,8 @@ StatusC SC::getRedemptionData(const QString& code)
   };
 
   StatusC formData = getFormData(baseUrl.resolved(
-                                   QUrl(QString("/entitlement_offer_codes?code=%1").arg(code))), cb);
+                                   QUrl(QString("/entitlement_offer_codes?code=%1").arg(code))),
+                                 cb, cb_after);
   ret.code = formData.code;
   ret.message = formData.message;
 
@@ -372,89 +395,157 @@ StatusC SC::getRedemptionData(const QString& code)
     ret.data = formData.data;
   }
 
+  return ret;
+}
 
-//   StatusC ret;
-//   StatusC s = getToken(baseUrl.resolved(QUrl("/code_redemptions/new")));
+StatusC SC::getAlert(const QString& content)
+{
+  if (rBody.indexIn(content) == -1) {
+    return {Status::UNKNOWN, "Error in Document"};
+  }
 
-//   if (s.code != Status::SUCCESS) {
-//     ERROR << "Token Request Error: " << s.message << endl;
-//     ret.code = Status::UNKNOWN;
-//     ret.message = s.message;
-//     return ret;
-//   }
+  QString body = rBody.cap(1);
 
-//   QString& token(s.message);
+  // find form on url
+  QXmlStreamReader xml(body);
 
-//   Request REQ(baseUrl.resolved(
-//                 QUrl(QString("/entitlement_offer_codes?code=%1").arg(code))));
-//   req.req.setRawHeader("x-csrf-token", token.toUtf8());
-//   req.req.setRawHeader("x-requested-with", "XMLHttpRequest");
+  if (!findNextWithAttr(xml, "div", "class", "notice")) {
+    return {};
+  }
 
-//   // send and follow redirections
-//   req.followRedirects(true);
-//   req.send();
+  QString alert = xml.readElementText().trimmed();
+  QString alert_l = alert.toLower();
+  Status status = Status::NONE;
+  if (alert_l.contains("to continue to redeem")) {
+    status = Status::TRYLATER;
+  } else if (alert_l.contains("expired")) {
+    status = Status::EXPIRED;
+  } else if (alert_l.contains("success")) {
+    status = Status::SUCCESS;
+  } else if (alert_l.contains("failed")) {
+    status = Status::REDEEMED;
+  }
 
-//   ret.code = Status::UNKNOWN;
-//   if (!wait(&req, &Request::finished)) {
-//     ret.message = "Timeout while requesting";
-//     return ret;
-//   }
+  return {status, alert};
+}
 
-//   // extract form data information
+StatusC SC::getStatus(const QString& content)
+{
+  if (rBody.indexIn(content) == -1) {
+    return {Status::UNKNOWN, "Error in Document"};
+  }
 
-//   QXmlStreamReader xml(req.data);
-//   bool found = findNextWithAttr(xml, "form",
-//                                 "class", "new_archway_code_redemption");
+  QString body = rBody.cap(1);
 
-//   /*
-//     <form class="new_archway_code_redemption" id="new_archway_code_redemption" action="/code_redemptions" accept-charset="UTF-8" method="post">
-//     <input name="utf8" type="hidden" value="&#x2713;" />
-//     <input type="hidden" name="authenticity_token" value="PhrgflDWCCId63GLoFVbuFgTKOLt745CQyAwq5RMcn7mFY1WeL401QFW7eQVAFG/YNMs2/51LYCHUeEoMJlUGA==" />
-//         <input value="W55J3-BXJ9R-SBRKJ-STWJ3-F6C99" type="hidden" name="archway_code_redemption[code]" id="archway_code_redemption_code" />
-//         <input value="b9f9a278a69ff77e511b3d78bb34bdc667fb1cbe71f40e9381fb843f7e874d29" type="hidden" name="archway_code_redemption[check]" id="archway_code_redemption_check" />
-//         <input value="psn" type="hidden" name="archway_code_redemption[service]" id="archway_code_redemption_service" />
-//         <input type="submit" name="commit" value="Redeem for PSN" class="submit_button redeem_button" data-disable-with="Redeem for PSN" />
-// </form>
-// '
-//    */
+  // find form on url
+  QXmlStreamReader xml(body);
 
-//   if (found) {
-//     DEBUG << "FOUND REDEMPTION FORM" << endl;
-//     // get `archway_code_redemption_check`
-//     findNextWithAttr(xml, "input", "id", "archway_code_redemption_check");
-//     QString check(xml.attributes().value("value").toString());
+  if (!findNextWithAttr(xml, "div", "id", "check_redemption_status")) {
+    return {};
+  }
 
-//     // get `archway_code_redemption_service`
-//     findNextWithAttr(xml, "input", "id", "archway_code_redemption_service");
-//     QString service(xml.attributes().value("value").toString());
+  return {Status::REDIRECT, xml.readElementText().trimmed(),
+          xml.attributes().value("data-url").toString()};
+}
 
-//     // fill POST data
-//     QStringList postData;
-//     postData << "authenticity_token" << token;
-//     postData << "archway_code_redemption[code]" << code;
-//     postData << "archway_code_redemption[check]" << check;
-//     postData << "archway_code_redemption[service]" << service;
-//     // QUrlQuery postData;
-//     // postData.addQueryItem("authenticity_token", token);
-//     // postData.addQueryItem("archway_code_redemption[code]", code);
-//     // postData.addQueryItem("archway_code_redemption[check]", check);
-//     // postData.addQueryItem("archway_code_redemption[service]", service);
+StatusC SC::checkRedemptionStatus(const Request& req)
+{
+  // redirection
+  if (req.status_code == 302)
+    return {Status::REDIRECT, req.req.rawHeader("location")};
 
-//     ret.code = Status::SUCCESS;
-//     ret.data = QVariant::fromValue(postData);
-//   } else {
-//     ret.message = req.data;
-//     // return status code
-//     ret.data = req.reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-//   }
+  StatusC alert = getAlert(req.data);
+  if (alert.code != Status::NONE) {
+    DEBUG << alert.message << endl;
+    return alert;
+  }
+
+  StatusC status = getStatus(req.data);
+  if (status.code == Status::REDIRECT) {
+    INFO << status.message << endl;
+    QString new_location = status.data.toString();
+    // wait for 500ms (wait for a signal that won't fire...)
+    wait(&req, &Request::finished, 500);
+    // redirect now
+    Request new_req(network_manager, baseUrl.resolved(new_location));
+    new_req.send();
+    wait(&new_req, &Request::finished);
+
+    // recursive call
+    return checkRedemptionStatus(new_req);
+  }
+
+  QStringList new_rewards = queryRewards();
+  if (!new_rewards.isEmpty() && (new_rewards != old_rewards))
+    return {Status::SUCCESS, ""};
+
+  return {};
+}
+
+QStringList SC::queryRewards()
+{
+  QStringList ret;
+  Request REQ(baseUrl.resolved(QUrl("/rewards")));
+  req.send();
+  wait(&req, &Request::finished);
+
+  if (rBody.indexIn(req.data) == -1) {
+    return ret;
+  }
+
+  QString body = rBody.cap(1);
+
+  // find form on url
+  QXmlStreamReader xml(body);
+
+  while (findNextWithAttr(xml, "div", "class", "reward_unlocked"))
+    ret << xml.readElementText();
 
   return ret;
 }
 
-// StatusC SC::getAlert(??);
-// std::tuple<QString, QString> SC::getStatus(??);
-// StatusC SC::checkRedemptionStatus(??);
-// StatusC SC::redeemForm(??);
+StatusC SC::redeemForm(const QUrlQuery& data)
+{
+  // cache old rewards
+  old_rewards = queryRewards();
+
+  QUrl the_url = baseUrl.resolved(QUrl("/code_redemptions"));
+  Request REQ(the_url, data, request_t::POST);
+  req.req.setRawHeader("Referer", the_url.toEncoded() + "/new");
+
+  req.send();
+  if (!wait(&req, &Request::finished))
+    return {};
+
+  StatusC status = checkRedemptionStatus(req);
+  // did we visit /code_redemptions/...... route?
+  bool redemption = false;
+  // keep following redirects
+  while (status.code == Status::REDIRECT) {
+    if (status.message.contains("code_redemptions"))
+      redemption = true;
+    DEBUG << "redirect to " << status.message << endl;
+
+    Request new_req(network_manager, baseUrl.resolved(QUrl(status.message)));
+    new_req.send();
+
+    if (!wait(&new_req, &Request::finished))
+      return {};
+
+    status = checkRedemptionStatus(new_req);
+  }
+
+  // workaround for new SHiFT website
+  // it doesn't tell you to launch a "SHiFT-enabled title" anymore
+  if (status.code == Status::NONE) {
+    if (redemption)
+      return {Status::REDEEMED, "Already Redeemed"};
+    else
+      return {Status::TRYLATER, "Launch a SHiFT-enabled title first!"};
+  }
+
+  return status;
+}
 
 #undef SC
 #undef REQ

@@ -31,6 +31,7 @@ void Request::send()
     reply = nullptr;
   }
 
+  // send request
   switch (type) {
   case request_t::GET:
   {
@@ -58,7 +59,7 @@ void Request::send()
   connect(reply, &QNetworkReply::finished, this, [&]() {
     QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     status_code = statusCode.toInt();
-    DEBUG << "    STATUS CODE " << statusCode.toInt() << endl;
+    // DEBUG << "    STATUS CODE " << statusCode.toInt() << endl;
     // DEBUG << "==================" << endl;
     // DEBUG << "== REQUEST HDRS ==" << endl;
     // const QList<QByteArray>& hdr_list = reply->request().rawHeaderList();
