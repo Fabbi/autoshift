@@ -140,5 +140,5 @@ public slots:
   void login();
 
 signals:
-  void loggedin();
+  void loggedin(bool);
 };

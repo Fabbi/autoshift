@@ -112,11 +112,11 @@ void CW::login()
 
   spinner->setAttribute(Qt::WA_TransparentForMouseEvents);
 }
-void CW::loggedin()
+void CW::loggedin(bool v)
 {
   spinner->stop();
-  ui->loginButton->setText("signed in");
-  ui->loginButton->setEnabled(false);
+  ui->loginButton->setEnabled(!v);
+  ui->loginButton->setText((v)?"signed in":"login");
 }
 
 void CW::registerParser(const QString& game, const QString& platform, const QIcon& icon)

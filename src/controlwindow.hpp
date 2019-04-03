@@ -59,7 +59,7 @@ public:
   //                     const QStringList&);
 public slots:
   void login();
-  void loggedin();
+  void loggedin(bool);
 
 private:
   /**

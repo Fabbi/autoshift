@@ -207,7 +207,7 @@ void SC::login()
   if (load_cookie()) {
     DEBUG << "COOKIE LOADED" << endl;
     logged_in = true;
-    emit loggedin();
+    emit loggedin(logged_in);
     return;
   }
 
@@ -223,10 +223,9 @@ void SC::login()
 
     INFO << "trying to log in" << endl;
     login(user, pw);
+  } else {
+    emit loggedin(false);
   }
-  // DEBUG << "login: " << loginDialog.exec() << endl;
-  // DEBUG << loginWin.userInput->text() << endl;
-  // DEBUG << "no cookie? :(" << endl;
 }
 
 void SC::login(const QString& user, const QString& pw)
@@ -237,6 +236,7 @@ void SC::login(const QString& user, const QString& pw)
   StatusC formData = getFormData(the_url);
   if (formData.code != Status::SUCCESS) {
     DEBUG << formData.message << endl;
+    emit loggedin(false);
     return;
   }
 
@@ -261,14 +261,16 @@ void SC::login(const QString& user, const QString& pw)
   req->req.setHeader(QNetworkRequest::ContentTypeHeader,
                     "application/x-www-form-urlencoded");
   req->req.setRawHeader("Referer", the_url.toEncoded());
+  // req->req.setRawHeader("Origin", baseUrl.toEncoded());
+  // req->req.setRawHeader("Connection", "keep-alive");
+  // req->req.setRawHeader("Accept", "*/*");
+  // req->req.setRawHeader("Accept-Encoding", "gzip, deflate");
 
-  req->followRedirects(true);
   // send request and follow redirects
   req->send([&, req](QByteArray data) mutable {
     DEBUG << "============= LOGIN ============" << endl;
     logged_in = save_cookie();
-    if (logged_in)
-      emit loggedin();
+    emit loggedin(logged_in);
     req->deleteLater();
   });
 }
