@@ -130,7 +130,8 @@ class ShiftClient:
             for cookie in self.client.cookies:
                 if cookie.name == "si":
                     pickle.dump(self.client.cookies, f)
-                    break
+                    return True
+        return False
 
     def __load_cookie(self):
         """Check if there is a saved cookie and load it."""
@@ -286,7 +287,11 @@ class ShiftClient:
 
         # workaround for new SHiFT website.
         # it doesn't tell you to launch a "SHiFT-enabled title" anymore
-        if (not redemption) and (status == Status.NONE):
-            status = Status.TRYLATER
-            redirect = "To continue to redeem SHiFT codes, please launch a SHiFT-enabled title first!" # noqa
+        if status == Status.NONE:
+            if redemption:
+                status = Status.REDEEMED
+                redirect = "Already Redeemed"
+            else:
+                status = Status.TRYLATER
+                redirect = "To continue to redeem SHiFT codes, please launch a SHiFT-enabled title first!" # noqa
         return status, redirect
