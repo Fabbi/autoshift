@@ -39,26 +39,24 @@ for i in range(len(__els)): # noqa
     setattr(Status, Status(i), i)
 
 
-def getch_unix():
-    """Get keypress without echoing"""
-    import termios # noqa
-    import tty
-    import sys
-    fd = sys.stdin.fileno()
-    old_settings = termios.tcgetattr(fd)
-    try:
-        tty.setraw(sys.stdin.fileno())
-        ch = sys.stdin.read(1)
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-    return ch
-
-
+# windows / unix `getch`
 try:
     import msvcrt
     getch = msvcrt.getch
-except: # noqa
-    getch = getch_unix
+except ImportError:
+    def getch():
+        """Get keypress without echoing"""
+        import termios # noqa
+        import tty
+        import sys
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(sys.stdin.fileno())
+            ch = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return ch
 
 
 def input_pw(qry):
