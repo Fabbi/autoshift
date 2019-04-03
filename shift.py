@@ -39,9 +39,9 @@ for i in range(len(__els)): # noqa
     setattr(Status, Status(i), i)
 
 
-def getch():
+def getch_unix():
     """Get keypress without echoing"""
-    import termios
+    import termios # noqa
     import tty
     import sys
     fd = sys.stdin.fileno()
@@ -52,6 +52,13 @@ def getch():
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
     return ch
+
+
+try:
+    import msvcrt
+    getch = msvcrt.getch
+except: # noqa
+    getch = getch_unix
 
 
 def input_pw(qry):
