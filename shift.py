@@ -243,10 +243,30 @@ class ShiftClient:
             r2 = self.client.get("{}/{}".format(base_url, url),
                                  allow_redirects=False)
             return self.__check_redemption_status(r2)
+
+        # workaround for new SHiFT website
+        # it doesn't tell you whether your redemption was successful or not
+        new_rewards = self.__query_rewards()
+        if (new_rewards != self.old_rewards):
+            return Status.SUCCESS, ""
         return Status.NONE, None
+
+    def __query_rewards(self):
+        """Query reward list"""
+        # self.old_rewards
+        the_url = "{}/rewards".format(base_url)
+        r = self.client.get(the_url)
+        soup = BSoup(r.text, "html.parser")
+
+        # cache all unlocked rewards
+        return [el.text
+                for el in soup.find_all("div", class_="reward_unlocked")]
 
     def __redeem_form(self, data):
         """Redeem a code with given form data"""
+        # cache old reward list
+        self.old_rewards = self.__query_rewards()
+
         the_url = "{}/code_redemptions".format(base_url)
         headers = {"Referer": "{}/new".format(the_url)}
         r = self.client.post(the_url,
@@ -254,9 +274,19 @@ class ShiftClient:
                              headers=headers,
                              allow_redirects=False)
         status, redirect = self.__check_redemption_status(r)
-        # if status == Status.REDIRECT:
+        # did we visit /code_redemptions/...... route?
+        redemption = False
+        # keep following redirects
         while status == Status.REDIRECT:
+            if "code_redemptions" in redirect:
+                redemption = True
             _L.debug("redirect to '{}'".format(redirect))
             r2 = self.client.get(redirect)
             status, redirect = self.__check_redemption_status(r2)
+
+        # workaround for new SHiFT website.
+        # it doesn't tell you to launch a "SHiFT-enabled title" anymore
+        if (not redemption) and (status == Status.NONE):
+            status = Status.TRYLATER
+            redirect = "To continue to redeem SHiFT codes, please launch a SHiFT-enabled title first!" # noqa
         return status, redirect

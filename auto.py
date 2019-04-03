@@ -49,7 +49,8 @@ def redeem(key):
         Status.REDEEMED: "Already redeemed {key.description}",
         Status.INVALID: "The code `{key.key}` is invalid",
         Status.TRYLATER: "Please launch a SHiFT-enabled title or wait 1 hour.",
-        Status.UNKNOWN: "A unknown Error occured"
+        Status.UNKNOWN: "A unknown Error occured",
+        Status.NONE: "Something unexpected happened.."
     }
 
     _L.debug("Trying to redeem {} ({})".format(key.description, key.key))
