@@ -29,7 +29,8 @@ from query import games, platforms # noqa
 from shift import ShiftClient, Status
 from common import _L, INFO, DEBUG, DIRNAME
 
-client = ShiftClient()
+
+client = None
 
 LICENSE_TEXT = """\
 ========================================================================
@@ -132,7 +133,12 @@ def setup_argparser():
 
 
 def main(args):
+    global client
     import re
+
+    if not client:
+        client = ShiftClient()
+
     g_reg = re.compile(r"^(\d+).*gold.*", re.I)
 
     query.open_db()
