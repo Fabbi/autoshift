@@ -494,7 +494,7 @@ static const regex ansi_re(R"(\x1B\[([\d;]+)m)");
 #ifndef ERROR
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 # define NUL ashift::logger_null
-# define ERROR ashift::logger_error
+# define ERROR ashift::logger_error(__FILENAME__, __LINE__)
 #ifdef NOINFO
 # define INFO NUL
 #else
