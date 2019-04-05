@@ -24,6 +24,7 @@
 
 #include <QTimer>
 #include <QEventLoop>
+#include <QApplication>
 
 #define ENUM_FUNCS(name, first, ...)                              \
   typedef name ## _enum::name ## _enum name;                      \
@@ -97,14 +98,11 @@ bool wait(const T* obj, FUNC signal, int ms = 5000)
   QTimer timer;
   timer.setSingleShot(true);
 
-  // TODO timer that fires every 100ms and calls main eventloop
-  QEventLoop loop;
-  QObject::connect(obj, signal, &loop, &QEventLoop::quit);
-  QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+  bool finished = false;
+  QObject::connect(obj, signal, obj, [&]() mutable {finished = true;});
   timer.start(ms);
-  loop.exec();
-
-  bool ret = timer.isActive();
-  timer.stop();
-  return ret;
+  while (!finished && timer.isActive()) {
+    QApplication::instance()->processEvents();
+  }
+  return timer.isActive();
 }
