@@ -58,8 +58,17 @@ public:
     send();
   }
 
+  template<typename FUNC>
+  void send(int timeout, FUNC fun)
+  {
+    // connect to this
+    connect(this, &Request::finished, fun);
 
-  void send();
+    send(timeout);
+  }
+
+
+  void send(int=5000);
 
   void followRedirects(bool v=true)
   { follow_redirects = v; }
@@ -75,11 +84,14 @@ public:
 
   QNetworkRequest req;
 
+  int timeout; ///< timeout in ms
+  bool timed_out; ///< did this request time out?
+
 private:
   request_t type;
 
   bool follow_redirects;
 
 signals:
-  void finished(QByteArray);
+  void finished(Request*);
 };

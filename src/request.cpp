@@ -22,9 +22,10 @@ Request::Request(QNetworkAccessManager& _manager, const QUrl& _url,
 Request::~Request()
 {if (reply) reply->deleteLater();}
 
-void Request::send()
+void Request::send(int timeout)
 {
   status_code = -1;
+  timed_out = false;
   data.clear();
   if (reply) {
     delete reply;
@@ -51,6 +52,14 @@ void Request::send()
   default: break;
   }
 
+  // configure timeout
+  QTimer::singleShot(timeout, [&](){
+    reply->abort();
+    timed_out = true;
+    // disconnect from `finished` to not further handle this one.
+    disconnect(reply, &QNetworkReply::finished, this, 0);
+    emit finished(this);
+  });
   connect(reply, &QIODevice::readyRead, this, [&]() {
     data.append(reply->readAll());
   });
@@ -89,8 +98,7 @@ void Request::send()
       QTimer::singleShot(500, [&](){send();});
     } else {
       // our job here is done
-      emit finished(data);
-      deleteLater();
+      emit finished(this);
     }
   });
 }

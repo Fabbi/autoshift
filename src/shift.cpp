@@ -291,7 +291,7 @@ void SC::login(const QString& user, const QString& pw)
   // req->req.setRawHeader("Accept-Encoding", "gzip, deflate");
 
   // send request and follow redirects
-  req->send([&, req](QByteArray data) mutable {
+  req->send([&](Request* req) mutable {
     DEBUG << "============= LOGIN ============" << endl;
     logged_in = save_cookie();
     emit loggedin(logged_in);
@@ -301,42 +301,36 @@ void SC::login(const QString& user, const QString& pw)
 
 StatusC SC::getFormData(const QUrl& url, ReqCallback before, ReqCallback after)
 {
-  StatusC ret;
-
   // query site
   Request REQ(url);
   if (before)
-    if (!before(req)) // for setting headers ...
-      return ret;
+    if (!before(&req)) // for setting headers ...
+      return {};
   req.send();
 
   if (after)
-    after(req);
+    after(&req);
 
   if (!wait(&req, &Request::finished)) {
-    ret.message = "Could not query " + url.toString();
-    ret.code = Status::UNKNOWN;
-    return ret;
+    return {Status::UNKNOWN, "Could not query " + url.toString()};
   }
 
   QStringList formData;
   // only parse body as the parser doesn't like <meta .. > tags
-  if (rBody.indexIn(req.data) == -1) {
-    ret.code = Status::UNKNOWN;
-    ret.message = "Error in Document";
-    return ret;
+  QString body;
+  if (rBody.indexIn(req.data) > -1) {
+    body = rBody.cap(1);
+  } else {
+    body = req.data;
   }
-
-  QString body = rBody.cap(1);
 
   // find form on url
   QXmlStreamReader xml(body);
   if (!findNext(xml, "form")) {
-    ret.message = "No Form found on " + url.toString();
-    ret.code = Status::UNKNOWN;
-    return ret;
+    return {Status::UNKNOWN, body};
   }
 
+  // TODO use xml.readElementText
   // find input fields
   while (true) {
     bool tmp = xml.readNextStartElement();
@@ -352,17 +346,15 @@ StatusC SC::getFormData(const QUrl& url, ReqCallback before, ReqCallback after)
     // collect name and value
     formData << attrs.value("name").toString() << attrs.value("value").toString();
   }
-  ret.code = Status::SUCCESS;
-  ret.data = QVariant::fromValue(formData);
 
-  return ret;
+  return {Status::SUCCESS, body, formData};
 }
 
 StatusC SC::getRedemptionData(const QString& code)
 {
   StatusC ret;
 
-  ReqCallback cb = [&](Request& req) -> bool {
+  ReqCallback cb = [&](Request* req) -> bool {
     StatusC s = getToken(baseUrl.resolved(QUrl("/code_redemptions/new")));
 
     if (s.code != Status::SUCCESS) {
@@ -372,16 +364,16 @@ StatusC SC::getRedemptionData(const QString& code)
 
     QString& token(s.message);
 
-    req.req.setRawHeader("x-csrf-token", token.toUtf8());
-    req.req.setRawHeader("x-requested-with", "XMLHttpRequest");
+    req->req.setRawHeader("x-csrf-token", token.toUtf8());
+    req->req.setRawHeader("x-requested-with", "XMLHttpRequest");
 
     // send and follow redirections
-    req.followRedirects(true);
+    req->followRedirects(true);
     return true;
   };
 
-  ReqCallback cb_after = [&, ret](Request& req) mutable -> bool {
-    ret.data = req.reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+  ReqCallback cb_after = [&, ret](Request* req) mutable -> bool {
+    ret.data = req->reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     return true;
   };
 
