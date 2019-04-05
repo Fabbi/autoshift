@@ -37,7 +37,7 @@
   inline std::string s ## name(name i) {                                                 \
     static std::vector<std::string> names;                        \
     if (names.empty()) {                                          \
-    char str[] { #first ", " #__VA_ARGS__ ", NONE"};                            \
+    char str[] { #first ", " #__VA_ARGS__ ", SIZE, NONE"};                            \
     for(char* token = std::strtok(&str[0], ", "); token != 0x0; token = std::strtok(0x0, ", ")) { \
         names.push_back(token);                                        \
     }                                                                  \
