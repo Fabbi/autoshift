@@ -42,6 +42,7 @@ FENUM(Status,
       REDEEMED,
       SUCCESS,
       INVALID,
+      UNAVAILABLE,
       UNKNOWN);
 
 /**
@@ -72,7 +73,8 @@ class ShiftClient : public QObject
 {
   Q_OBJECT
 
-  typedef std::function<bool(Request&)> ReqCallback;
+  // typedef std::function<void(Request*, StatusC)> Callback;
+  // typedef std::function<void(Request*)> ReqCallback;
 public:
   explicit ShiftClient(QObject* parent = 0);
   ~ShiftClient();
@@ -92,18 +94,26 @@ private:
    *
    * @param url The URL to query
    */
-  StatusC& getToken(const QUrl&);
+  StatusC getToken(const QUrl&);
 
+  /**
+   * Extract CSRF Token from page content
+   *
+   * @param data The page content
+   */
+  StatusC getToken(const QString&);
   /**
    * Get Reward list
    */
-  QStringList queryRewards();
+  // QStringList queryRewards();
 
 private slots:
+  void delete_cookies();
   bool save_cookie();
   bool load_cookie();
 
 
+  void logout();
   /**
    * Login at shift.gearboxsoftware.com
    *
@@ -115,31 +125,70 @@ private slots:
   /**
    * Get POST data for code redemption
    *
-   * @params code The SHiFT code
+   * @param code The SHiFT code
    *
    * @return QUrlQuery with POST data.
    */
   StatusC getRedemptionData(const QString&);
 
-  StatusC getFormData(const QUrl&, ReqCallback=0, ReqCallback=0);
+  /**
+   * Extract Name/Value-Pairs from HTML <form>.
+   *
+   * @param url The url to query
+   *
+   * @return Status
+   */
+  StatusC getFormData(const QUrl&);
+  /**
+   * Extract Name/Value-Pairs from HTML <form>.
+   *
+   * @param data The page content
+   *
+   * @return Status
+   */
+  StatusC getFormData(const QString&);
 
+  /**
+   * Extract Alert message from HTML
+   *
+   * @param content The page content
+   *
+   * @return Status
+   */
   StatusC getAlert(const QString&);
+
+  /**
+   * Query redemption status
+   *
+   * @param content The page content
+   *
+   * @return Status
+   */
   StatusC getStatus(const QString&);
+
+  /**
+   * Check redemption status (redirect, alert, status)
+   *
+   * @param req The Request object
+   *
+   * @return Status
+   */
   StatusC checkRedemptionStatus(const Request&);
 
+  /**
+   * Redeem formdata
+   *
+   * @param data PostData
+   *
+   * @return Status
+   */
   StatusC redeemForm(const QUrlQuery&);
 
 private:
-  bool logged_in;
+  bool logged_in; ///< are we logged in?
 
   QNetworkAccessManager network_manager;
-  // QNetworkReply* reply;
-
-  // QString current_token;
-  // QByteArray current_data;
-  StatusC current_status;
-  // QDataStream stream;
-  QStringList old_rewards;
+  // QStringList old_rewards;
 
 public slots:
   /**
