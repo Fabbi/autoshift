@@ -2,21 +2,23 @@
 #include <QtNetwork>
 
 #include <logger.hpp>
+// #define DEBUG_HEADER
 
 Request::Request(QNetworkAccessManager& _manager, const QUrl& _url,
                  const QUrlQuery& _data, request_t _type)
   :Request(_manager, _url, _type)
 {
-  query_data = _data.toString(QUrl::FullyEncoded).toUtf8();
+  query_data = _data.toString(QUrl::FullyEncoded)
+    .replace("+", "%2B").toUtf8();
 }
 Request::Request(QNetworkAccessManager& _manager, const QUrl& _url,
                  request_t _type)
   : manager(&_manager), url(_url), reply(0), data(""),
-    type(_type), req(url), follow_redirects(false), status_code(-1)
+    type(_type), req(url), follow_redirects(false), status_code(-1),
+    timed_out(false), timeout_timer(0)
 {
-  // fake user-agent
-  req.setHeader(QNetworkRequest::UserAgentHeader,
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Safari/605.1.15");
+  // delete this with the QNetworkAccessManager
+  setParent(manager);
 }
 
 Request::~Request()
@@ -32,6 +34,10 @@ void Request::send(int timeout)
     reply = nullptr;
   }
 
+  // set header if not present
+  if (!req.hasRawHeader("Accept"))
+    req.setRawHeader("Accept", "*/*");
+
   // send request
   switch (type) {
   case request_t::GET:
@@ -42,6 +48,9 @@ void Request::send(int timeout)
   case request_t::POST:
   {
     DEBUG << "POST " << url.toString() << endl;
+    if (req.header(QNetworkRequest::ContentTypeHeader).isNull())
+      req.setHeader(QNetworkRequest::ContentTypeHeader,
+                    "application/x-www-form-urlencoded");
     reply = manager->post(req, query_data);
   } break;
   case request_t::HEAD:
@@ -53,13 +62,29 @@ void Request::send(int timeout)
   }
 
   // configure timeout
-  QTimer::singleShot(timeout, [&](){
-    reply->abort();
-    timed_out = true;
-    // disconnect from `finished` to not further handle this one.
-    disconnect(reply, &QNetworkReply::finished, this, 0);
-    emit finished(this);
-  });
+  if (timeout_timer) {
+    timeout_timer->stop();
+    delete timeout_timer;
+  }
+  if (timeout > 0) {
+    timeout_timer = new QTimer(this);
+    timeout_timer->setSingleShot(true);
+    connect(timeout_timer, &QTimer::timeout, this, [&](){
+      disconnect(reply, &QNetworkReply::finished, this, 0);
+      reply->abort();
+      timed_out = true;
+      // disconnect from `finished` to not further handle this one.
+      emit finished(this);
+    });
+    timeout_timer->start(timeout);
+  }
+
+  // TODO error handling
+  // connect(reply, QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::error),
+  //         this, [](QNetworkReply::NetworkError code) {
+  //           ERROR << code << endl;
+  //         });
+
   connect(reply, &QIODevice::readyRead, this, [&]() {
     data.append(reply->readAll());
   });
@@ -68,19 +93,21 @@ void Request::send(int timeout)
   connect(reply, &QNetworkReply::finished, this, [&]() {
     QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     status_code = statusCode.toInt();
-    // DEBUG << "    STATUS CODE " << statusCode.toInt() << endl;
-    // DEBUG << "==================" << endl;
-    // DEBUG << "== REQUEST HDRS ==" << endl;
-    // const QList<QByteArray>& hdr_list = reply->request().rawHeaderList();
-    // for (auto& hdr: hdr_list) {
-    //   DEBUG << hdr.toStdString() << ": " << reply->request().rawHeader(hdr).toStdString() << endl;
-    // }
-    // DEBUG << "== REPLY   HDRS ==" << endl;
-    // const QList<QPair<QByteArray,QByteArray>>& hdr_list2 = reply->rawHeaderPairs();
-    // for (auto& pair: hdr_list2) {
-    //   DEBUG << pair.first.toStdString() << ": " << pair.second.toStdString() << endl;
-    // }
-    // DEBUG << "==================" << endl;
+#ifdef DEBUG_HEADER
+    DEBUG << "    STATUS CODE " << statusCode.toInt() << endl;
+    DEBUG << "==================" << endl;
+    DEBUG << "== REQUEST HDRS ==" << endl;
+    const QList<QByteArray>& hdr_list = reply->request().rawHeaderList();
+    for (auto& hdr: hdr_list) {
+      DEBUG << hdr.toStdString() << ": " << reply->request().rawHeader(hdr).toStdString() << endl;
+    }
+    DEBUG << "== REPLY   HDRS ==" << endl;
+    const QList<QPair<QByteArray,QByteArray>>& hdr_list2 = reply->rawHeaderPairs();
+    for (auto& pair: hdr_list2) {
+      DEBUG << pair.first.toStdString() << ": " << pair.second.toStdString() << endl;
+    }
+    DEBUG << "==================\n" << endl;
+#endif
     // follow redirects
     const QVariant redirectionTarget = reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
     if (follow_redirects && redirectionTarget.isValid()) {
@@ -92,11 +119,15 @@ void Request::send(int timeout)
       url = url.resolved(redirectionTarget.toUrl());
       req = QNetworkRequest(url);
       req.setRawHeader("Referer", oldReferer);
-      DEBUG << "auto redirect to " << url.toString() << endl;
 
       // recursive call with 500ms delay (don't spam)
       QTimer::singleShot(500, [&](){send();});
     } else {
+      if (timeout_timer) {
+        timeout_timer->stop();
+        delete timeout_timer;
+        timeout_timer = nullptr;
+      }
       // our job here is done
       emit finished(this);
     }

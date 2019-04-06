@@ -38,6 +38,8 @@ FENUM(request_t,
       POST,
       HEAD);
 
+class QTimer;
+
 class Request : public QObject
 {
   Q_OBJECT
@@ -84,7 +86,6 @@ public:
 
   QNetworkRequest req;
 
-  int timeout; ///< timeout in ms
   bool timed_out; ///< did this request time out?
 
 private:
@@ -92,6 +93,7 @@ private:
 
   bool follow_redirects;
 
+  QTimer* timeout_timer;
 signals:
   void finished(Request*);
 };
