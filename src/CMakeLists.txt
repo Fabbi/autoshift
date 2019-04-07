@@ -22,7 +22,7 @@ add_executable(autoshift
   ${autoshift_SOURCE}
   )
 
-target_link_libraries(autoshift Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::PrintSupport)
+target_link_libraries(autoshift ${MY_Qt5_LIBRARIES})
 target_link_libraries(autoshift spinner)
 
 target_include_directories(autoshift SYSTEM PRIVATE ${lib_include_dirs})

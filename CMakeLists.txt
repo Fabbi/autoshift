@@ -74,19 +74,23 @@ endif(CMAKE_GENERATOR STREQUAL Xcode)
 
 #########################
 #### FIND LIBRARIES #####
-find_package_quiet(Qt5Extern REQUIRED)
+set (MY_QT5_COMPONENTS
+  Core
+  Network
+  Gui
+  Widgets
+  PrintSupport
+  Sql
+  )
+if (LINUX)
+  list (APPEND MY_QT5_COMPONENTS X11Extras)
+endif(LINUX)
+
+find_package_quiet(Qt5Extern COMPONENTS ${MY_QT5_COMPONENTS} REQUIRED)
 
 if (Qt5Core_FOUND)
   set (CMAKE_INCLUDE_CURRENT_DIR ON)
-  include_directories(${Qt5Core_INCLUDE_DIRS})
-  include_directories(${Qt5Network_INCLUDE_DIRS})
-  include_directories(${Qt5Gui_INCLUDE_DIRS})
-  include_directories(${Qt5Widgets_INCLUDE_DIRS})
-  include_directories(${Qt5PrintSupport_INCLUDE_DIRS})
-
-  if (LINUX)
-    include_directories(${QT5X11Extras_INCLUDE_DIRS})
-  endif (LINUX)
+  include_directories(${MY_Qt5_INCLUDE_DIRS})
 
   if ("${Qt5_VERSION}" STREQUAL "")
     set (Qt5_VERSION ${Qt5Core_VERSION})
