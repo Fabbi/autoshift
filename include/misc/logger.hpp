@@ -91,9 +91,9 @@ FENUM(cmd,
       flush);
 
 namespace logger {
-template<typename T>
 struct Join {
   std::string str;
+  template<typename T>
   Join(const T& _obj)
   {
     std::ostringstream tmp;
@@ -102,8 +102,9 @@ struct Join {
   }
 };
 }
-#define JOIN(s) logger::Join(s)
-#define JOINS logger::Join<std::string>(" ")
+#define JOIN logger::Join
+#define JOINS logger::Join(" ")
+#define JOINE logger::Join("")
 
 namespace ashift {
 
@@ -283,8 +284,7 @@ static const regex ansi_re(R"(\x1B\[([\d;]+)m)");
 
 #define RETIFNULL if (isNull()) return *this;
 
-    template<typename T>
-    Logger& operator<<(logger::Join<T> join)
+    Logger& operator<<(logger::Join join)
     {
       RETIFNULL;
       filler = join.str;
