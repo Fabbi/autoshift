@@ -27,8 +27,18 @@
 #include <QList>
 
 #include <misc/macros.hpp>
+#include <misc/logger.hpp>
 
-class ShiftDatabase;
+FENUM(Platform,
+      PC,
+      PS,
+      XBOX);
+
+FENUM(Game,
+      BL1,
+      BL2,
+      BLPS,
+      BL3);
 
 /** @class ShiftCode
  * @brief SHiFT code representation
@@ -44,33 +54,37 @@ public:
   /**
    * Construct a SHiFT code.
    *
-   * @sa ShiftCode(const QString&, const QString&, bool)
+   * @sa ShiftCode(const QString&, Platform, Game, const QString&, bool)
    * @sa ShiftCode(const QSqlQuery&)
    *
    * @param id The ID
    * @param description The code description (N golden keys / XY skin ...)
+   * @param platform The platform
+   * @param game The game
    * @param code SHiFT code (AAAAA-BBBBB-CCCCC-EEEEE-FFFFF)
    * @param redeemed is this code already redeemed?
    */
-  ShiftCode(uint32_t, const QString&, const QString&, bool=false);
+  ShiftCode(uint32_t, const QString&, Platform, Game, const QString&, bool=false);
 
   /**
    * Construct a SHiFT code. The ID will be set on pushing to database.
    *
-   * @sa ShiftCode(uint32_t, const QString&, const QString&, bool)
+   * @sa ShiftCode(uint32_t, const QString&, Platform, Game, const QString&, bool)
    * @sa ShiftCode(const QSqlQuery&)
    *
    * @param description The code description (N golden keys / XY skin ...)
+   * @param platform The platform
+   * @param game The game
    * @param code SHiFT code (AAAAA-BBBBB-CCCCC-EEEEE-FFFFF)
    * @param redeemed is this code already redeemed?
    */
-  ShiftCode(const QString&, const QString&, bool=false);
+  ShiftCode(const QString&, Platform, Game, const QString&, bool=false);
 
   /**
    * Construct a SHiFT code
    *
-   * @sa ShiftCode(uint32_t, const QString&, const QString&, bool)
-   * @sa ShiftCode(const QString&, const QString&, bool)
+   * @sa ShiftCode(uint32_t, const QString&, Platform, Game, const QString&, bool)
+   * @sa ShiftCode(const QString&, Platform, Game, const QString&, bool)
    *
    * @param query SQL Query object with data from database
    */
@@ -79,8 +93,8 @@ public:
   /**
    * Construct an empty SHiFT code for database querying
    *
-   * @sa ShiftCode(uint32_t, const QString&, const QString&, bool)
-   * @sa ShiftCode(const QString&, const QString&, bool)
+   * @sa ShiftCode(uint32_t, const QString&, Platform, Game, const QString&, bool)
+   * @sa ShiftCode(const QString&, Platform, Game, const QString&, bool)
    */
   ShiftCode();
 
@@ -106,12 +120,22 @@ public:
    */
   bool commit();
 
+  friend ashift::Logger& operator<<(ashift::Logger& l, const ShiftCode& c)
+  {
+    l << "Key{" << JOIN(", ");
+    l << c.id << c.desc << c.code << c.redeemed;
+    l << JOINE << "}";
+    return l;
+  }
 private:
 
 public:
   QString desc;  ///< Reward description
   QString code;  ///< Code to redeem
   bool redeemed; ///< Is this key already redeemed?
+
+  Platform platform;
+  Game game;
 
 private:
   uint32_t id; ///< ID of this entry
@@ -120,10 +144,7 @@ private:
   // date expires at?
 };
 
-FENUM(Platform,
-      PC,
-      PS,
-      XBOX);
+
 
 /**
  * Predicate function to filter keys.
@@ -144,15 +165,17 @@ class ShiftCollection: public QList<ShiftCode>
 
 public:
 
+  ShiftCollection();
   /**
    * @brief Construct a ShiftCollection
    *
    * Will query the database for codes matching given platform
    *
    * @param platform The platform to query for
+   * @param game The game
    * @param used Whether to query for already redeemed keys, too
    */
-  ShiftCollection(Platform, bool=false);
+  ShiftCollection(Platform, Game, bool=false);
 
   /**
    * @brief Query codes from Database.
@@ -162,9 +185,10 @@ public:
    * @sa ShiftCollection(Platform, bool)
    *
    * @param platform The platform to query for
+   * @param game The game
    * @param used Whether to query for already redeemed keys, too
    */
-  void query(Platform, bool=false);
+  void query(Platform, Game, bool=false);
 
   /**
    * Commit all codes to database

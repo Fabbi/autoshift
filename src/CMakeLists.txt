@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.2)
 
+set (INC "${ROOT}/include")
 set(autoshift_HEADERS
-  ${ROOT}/include/misc/fsettings.hpp
-  ${ROOT}/include/controlwindow.hpp
-  ${ROOT}/include/shift.hpp
-  ${ROOT}/include/request.hpp
+  ${INC}/misc/fsettings.hpp
+  ${INC}/controlwindow.hpp
+  ${INC}/shift.hpp
+  ${INC}/request.hpp
+  ${INC}/key.hpp
   )
 
 set(autoshift_SOURCE
@@ -15,6 +17,7 @@ set(autoshift_SOURCE
   main.cpp
   controlwindow.cpp
   shift.cpp
+  key.cpp
   )
 
 add_executable(autoshift
