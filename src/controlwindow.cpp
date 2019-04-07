@@ -117,6 +117,12 @@ void CW::loggedin(bool v)
   spinner->stop();
   ui->loginButton->setEnabled(!v);
   ui->loginButton->setText((v)?"signed in":"login");
+
+  if (v) {
+    user = sClient.getUser();
+    ui->userLabel->setText(user);
+  }
+
 }
 
 void CW::registerParser(const QString& game, const QString& platform, const QIcon& icon)

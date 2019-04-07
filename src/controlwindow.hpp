@@ -81,4 +81,6 @@ private:
   WaitingSpinnerWidget* spinner;
 
   ShiftClient sClient;
+
+  QString user;
 };

@@ -115,9 +115,15 @@ bool SC::save_cookie()
   if (!cookie_f.open(QIODevice::WriteOnly))
     return false;
 
+  // write cookie to file
   int data_size = data.size();
   cookie_f.write((char*)&data_size, sizeof(int));
   cookie_f.write(data);
+
+  // write user to file
+  data_size = user.size();
+  cookie_f.write((char*)&data_size, sizeof(int));
+  cookie_f.write(user.toUtf8());
 
   cookie_f.close();
 
@@ -138,6 +144,14 @@ bool SC::load_cookie()
   in.readRawData(data, data_size);
   QByteArray cookieString(data, data_size);
   delete[] data;
+
+  // read user
+  in.readRawData((char*)&data_size, sizeof(data_size));
+  data = new char[data_size];
+  in.readRawData(data, data_size);
+  user = QString(data);
+  delete[] data;
+
   cookie_f.close();
 
   // set cookies on current manager
@@ -158,11 +172,8 @@ bool SC::load_cookie()
 // TODO in own module
 bool findNext(QXmlStreamReader& xml, const QString& token)
 {
-  while (!xml.atEnd()) {
-    if (start)
-      *start = xml.characterOffset();
+  while (!xml.atEnd())
     if (xml.readNextStartElement() && xml.name() == token) break;
-  }
   return !xml.atEnd();
 }
 
@@ -247,7 +258,7 @@ void SC::login()
 
   // when clicked "Ok"
   if (loginDialog.exec()) {
-    QString user = loginWin.userInput->text();
+    user = loginWin.userInput->text();
     QString pw = loginWin.pwInput->text();
 
     INFO << "trying to log in" << endl;
@@ -257,7 +268,7 @@ void SC::login()
   }
 }
 
-void SC::login(const QString& user, const QString& pw)
+void SC::login(const QString& user_name, const QString& pw)
 {
   // TODO redirect_to=false => wrong pw
   // get login form
@@ -280,7 +291,7 @@ void SC::login(const QString& user, const QString& pw)
 
   // inject our data
   postData.removeQueryItem("user[email]");
-  postData.addQueryItem("user[email]", user);
+  postData.addQueryItem("user[email]", user_name);
   postData.removeQueryItem("user[password]");
   postData.addQueryItem("user[password]", pw);
 

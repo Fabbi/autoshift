@@ -88,6 +88,8 @@ public:
    */
   Status redeem(const QString&);
 
+  const QString& getUser()
+  { return user; }
 private:
   /**
    * Get CSRF Token from given URL
@@ -117,7 +119,7 @@ private slots:
   /**
    * Login at shift.gearboxsoftware.com
    *
-   * @param user The Username / E-Mail address
+   * @param user_name The Username / E-Mail address
    * @param pw The Password
    */
   void login(const QString&, const QString&);
@@ -189,6 +191,7 @@ private:
 
   QNetworkAccessManager network_manager;
   // QStringList old_rewards;
+  QString user;
 
 public slots:
   /**
