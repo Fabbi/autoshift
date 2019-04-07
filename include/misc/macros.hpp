@@ -35,15 +35,26 @@
     if (!is_ ## name(i)) return name::NONE;                       \
     return (name)i;                                               \
   }                                                               \
-  inline std::string s ## name(name i) {                                                 \
-    static std::vector<std::string> names;                        \
-    if (names.empty()) {                                          \
-    char str[] { #first ", " #__VA_ARGS__ ", SIZE, NONE"};                            \
+  inline name t ## name(std::string s) {                                \
+  static std::vector<std::string> names;                                \
+  if (names.empty()) {                                                  \
+    char str[] { #first ", " #__VA_ARGS__ ", SIZE, NONE"};              \
     for(char* token = std::strtok(&str[0], ", "); token != 0x0; token = std::strtok(0x0, ", ")) { \
-        names.push_back(token);                                        \
-    }                                                                  \
-    }                                                             \
-      return names[i];                                            \
+      names.push_back(token);                                           \
+    }                                                                   \
+  }                                                                     \
+  ptrdiff_t pos = std::distance(names.begin(), find(names.begin(), names.end(), s)); \
+  return to ## name(pos);                                               \
+  }                                                                     \
+  inline std::string s ## name(name i) {                                \
+    static std::vector<std::string> names;                              \
+    if (names.empty()) {                                                \
+      char str[] { #first ", " #__VA_ARGS__ ", SIZE, NONE"};            \
+      for(char* token = std::strtok(&str[0], ", "); token != 0x0; token = std::strtok(0x0, ", ")) { \
+        names.push_back(token);                                         \
+      }                                                                 \
+    }                                                                   \
+    return names[i];                                                    \
   }
 
 // scoped enum that is explicitly convertible to int
