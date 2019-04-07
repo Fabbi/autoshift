@@ -127,6 +127,7 @@ static const regex ansi_re(R"(\x1B\[([\d;]+)m)");
     using endl_type = ostream&(ostream&);
     char _next_line;
     uint8_t _n_els;
+    uint8_t _filler_els;
     ostream* os;
     string prefix;
     string filename;
@@ -167,7 +168,7 @@ static const regex ansi_re(R"(\x1B\[([\d;]+)m)");
      */
     Logger(ostream* ostr, string _prefix):
       os(ostr), _callback(0), _usrData(0),
-      _next_line(1), _n_els(0), prefix(_prefix), filename(""), line(0), strm(0),
+      _next_line(1), _n_els(0), _filler_els(0), prefix(_prefix), filename(""), line(0), strm(0),
       isFile(false), noAnsi(false), filler("")
       {
         const char *env_p = std::getenv("TERM");
@@ -190,7 +191,7 @@ static const regex ansi_re(R"(\x1B\[([\d;]+)m)");
      */
     Logger():
       os(0), _callback(0), _usrData(0), _next_line(0),
-      _n_els(0), prefix("NULL"), filename(""), line(0),
+      _n_els(0), _filler_els(0), prefix("NULL"), filename(""), line(0),
       strm(0), isFile(false), noAnsi(false), filler("")
     {}
 
@@ -288,6 +289,7 @@ static const regex ansi_re(R"(\x1B\[([\d;]+)m)");
     {
       RETIFNULL;
       filler = join.str;
+      _filler_els = 0;
       return *this;
     }
 
@@ -333,6 +335,7 @@ static const regex ansi_re(R"(\x1B\[([\d;]+)m)");
 
       _next_line = 1;
       _n_els = 0;
+      _filler_els = 0;
       commands.clear();
       (*os) << endl;
       return *this;
@@ -405,9 +408,10 @@ static const regex ansi_re(R"(\x1B\[([\d;]+)m)");
       else
         tmp << ASCII_RED;
       tmp << std::boolalpha << b;
+      tmp << ASCII_RESET;
 
       Logger& l = *this;
-      l << tmp.str() << ASCII_RESET;
+      l << tmp.str();
       return l;
     }
 
@@ -450,7 +454,9 @@ static const regex ansi_re(R"(\x1B\[([\d;]+)m)");
               break;
             }
         }
-        tmp << filler << obj;
+        if (!filler.empty() && _filler_els > 0)
+          tmp << filler;
+        tmp << obj;
       }
 
       if (noAnsi) {
@@ -459,7 +465,9 @@ static const regex ansi_re(R"(\x1B\[([\d;]+)m)");
         (*os) << tmp.str();
       }
 
-      _n_els++;
+      ++_n_els;
+      if (!filler.empty())
+        ++_filler_els;
 
       if (_callback)
         _callback(tmp.str(), _usrData);
