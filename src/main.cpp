@@ -19,7 +19,7 @@
  ** along with autoshift.  If not, see <http://www.gnu.org/licenses/>.
  **
  *****************************************************************************/
-#include <logger.hpp>
+#include <misc/logger.hpp>
 namespace ashift {
 Logger logger_error = Logger(&cerr, "[31mERROR[0m");
 Logger logger_info = Logger("[33mINFO[0m");
@@ -29,10 +29,10 @@ Logger logger_null = Logger();
 #include <boost/program_options.hpp>
 
 #include <QApplication>
-#include "controlwindow.hpp"
-#include <fsettings.hpp>
+#include <controlwindow.hpp>
+#include <misc/fsettings.hpp>
 
-#include "shift.hpp"
+#include <shift.hpp>
 
 namespace po = boost::program_options;
 

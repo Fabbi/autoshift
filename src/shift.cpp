@@ -26,13 +26,13 @@
 
 #include <QDialog>
 
-#include <logger.hpp>
-#include <macros.hpp>
+#include <misc/logger.hpp>
+#include <misc/fsettings.hpp>
 
-#include "shift.hpp"
+#include <shift.hpp>
 #include "ui_loginwindow.h"
 
-#include "request.hpp"
+#include <request.hpp>
 
 #define SC ShiftClient
 
@@ -121,6 +121,7 @@ bool SC::save_cookie()
   cookie_f.write(data);
 
   // write user to file
+  QString user = FSETTINGS["user"].toString();
   data_size = user.size();
   cookie_f.write((char*)&data_size, sizeof(int));
   cookie_f.write(user.toUtf8());
@@ -149,7 +150,8 @@ bool SC::load_cookie()
   in.readRawData((char*)&data_size, sizeof(data_size));
   data = new char[data_size];
   in.readRawData(data, data_size);
-  user = QString(data);
+  QString user(data);
+  FSETTINGS["user"] = user;
   delete[] data;
 
   cookie_f.close();
@@ -258,7 +260,7 @@ void SC::login()
 
   // when clicked "Ok"
   if (loginDialog.exec()) {
-    user = loginWin.userInput->text();
+    QString user = loginWin.userInput->text();
     QString pw = loginWin.pwInput->text();
 
     INFO << "trying to log in" << endl;

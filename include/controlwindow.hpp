@@ -82,5 +82,4 @@ private:
 
   ShiftClient sClient;
 
-  QString user;
 };

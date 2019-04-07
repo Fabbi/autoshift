@@ -5,7 +5,7 @@
 #include <QFontDatabase>
 #include <QColor>
 #include <array>
-#include <logger.hpp>
+#include <misc/logger.hpp>
 
 #define QTE QAnsiTextEdit
 #define ESCSEQ R"(\x1B\[([\d;]+)m)"

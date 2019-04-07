@@ -169,7 +169,7 @@
               </property>
              </widget>
             </item>
-            <item row="5" column="0">
+            <item row="6" column="0">
              <widget class="QPushButton" name="redeemButton">
               <property name="toolTip">
                <string>Redeem once now</string>
@@ -201,7 +201,7 @@
               </item>
              </widget>
             </item>
-            <item row="5" column="1">
+            <item row="6" column="1">
              <widget class="QPushButton" name="controlButton">
               <property name="toolTip">
                <string>Start auto redeeming</string>
@@ -259,6 +259,13 @@
              <widget class="QLabel" name="label">
               <property name="text">
                <string>Code type</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0">
+             <widget class="QLineEdit" name="codeInput">
+              <property name="text">
+               <string/>
               </property>
              </widget>
             </item>

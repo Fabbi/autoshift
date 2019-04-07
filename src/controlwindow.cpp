@@ -20,12 +20,12 @@
  **
  *****************************************************************************/
 
-#include "controlwindow.hpp"
+#include <controlwindow.hpp>
 #include "ui_controlwindow.h"
 
-#include <logger.hpp>
+#include <misc/logger.hpp>
 
-#include <fsettings.hpp>
+#include <misc/fsettings.hpp>
 
 #include <widgets/qansitextedit.hpp>
 #include <waitingspinnerwidget.h>
@@ -119,7 +119,7 @@ void CW::loggedin(bool v)
   ui->loginButton->setText((v)?"signed in":"login");
 
   if (v) {
-    user = sClient.getUser();
+    QString user = FSETTINGS["user"].toString();
     ui->userLabel->setText(user);
   }
 

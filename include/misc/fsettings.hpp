@@ -37,7 +37,7 @@
 #include <QCompleter>
 #include <QStringListModel>
 
-#include <logger.hpp>
+#include <misc/logger.hpp>
 
 #define FSETTINGS FSettings::get()
 #define LOADSTATE(t) _loadState(t* widget, const QString& path, const QVariant& var)

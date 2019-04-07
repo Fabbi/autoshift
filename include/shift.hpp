@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <macros.hpp>
+#include <misc/macros.hpp>
 #include <QObject>
 
 #include <QNetworkAccessManager>
@@ -88,8 +88,6 @@ public:
    */
   Status redeem(const QString&);
 
-  const QString& getUser()
-  { return user; }
 private:
   /**
    * Get CSRF Token from given URL
@@ -191,7 +189,6 @@ private:
 
   QNetworkAccessManager network_manager;
   // QStringList old_rewards;
-  QString user;
 
 public slots:
   /**

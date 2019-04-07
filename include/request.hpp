@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <macros.hpp>
+#include <misc/macros.hpp>
 #include <QNetworkAccessManager>
 
 /**

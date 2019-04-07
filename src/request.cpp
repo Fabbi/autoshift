@@ -1,7 +1,7 @@
-#include "request.hpp"
+#include <request.hpp>
 #include <QtNetwork>
 
-#include <logger.hpp>
+#include <misc/logger.hpp>
 // #define DEBUG_HEADER
 
 Request::Request(QNetworkAccessManager& _manager, const QUrl& _url,
