@@ -30,6 +30,10 @@
 #include <widgets/qansitextedit.hpp>
 #include <waitingspinnerwidget.h>
 
+#include <QNetworkAccessManager>
+
+#include <query.hpp>
+
 void logging_cb(const std::string& str, void* ud)
 {
   QString qstr = QString::fromStdString(str);
@@ -97,6 +101,10 @@ CW::ControlWindow(QWidget *parent) :
   ui->std_out->setFont(cout_font);
 
   // login();
+
+  // setup networkmanager and make it globally available
+  QNetworkAccessManager* nman = new QNetworkAccessManager(this);
+  FSETTINGS.setValue("nman", qVariantFromValue((void*)nman));
 }
 
 CW::~ControlWindow()

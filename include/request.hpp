@@ -39,15 +39,16 @@ FENUM(request_t,
       HEAD);
 
 class QTimer;
+class QNetworkAccessManager;
 
 class Request : public QObject
 {
   Q_OBJECT
 
 public:
-  Request(QNetworkAccessManager& _manager, const QUrl& _url,
+  Request(const QUrl& _url,
           const QUrlQuery& _data, request_t _type = request_t::GET);
-  Request(QNetworkAccessManager& _manager, const QUrl& _url,
+  Request(const QUrl& _url,
           request_t _type = request_t::GET);
   ~Request();
 

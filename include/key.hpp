@@ -62,9 +62,10 @@ public:
    * @param platform The platform
    * @param game The game
    * @param code SHiFT code (AAAAA-BBBBB-CCCCC-EEEEE-FFFFF)
+   * @param expires String containing expiration information
    * @param redeemed is this code already redeemed?
    */
-  ShiftCode(uint32_t, const QString&, Platform, Game, const QString&, bool=false);
+  ShiftCode(uint32_t, const QString&, Platform, Game, const QString&, const QString&, bool=false);
 
   /**
    * Construct a SHiFT code. The ID will be set on pushing to database.
@@ -76,9 +77,10 @@ public:
    * @param platform The platform
    * @param game The game
    * @param code SHiFT code (AAAAA-BBBBB-CCCCC-EEEEE-FFFFF)
+   * @param expires String containing expiration information
    * @param redeemed is this code already redeemed?
    */
-  ShiftCode(const QString&, Platform, Game, const QString&, bool=false);
+  ShiftCode(const QString&, Platform, Game, const QString&, const QString&, bool=false);
 
   /**
    * Construct a SHiFT code
@@ -120,30 +122,68 @@ public:
    */
   bool commit();
 
-  friend ashift::Logger& operator<<(ashift::Logger& l, const ShiftCode& c)
+
+  inline void setDesc(const QString& _d)
   {
-    l << "Key{" << JOIN(", ");
-    l << c.id << c.desc << c.code << c.redeemed;
-    l << JOINE << "}";
-    return l;
+    _desc = _d;
+    dirty = true;
   }
+  inline void setCode(const QString& _c)
+  {
+    _code = _c;
+    dirty = true;
+  }
+  inline void setRedeemed(bool v=true)
+  {
+    _redeemed = v;
+    dirty = true;
+  }
+
+  inline uint32_t id() const
+  { return _id; }
+
+  inline const QString& desc() const
+  { return _desc; }
+  inline const QString& code() const
+  { return _code; }
+
+  inline Platform platform() const
+  { return _platform; }
+
+  inline Game game() const
+  { return _game; }
+
+  inline bool redeemed() const
+  { return _redeemed; }
+
+  inline const QString& expires() const
+  { return _expires; }
 private:
 
 public:
-  QString desc;  ///< Reward description
-  QString code;  ///< Code to redeem
-  bool redeemed; ///< Is this key already redeemed?
+  QString _desc;  ///< Reward description
+  QString _code;  ///< Code to redeem
+  bool _redeemed; ///< Is this key already redeemed?
+  QString _expires;   ///< (When) does this code expire?
 
-  Platform platform;
-  Game game;
+  Platform _platform;
+  Game _game;
 
 private:
-  uint32_t id; ///< ID of this entry
+  uint32_t _id; ///< ID of this entry
 
+  bool dirty;
 
   // date expires at?
 };
 
+inline ashift::Logger& operator<<(ashift::Logger& l, const ShiftCode& c)
+{
+  l << "Key{" << JOIN(", ");
+  l << c.id() << c.desc() << c.code() << c.redeemed() << c.expires();
+  l << JOINE << "}";
+  return l;
+}
 
 
 /**
@@ -165,7 +205,8 @@ class ShiftCollection: public QList<ShiftCode>
 
 public:
 
-  ShiftCollection();
+  ShiftCollection()
+  {}
   /**
    * @brief Construct a ShiftCollection
    *
@@ -206,5 +247,9 @@ public:
    */
   ShiftCollection filter(CodePredicate);
 
+  void push_back(const ShiftCode& _c)
+  {append(_c);}
+  void append(const ShiftCode&);
 private:
+  QMap<QString, ShiftCode*> codeMap;
 };

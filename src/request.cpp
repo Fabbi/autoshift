@@ -2,21 +2,23 @@
 #include <QtNetwork>
 
 #include <misc/logger.hpp>
+#include <misc/fsettings.hpp>
 // #define DEBUG_HEADER
 
-Request::Request(QNetworkAccessManager& _manager, const QUrl& _url,
+Request::Request(const QUrl& _url,
                  const QUrlQuery& _data, request_t _type)
-  :Request(_manager, _url, _type)
+  :Request(_url, _type)
 {
   query_data = _data.toString(QUrl::FullyEncoded)
     .replace("+", "%2B").toUtf8();
 }
-Request::Request(QNetworkAccessManager& _manager, const QUrl& _url,
+Request::Request(const QUrl& _url,
                  request_t _type)
-  : manager(&_manager), url(_url), reply(0), data(""),
+  : url(_url), reply(0), data(""),
     type(_type), req(url), follow_redirects(false), status_code(-1),
     timed_out(false), timeout_timer(0)
 {
+  manager = static_cast<QNetworkAccessManager*>(FSETTINGS["nman"].value<void*>());
   // delete this with the QNetworkAccessManager
   setParent(manager);
 }

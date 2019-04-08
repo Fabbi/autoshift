@@ -36,9 +36,6 @@
 
 #define SC ShiftClient
 
-#define REQUEST(args...) Request(network_manager, args)
-#define REQ(args...) req(network_manager, args)
-
 const QUrl baseUrl("https://shift.gearboxsoftware.com");
 const QString cookieFile(".cookie.sav");
 
@@ -87,10 +84,11 @@ Status SC::redeem(const QString& code)
 
 void SC::delete_cookies()
 {
-  QList<QNetworkCookie> cookies = network_manager.cookieJar()->cookiesForUrl(baseUrl);
+  auto* network_manager = static_cast<QNetworkAccessManager*>(FSETTINGS["nman"].value<void*>());
+  QList<QNetworkCookie> cookies = network_manager->cookieJar()->cookiesForUrl(baseUrl);
   QByteArray data;
   for (auto& cookie: cookies) {
-    network_manager.cookieJar()->deleteCookie(cookie);
+    network_manager->cookieJar()->deleteCookie(cookie);
   }
 
   QFile cookie_f(cookieFile);
@@ -99,8 +97,9 @@ void SC::delete_cookies()
 
 bool SC::save_cookie()
 {
+  auto* network_manager = static_cast<QNetworkAccessManager*>(FSETTINGS["nman"].value<void*>());
   // write cookie
-  QList<QNetworkCookie> cookies = network_manager.cookieJar()->cookiesForUrl(baseUrl);
+  QList<QNetworkCookie> cookies = network_manager->cookieJar()->cookiesForUrl(baseUrl);
   QByteArray data;
   for (auto& cookie: cookies) {
     if (cookie.name().toStdString() == "si") {
@@ -159,10 +158,11 @@ bool SC::load_cookie()
   // set cookies on current manager
   QList<QNetworkCookie> cookies = QNetworkCookie::parseCookies(cookieString);
 
-  network_manager.cookieJar()->setCookiesFromUrl(cookies, baseUrl);
+  auto* network_manager = static_cast<QNetworkAccessManager*>(FSETTINGS["nman"].value<void*>());
+  network_manager->cookieJar()->setCookiesFromUrl(cookies, baseUrl);
 
   // test if no success
-  Request REQ(baseUrl.resolved(QUrl("/account")), request_t::HEAD);
+  Request req(baseUrl.resolved(QUrl("/account")), request_t::HEAD);
   req.send();
   if (!wait(&req, &Request::finished))
     return false;
@@ -199,7 +199,7 @@ bool findNextWithAttr(QXmlStreamReader& xml, const QString& token,
 
 StatusC SC::getToken(const QUrl& url)
 {
-  Request req(network_manager, url);
+  Request req(url);
   // get request
   req.send();
 
@@ -235,7 +235,7 @@ StatusC SC::getToken(const QString& data)
 
 void SC::logout()
 {
-  Request REQ(baseUrl.resolved(QUrl("/logout")));
+  Request req(baseUrl.resolved(QUrl("/logout")));
   req.send();
   wait(&req, &Request::finished);
   DEBUG << "logout" << endl;
@@ -298,7 +298,7 @@ void SC::login(const QString& user_name, const QString& pw)
   postData.addQueryItem("user[password]", pw);
 
   // send login request
-  Request* req = new REQUEST(baseUrl.resolved(QUrl("/sessions")),
+  Request* req = new Request(baseUrl.resolved(QUrl("/sessions")),
                             postData, request_t::POST);
   // setup request
   req->req.setRawHeader("Referer", the_url.toEncoded());
@@ -314,7 +314,7 @@ void SC::login(const QString& user_name, const QString& pw)
 StatusC SC::getFormData(const QUrl& url)
 {
   // query site
-  Request REQ(url);
+  Request req(url);
   req.send();
 
   if (!wait(&req, &Request::finished)) {
@@ -370,7 +370,7 @@ StatusC SC::getRedemptionData(const QString& code)
   QString& token(s.message);
 
   // get form
-  Request REQ(baseUrl.resolved(
+  Request req(baseUrl.resolved(
                 QUrl(QString("/entitlement_offer_codes?code=%1").arg(code))));
   req.req.setRawHeader("x-csrf-token", token.toUtf8());
   req.req.setRawHeader("x-requested-with", "XMLHttpRequest");
@@ -475,7 +475,7 @@ StatusC SC::checkRedemptionStatus(const Request& req)
       }
 
       // query url
-      Request new_req(network_manager, baseUrl.resolved(new_location));
+      Request new_req(baseUrl.resolved(new_location));
       DEBUG << "query " << baseUrl.resolved(new_location).toString() << endl;
       new_req.req.setRawHeader("x-csrf-token", token.toUtf8());
       new_req.req.setRawHeader("x-requested-with", "XMLHttpRequest");
@@ -503,7 +503,7 @@ StatusC SC::checkRedemptionStatus(const Request& req)
 // QStringList SC::queryRewards()
 // {
 //   QStringList ret;
-//   // Request REQ(baseUrl.resolved(QUrl("/rewards")));
+//   // Request req(baseUrl.resolved(QUrl("/rewards")));
 //   // req.send();
 //   // wait(&req, &Request::finished);
 
@@ -536,7 +536,7 @@ StatusC SC::redeemForm(const QUrlQuery& data)
   StatusC status;
   request_t req_type = request_t::POST;
   do {
-  Request REQ(the_url, data, req_type);
+  Request req(the_url, data, req_type);
   req.req.setRawHeader("Referer", baseUrl.resolved(QUrl("/code_redemptions/new")).toEncoded());
 
   req.send();
@@ -557,5 +557,3 @@ StatusC SC::redeemForm(const QUrlQuery& data)
 }
 
 #undef SC
-#undef REQ
-#undef REQUEST

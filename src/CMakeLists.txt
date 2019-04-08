@@ -7,6 +7,7 @@ set(autoshift_HEADERS
   ${INC}/shift.hpp
   ${INC}/request.hpp
   ${INC}/key.hpp
+  ${INC}/query.hpp
   )
 
 set(autoshift_SOURCE
@@ -18,6 +19,7 @@ set(autoshift_SOURCE
   controlwindow.cpp
   shift.cpp
   key.cpp
+  query.cpp
   )
 
 add_executable(autoshift

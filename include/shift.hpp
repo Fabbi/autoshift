@@ -30,11 +30,6 @@
 
 class Request;
 
-class QSslError;
-class QAuthenticator;
-class QNetworkReply;
-class QDataStream;
-
 FENUM(Status,
       REDIRECT,
       TRYLATER,
@@ -187,7 +182,6 @@ private slots:
 private:
   bool logged_in; ///< are we logged in?
 
-  QNetworkAccessManager network_manager;
   // QStringList old_rewards;
 
 public slots:

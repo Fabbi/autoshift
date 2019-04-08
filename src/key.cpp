@@ -26,53 +26,61 @@
 
 #define SC ShiftCode
 
-SC::ShiftCode(uint32_t _id, const QString& _desc, Platform _p, Game _g,
-              const QString& _code, bool _redeemed):
-  id(_id), desc(_desc), platform(_p), game(_g), code(_code), redeemed(_redeemed)
+SC::ShiftCode(uint32_t m_id, const QString& _d, Platform _p, Game _g,
+              const QString& _c, const QString& _e, bool _r):
+  _id(m_id), _desc(_d), _platform(_p), _game(_g), _code(_c),
+  _redeemed(_r), _expires(_e), dirty(false)
 {}
-SC::ShiftCode(const QString& _desc, Platform _p, Game _g, const QString& _code, bool _redeemed):
-  ShiftCode(UINT32_MAX, _desc, _p, _g, _code, _redeemed)
+SC::ShiftCode(const QString& _d, Platform _p, Game _g, const QString& _c, const QString& _e, bool _r):
+  ShiftCode(UINT32_MAX, _d, _p, _g, _c, _e, _r)
 {}
 SC::ShiftCode(const QSqlQuery& qry):
   ShiftCode(qry.value("id").toInt(), qry.value("description").toString(),
             tPlatform(qry.value("platform").toString().toStdString()),
             tGame(qry.value("game").toString().toStdString()),
-            qry.value("key").toString(), qry.value("redeemed").toBool())
+            qry.value("key").toString(), qry.value("expires").toString(),
+            qry.value("redeemed").toBool())
 {}
 SC::ShiftCode():
-  id(UINT32_MAX), redeemed(false)
+  _id(UINT32_MAX), _redeemed(false), dirty(false)
 {}
+
 bool SC::commit()
 {
-  bool new_code = (id == UINT32_MAX);
+  bool new_code = (id() == UINT32_MAX);
+
+  // nothing to do here..
+  if (!new_code && !dirty) return true;
 
   QSqlQuery qry;
   if (new_code) {
     // insert new key
-    qry.prepare("INSERT INTO keys(description, key, platform, game, redeemed) "
-                "VAlUES (:d,:k,:p,:g,:r)");
+    qry.prepare("INSERT INTO keys(description, key, platform, game, redeemed, expires) "
+                "VAlUES (:d,:k,:p,:g,:r,:e)");
   } else {
     // update key
     qry.prepare("UPDATE keys SET description=(:d), key=(:k), redeemed=(:r), "
-                "platform=(:p), game=(:g)"
+                "platform=(:p), game=(:g), expires=(:e)"
                 "WHERE id=(:id)");
-    qry.bindValue(":id", id);
+    qry.bindValue(":id", id());
   }
 
-  qry.bindValue(":p", platform);
-  qry.bindValue(":g", game);
-  qry.bindValue(":d", desc);
-  qry.bindValue(":k", code);
-  qry.bindValue(":r", redeemed);
+  qry.bindValue(":p", platform());
+  qry.bindValue(":g", game());
+  qry.bindValue(":d", desc());
+  qry.bindValue(":k", code());
+  qry.bindValue(":r", redeemed());
+  qry.bindValue(":e", expires());
 
   bool ret = qry.exec();
 
   if (new_code) {
     QSqlQuery idQry("SELECT last_insert_rowid() as id;");
     idQry.next();
-    id = idQry.value("id").toInt();
+    _id = idQry.value("id").toInt();
   }
 
+  dirty = false;
   return ret;
 }
 #undef SC
@@ -86,7 +94,7 @@ SCOL::ShiftCollection(Platform platform, Game game, bool used)
 #include <QSQlError>
 void SCOL::query(Platform platform, Game game, bool used)
 {
-  QString qry_s("SELECT id, description, key, redeemed FROM keys "
+  QString qry_s("SELECT * FROM keys "
                 "WHERE platform = :p "
                 "AND game = :g");
   if (!used)
@@ -100,8 +108,25 @@ void SCOL::query(Platform platform, Game game, bool used)
 
   qry.exec();
 
-  while (qry.next())
+  while (qry.next()) {
+    QString code = qry.value("code").toString();
+    if (codeMap.contains(code)) continue;
+
     push_back({qry});
+    ShiftCode* last = &back();
+    codeMap.insert(last->code(), last);
+  }
+}
+
+void SCOL::append(const ShiftCode& code)
+{
+  // append only if not there yet
+  if (codeMap.contains(code.code())) return;
+
+  // DEBUG << "ADD " << code << endl;
+  QList<ShiftCode>::append(code);
+
+  codeMap.insert(code.code(), &back());
 }
 
 void SCOL::commit()
@@ -111,5 +136,12 @@ void SCOL::commit()
   }
 }
 ShiftCollection SCOL::filter(CodePredicate pred)
-{}
+{
+  ShiftCollection ret;
+  for (auto& key: *this) {
+    if (pred(key))
+      ret.push_back(key);
+  }
+  return ret;
+}
 #undef SCOL
