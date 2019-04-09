@@ -27,6 +27,7 @@
 
 #include <misc/fsettings.hpp>
 #include <controlwindow.hpp>
+
 /** @class CodeParser
  * @brief A parser for SHiFT codes
  *
@@ -49,6 +50,7 @@ public:
              std::initializer_list<Platform> _ps, std::initializer_list<QIcon> _i):
     CodeParser()
   {
+    // register this parser
     auto icon_it = _i.begin();
 
     for (Game _g: _gs) {
@@ -65,16 +67,46 @@ public:
     }
   }
 
+  /**
+   * Parse keys and add them to the passed ShiftCollection.
+   *
+   * This function has spam-protection.
+   *
+   * @sa parse_keys(ShiftCollection&)
+   *
+   * @param coll output variable to contain the shift codes after parsing
+   */
+  void parseKeys(ShiftCollection& /* out */ coll)
+  {
+    static QDateTime last_parsed;
+    if (last_parsed.isValid()) {
+      QDateTime now = QDateTime::currentDateTime();
+      // every 5 minutes
+      if (last_parsed.secsTo(now) < 300) return;
+    }
+    last_parsed = QDateTime::currentDateTime();
+
+    parse_keys(coll);
+  }
+
+  /**
+   * Parse keys and add them to the passed ShiftCollection.
+   *
+   * This function has no spam-protection.
+   *
+   * @sa parseKeys(ShiftCollection&)
+   *
+   * @param coll output variable to contain the shift codes after parsing
+   */
   virtual void parse_keys(ShiftCollection& /* out */) = 0;
 
 protected:
   QNetworkAccessManager* network_manager;
 };
 
-// #define IS(t) (GAME==t)
-// #define ENABLE_FOR(PRED) template<Game GAME, Platform PLATFORM, typename std::enable_if<PRED, int>::type=0>
-// #define ENABLE_FOR_DEF(PRED) template<Game GAME, Platform PLATFORM, typename std::enable_if<PRED, int>::type>
-// template<Game GAME, Platform PLATFORM, typename std::enable_if<IS(Game::BL2) || IS(Game::BLPS), int>::type=0>
+/** @class BL2nBLPSParser
+ * BL2 and BLPS code Parser
+ */
 class BL2nBLPSParser: public CodeParser
 {
 public:
