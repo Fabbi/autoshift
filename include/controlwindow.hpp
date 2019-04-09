@@ -87,6 +87,8 @@ private:
   bool redeem();
 
   void insertRow(const ShiftCode&, size_t);
+
+  void addToTable();
 private:
   Ui::ControlWindow *ui;
   WaitingSpinnerWidget* spinner;

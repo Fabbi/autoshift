@@ -146,6 +146,7 @@ void CW::updateTable()
 
   // query from database
   collection.query(platform, game, true);
+  addToTable();
 
   CodeParser* p = parsers[game][platform];
 
@@ -155,8 +156,13 @@ void CW::updateTable()
 
   collection.commit();
 
+}
+
+void CW::addToTable()
+{
   ui->keyTable->setRowCount(collection.size());
   size_t i = 0;
+  // insert backwards
   for (auto it = collection.rbegin(); it != collection.rend(); ++it, ++i) {
     insertRow(*it, i);
   }
