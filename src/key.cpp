@@ -33,7 +33,7 @@ SC::ShiftCode(uint32_t m_id, const QString& _d, Platform _p, Game _g,
 {}
 SC::ShiftCode(const QString& _d, Platform _p, Game _g, const QString& _c, const QString& _e, bool _r):
   ShiftCode(UINT32_MAX, _d, _p, _g, _c, _e, _r)
-{}
+{ dirty = true; }
 SC::ShiftCode(const QSqlQuery& qry):
   ShiftCode(qry.value("id").toInt(), qry.value("description").toString(),
             tPlatform(qry.value("platform").toString().toStdString()),
