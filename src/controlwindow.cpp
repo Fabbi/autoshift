@@ -220,6 +220,9 @@ void CW::insertRow(const ShiftCode& code, size_t i)
   ui->keyTable->setItem(i, 2, new QTableWidgetItem(code.code()));
   // expiration
   ui->keyTable->setItem(i, 3, new QTableWidgetItem(code.expires()));
+
+  if (code.desc().contains("\n"))
+    ui->keyTable->setRowHeight(i, 45);
 }
 
 
