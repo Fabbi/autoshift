@@ -55,7 +55,7 @@ BL2PS::BL2nBLPSParser(ControlWindow& cw, Game _g):
   game(_g), url(urls[_g])
 {}
 
-void BL2PS::parse_keys(ShiftCollection& coll)
+bool BL2PS::parse_keys(ShiftCollection& coll)
 {
   static QDateTime last_parsed;
   if (last_parsed.isValid()) {
@@ -71,13 +71,13 @@ void BL2PS::parse_keys(ShiftCollection& coll)
     req.send();
     if (!wait(&req, &Request::finished)) {
       DEBUG << "timed out" << endl;
-      return;
+      return false;
     }
 
     // extract table
     auto match = rTable.match(req.data);
     if (!match.hasMatch())
-      return;
+      return false;
 
     const QString& table = match.captured(1);
 
@@ -141,9 +141,11 @@ void BL2PS::parse_keys(ShiftCollection& coll)
 
     last_parsed = QDateTime::currentDateTime();
   }
+
 ret:
   Platform platform = tPlatform(FSETTINGS["platform"].toString().toStdString());
   coll << collections[platform];
+  return true;
 }
 
 #undef BL2PS

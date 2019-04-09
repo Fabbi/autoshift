@@ -76,10 +76,10 @@ public:
    *
    * @param coll output variable to contain the shift codes after parsing
    */
-  void parseKeys(ShiftCollection& /* out */ coll)
+  bool parseKeys(ShiftCollection& /* out */ coll)
   {
 
-    parse_keys(coll);
+    return parse_keys(coll);
   }
 
   /**
@@ -91,7 +91,7 @@ public:
    *
    * @param coll output variable to contain the shift codes after parsing
    */
-  virtual void parse_keys(ShiftCollection& /* out */) = 0;
+  virtual bool parse_keys(ShiftCollection& /* out */) = 0;
 
 protected:
   QNetworkAccessManager* network_manager;
@@ -104,7 +104,7 @@ class BL2nBLPSParser: public CodeParser
 {
 public:
   BL2nBLPSParser(ControlWindow&, Game);
-  void parse_keys(ShiftCollection&);
+  bool parse_keys(ShiftCollection&);
 private:
   Game game;
   const QUrl& url;
