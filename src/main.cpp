@@ -29,10 +29,12 @@ Logger logger_null = Logger();
 #include <boost/program_options.hpp>
 
 #include <QApplication>
+#include <QSqlDatabase>
 #include <controlwindow.hpp>
 #include <misc/fsettings.hpp>
 
 #include <shift.hpp>
+#include <query.hpp>
 
 namespace po = boost::program_options;
 
@@ -60,8 +62,19 @@ int main(int argc, char *argv[])
 
   settings.setValue("no_gui", no_gui);
 
+  QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+  db.setDatabaseName(".keys.db");
+  db.open();
+
   QApplication a(argc, argv);
   ControlWindow w;
+
+  ////// PARSER
+  BL2Parser bl2(w);
+  BLPSParser blps(w);
+
+  //////////////////////
+  w.init();
 
   // get every QLineEdit and register it for sate memoization
   QList<QWidget*> widgets = w.findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly);
@@ -86,5 +99,7 @@ int main(int argc, char *argv[])
   }
 
   // main loop
-  return a.exec();
+  int exec = a.exec();
+  db.close();
+  return exec;
 }

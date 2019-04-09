@@ -69,6 +69,8 @@ public slots:
   void login();
   void loggedin(bool);
 
+  void updateTable();
+
 private:
   /**
    * Starts redeeming SHiFT codes
@@ -84,6 +86,7 @@ private:
    */
   bool redeem();
 
+  void insertRow(const ShiftCode&, size_t);
 private:
   Ui::ControlWindow *ui;
   WaitingSpinnerWidget* spinner;

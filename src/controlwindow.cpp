@@ -101,6 +101,17 @@ CW::ControlWindow(QWidget *parent) :
   ui->std_out->setFont(cout_font);
 
   // login();
+  connect(ui->redeemButton, &QPushButton::released, this, [&] () {
+
+      if (!ui->loginButton->isEnabled()) {
+        Status st = sClient.redeem(ui->codeInput->text());
+        // Status st = sClient.redeem("WWK3B-SSBZF-9TFKJ-HBK3T-FRRST");
+        DEBUG << sStatus(st) << endl;
+      }
+    });
+
+  ui->keyTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+  ui->keyTable->setColumnWidth(0, 15);
 
   // setup networkmanager and make it globally available
   QNetworkAccessManager* nman = new QNetworkAccessManager(this);
@@ -118,6 +129,69 @@ void CW::init()
   connect(ui->dropDPlatform, QOverload<int>::of(&QComboBox::currentIndexChanged),
           this, &ControlWindow::updateTable);
 }
+void CW::updateTable()
+{
+  // commit changes
+  // collection.commit();
+  collection.clear();
+  // ui->keyTable->clear();
+  ui->keyTable->setRowCount(0);
+
+  Game game = tGame(ui->dropDGame->currentText().toStdString());
+  Platform platform = tPlatform(ui->dropDPlatform->currentText().toStdString());
+
+  if (game == Game::NONE || platform == Platform::NONE) {
+    return;
+  }
+
+  // query from database
+  collection.query(platform, game, true);
+
+  CodeParser* p = parsers[game][platform];
+
+  // now parse and add new keys
+  // TODO do the following in another thread
+  p->parse_keys(collection);
+
+  collection.commit();
+
+  ui->keyTable->setRowCount(collection.size());
+  size_t i = 0;
+  for (auto it = collection.rbegin(); it != collection.rend(); ++it, ++i) {
+    insertRow(*it, i);
+  }
+
+  ui->keyTable->resizeColumnToContents(2);
+}
+
+void CW::insertRow(const ShiftCode& code, size_t i)
+{
+  int c = ui->keyTable->rowCount();
+  if (i >= c)
+    ui->keyTable->insertRow(i);
+
+  // QLabel *label = new QLabel;
+  // label->setText(key.desc());
+  // label->setTextFormat(Qt::RichText);
+  // label->setWordWrap(true);
+  // label->setOpenExternalLinks(true);
+
+  // ui->keyTable->setCellWidget(c, 1, label);
+  QCheckBox* cb = new QCheckBox;
+  cb->setChecked(code.redeemed());
+  cb->setEnabled(false);
+  ui->keyTable->setCellWidget(i, 0, cb);
+
+  // description
+  ui->keyTable->setItem(i, 1, new QTableWidgetItem(code.desc()));
+  // code
+  ui->keyTable->setItem(i, 2, new QTableWidgetItem(code.code()));
+  // expiration
+  ui->keyTable->setItem(i, 3, new QTableWidgetItem(code.expires()));
+}
+
+
+
 void CW::login()
 {
   ui->loginButton->setText("");
