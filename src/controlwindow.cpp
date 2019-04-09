@@ -110,9 +110,18 @@ CW::ControlWindow(QWidget *parent) :
   connect(ui->redeemButton, &QPushButton::released, this, [&] () {
 
       if (!ui->loginButton->isEnabled()) {
-        Status st = sClient.redeem(ui->codeInput->text());
+        // get selected row Item
+        auto selection = ui->keyTable->selectedItems();
+        if (selection.isEmpty()) return;
+
+        int row = selection[0]->row();
+        // QString code = static_cast<QLabel*>(ui->keyTable->cellWidget(row, 2))->text();
+        QString code = ui->keyTable->item(row, 2)->text();
+        // DEBUG << code << endl;
+        Status st = sClient.redeem(code);
+        // Status st = sClient.redeem(ui->codeInput->text());
         // Status st = sClient.redeem("WWK3B-SSBZF-9TFKJ-HBK3T-FRRST");
-        DEBUG << sStatus(st) << endl;
+        // DEBUG << sStatus(st) << endl;
       }
     });
 
