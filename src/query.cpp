@@ -63,7 +63,6 @@ void BL2PS::parse_keys(ShiftCollection& coll)
     // every 5 minutes
     if (last_parsed.secsTo(now) < 300) goto ret;
   }
-  last_parsed = QDateTime::currentDateTime();
 
   {
     QNetworkAccessManager man;
@@ -139,6 +138,8 @@ void BL2PS::parse_keys(ShiftCollection& coll)
         }
       }
     }
+
+    last_parsed = QDateTime::currentDateTime();
   }
 ret:
   Platform platform = tPlatform(FSETTINGS["platform"].toString().toStdString());
