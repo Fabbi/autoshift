@@ -50,6 +50,10 @@ public:
           const QUrlQuery& _data, request_t _type = request_t::GET);
   Request(const QUrl& _url,
           request_t _type = request_t::GET);
+  Request(const QUrl& _url, QNetworkAccessManager*,
+          const QUrlQuery& _data, request_t _type = request_t::GET);
+  Request(const QUrl& _url, QNetworkAccessManager*,
+          request_t _type = request_t::GET);
   ~Request();
 
   template<typename FUNC>

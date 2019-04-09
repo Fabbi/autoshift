@@ -57,81 +57,96 @@ BL2PS::BL2nBLPSParser(ControlWindow& cw, Game _g):
 
 void BL2PS::parse_keys(ShiftCollection& coll)
 {
-  Request req(url);
+  static QDateTime last_parsed;
+  if (last_parsed.isValid()) {
+    QDateTime now = QDateTime::currentDateTime();
+    // every 5 minutes
+    if (last_parsed.secsTo(now) < 300) goto ret;
+  }
+  last_parsed = QDateTime::currentDateTime();
 
-  req.send();
-  if (!wait(&req, &Request::finished))
-    return;
+  {
+    QNetworkAccessManager man;
+    Request req(url, &man);
 
-  // extract table
-  auto match = rTable.match(req.data);
-  if (!match.hasMatch())
-    return;
-
-  const QString& table = match.captured(1);
-
-  // find all rows
-  auto rIt = rRow.globalMatch(table);
-
-  // skip header row
-  rIt.next();
-
-  while (rIt.hasNext()) {
-    QString row = rIt.next().captured(1);
-
-    auto cIt = rCol.globalMatch(row);
-    QString cols[7];
-    uint8_t i = 0;
-    while (cIt.hasNext() && i < 7) {
-      cols[i] = cIt.next().captured(1);
-      ++i;
+    req.send();
+    if (!wait(&req, &Request::finished)) {
+      DEBUG << "timed out" << endl;
+      return;
     }
 
-    // remove expired keys
-    bool keep = false;
-    for (i = 4; i < 7; ++i) {
-      if (cols[i].isEmpty()) continue;
+    // extract table
+    auto match = rTable.match(req.data);
+    if (!match.hasMatch())
+      return;
 
-      // is this key expired?
-      if (rExp.match(cols[i]).hasMatch()) {
-        cols[i] = "";
-      } else {
-        // at least one isn't => keep the row
-        keep = true;
-        auto kMatch = rCode.match(cols[i]);
-        if (!kMatch.hasMatch()) continue;
+    DEBUG << "find data" << endl;
+    const QString& table = match.captured(1);
 
-        cols[i] = kMatch.captured(1).trimmed();
+    // find all rows
+    auto rIt = rRow.globalMatch(table);
+
+    // skip header row
+    rIt.next();
+
+    while (rIt.hasNext()) {
+      QString row = rIt.next().captured(1);
+
+      auto cIt = rCol.globalMatch(row);
+      QString cols[7];
+      uint8_t i = 0;
+      while (cIt.hasNext() && i < 7) {
+        cols[i] = cIt.next().captured(1);
+        ++i;
       }
-    }
 
-    if (keep) {
-      // has at least one active key
-      QString desc = cols[1].trimmed();
-      // replace HTML breaks
-      desc = desc.replace(QRegExp("<br ?/?>"), "\n");
-      desc = desc.replace(rTag, "");
-
-      // extract "expires" information
-      QString exp = cols[2].trimmed();
-      auto match = rThru.match(exp);
-      if (match.hasMatch())
-        exp = match.captured(1);
-      else
-        exp = "";
-
-      // add keys for every platform
+      // remove expired keys
+      bool keep = false;
       for (i = 4; i < 7; ++i) {
         if (cols[i].isEmpty()) continue;
-        collections[i-4].push_back({desc, toPlatform(i-4), game, cols[i], exp});
+
+        // is this key expired?
+        if (rExp.match(cols[i]).hasMatch()) {
+          cols[i] = "";
+        } else {
+          // at least one isn't => keep the row
+          keep = true;
+          auto kMatch = rCode.match(cols[i]);
+          if (!kMatch.hasMatch()) continue;
+
+          cols[i] = kMatch.captured(1).trimmed();
+        }
+      }
+
+      if (keep) {
+        // has at least one active key
+        QString desc = cols[1].trimmed();
+        // replace HTML breaks
+        desc = desc.replace(QRegExp("<br ?/?>"), "\n");
+        desc = desc.replace(rTag, "");
+
+        // extract "expires" information
+        QString exp = cols[2].trimmed();
+        auto match = rThru.match(exp);
+        if (match.hasMatch())
+          exp = match.captured(1);
+        else
+          exp = "";
+
+        // add keys for every platform
+        for (i = 4; i < 7; ++i) {
+          if (cols[i].isEmpty()) continue;
+          collections[i-4].push_back({desc, toPlatform(i-4), game, cols[i], exp});
+        }
       }
     }
   }
-
+ret:
+  DEBUG << "end parse_keys" << endl;
   Platform platform = tPlatform(FSETTINGS["platform"].toString().toStdString());
-
-  // append to the set
+  DEBUG << "before " << coll.size() << endl;
   coll << collections[platform];
+  DEBUG << "after " << coll.size() << endl;
 }
 
 #undef BL2PS

@@ -78,13 +78,6 @@ public:
    */
   void parseKeys(ShiftCollection& /* out */ coll)
   {
-    static QDateTime last_parsed;
-    if (last_parsed.isValid()) {
-      QDateTime now = QDateTime::currentDateTime();
-      // every 5 minutes
-      if (last_parsed.secsTo(now) < 300) return;
-    }
-    last_parsed = QDateTime::currentDateTime();
 
     parse_keys(coll);
   }
@@ -110,7 +103,7 @@ protected:
 class BL2nBLPSParser: public CodeParser
 {
 public:
-  BL2nBLPSParser(ControlWindow&, Game _g);
+  BL2nBLPSParser(ControlWindow&, Game);
   void parse_keys(ShiftCollection&);
 private:
   Game game;
