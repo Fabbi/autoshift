@@ -98,4 +98,6 @@ private:
 
   QMap<Game, QMap<Platform, CodeParser*>> parsers;
 
+  QLabel* pStatus;
+  QLabel* tStatus;
 };

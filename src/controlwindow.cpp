@@ -47,9 +47,11 @@ void logging_cb(const std::string& str, void* ud)
 
 CW::ControlWindow(QWidget *parent) :
   QMainWindow(parent), ui(new Ui::ControlWindow),
-  sClient(this)
+  sClient(this), pStatus(new QLabel), tStatus(new QLabel)
 {
   ui->setupUi(this);
+  statusBar()->addPermanentWidget(pStatus);
+  statusBar()->addWidget(tStatus);
   connect(ui->loginButton, &QPushButton::pressed,
           this, &ControlWindow::login);
 
@@ -177,7 +179,8 @@ void CW::updateTable()
   // FIXME find a better solution
   no_gui_out = true;
   QFuture<void> future = QtConcurrent::run([&, p]() {
-    p->parseKeys(collection);
+    bool worked = p->parseKeys(collection);
+    statusBar()->showMessage(QString("Parsing %1").arg((worked)? "complete" : "failed"), 10000);
   });
   watcher->setFuture(future);
 }
@@ -240,7 +243,7 @@ void CW::loggedin(bool v)
 
   if (v) {
     QString user = FSETTINGS["user"].toString();
-    ui->userLabel->setText(user);
+    pStatus->setText(user);
   }
 }
 

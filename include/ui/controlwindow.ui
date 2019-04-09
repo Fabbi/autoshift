@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>968</width>
+    <width>985</width>
     <height>802</height>
    </rect>
   </property>
@@ -26,7 +26,7 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QVBoxLayout" name="layout_main" stretch="0,0,0">
+   <layout class="QVBoxLayout" name="layout_main" stretch="0,0">
     <property name="spacing">
      <number>3</number>
     </property>
@@ -125,7 +125,7 @@
             <number>0</number>
            </property>
            <item row="2" column="0">
-            <widget class="QLabel" name="userLabel">
+            <widget class="QLabel" name="spacer">
              <property name="text">
               <string/>
              </property>
@@ -269,37 +269,19 @@
               </property>
              </widget>
             </item>
+            <item row="5" column="1">
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
         </layout>
        </item>
       </layout>
-     </widget>
-    </item>
-    <item>
-     <widget class="QLineEdit" name="codeInput">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>220</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="baseSize">
-       <size>
-        <width>220</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
      </widget>
     </item>
     <item>
