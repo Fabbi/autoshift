@@ -65,8 +65,8 @@ bool SC::commit()
     qry.bindValue(":id", id());
   }
 
-  qry.bindValue(":p", platform());
-  qry.bindValue(":g", game());
+  qry.bindValue(":p", QString(sPlatform(platform()).c_str()));
+  qry.bindValue(":g", QString(sGame(game()).c_str()));
   qry.bindValue(":d", desc());
   qry.bindValue(":k", code());
   qry.bindValue(":r", redeemed());
@@ -95,8 +95,8 @@ SCOL::ShiftCollection(Platform platform, Game game, bool used)
 void SCOL::query(Platform platform, Game game, bool used)
 {
   QString qry_s("SELECT * FROM keys "
-                "WHERE platform = :p "
-                "AND game = :g");
+                "WHERE platform=(:p) "
+                "AND game=(:g)");
   if (!used)
     qry_s += " AND redeemed=0";
 
