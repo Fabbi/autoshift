@@ -42,11 +42,11 @@ public:
   {}
   CodeParser(ControlWindow& cw, Game _g, Platform _p, const QIcon& _i = QIcon()):
     CodeParser(cw, {_g, Game::NONE}, {_p, Platform::NONE}, {_i})
-  {
-  }
+  {}
 
   // CodeParser(ControlWindow& cw, Game _gs[], Platform _ps[], const QIcon& _i = QIcon()):
-  CodeParser(ControlWindow& cw, std::initializer_list<Game> _gs, std::initializer_list<Platform> _ps, std::initializer_list<QIcon> _i):
+  CodeParser(ControlWindow& cw, std::initializer_list<Game> _gs,
+             std::initializer_list<Platform> _ps, std::initializer_list<QIcon> _i):
     CodeParser()
   {
     auto icon_it = _i.begin();
@@ -63,23 +63,9 @@ public:
         cw.registerParser(_g, _p, this, icn);
       }
     }
-    // DEBUG << JOINS << "register" << _gs.size() << "Games" << endl;
-    // DEBUG << JOINS << "register" << _ps.size() << "Platforms" << endl;
-
-    // DEBUG << JOIN(", ");
-    // for (auto _g: _gs)
-    //   DEBUG << sGame(_g);
-    // DEBUG << endl;
-    // DEBUG << JOIN(", ");
-    // for (auto _p: _ps)
-    //   DEBUG << sPlatform(_p);
-    // DEBUG << endl;
-    // for (Game _g: _gs) {
-    //   cw.registerParser(_g, _p);
-    // }
   }
 
-  virtual void parse_keys(ShiftCollection& /* out */, Game, Platform) = 0;
+  virtual void parse_keys(ShiftCollection& /* out */) = 0;
 
 protected:
   QNetworkAccessManager* network_manager;
@@ -93,8 +79,9 @@ class BL2nBLPSParser: public CodeParser
 {
 public:
   BL2nBLPSParser(ControlWindow&, Game _g);
-  void parse_keys(ShiftCollection&, Game, Platform);
+  void parse_keys(ShiftCollection&);
 private:
+  Game game;
   const QUrl& url;
   ShiftCollection collections[3];
 };

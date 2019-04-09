@@ -24,8 +24,12 @@
 
 #include "ui_controlwindow.h"
 #include "shift.hpp"
+#include "key.hpp"
 
 class WaitingSpinnerWidget;
+class ShiftCode;
+class CodeParser;
+
 class ControlWindow : public QMainWindow
 {
   Q_OBJECT
@@ -46,8 +50,10 @@ public:
    *
    * @param game the game this parser searches codes for.
    * @param platform the platform this parser searches codes for.
+   * @param parser Pointer to a parser class to handle the (Game, Platform) combination
+   * @param icon Optional icon to display besides the game name in Dropdown
    */
-  void registerParser(const QString&, const QString&, const QIcon& = QIcon());
+  void registerParser(Game, Platform, CodeParser*, const QIcon& = QIcon());
 
   // /**
   //  * Register SHiFT code parser for querying new codes.
@@ -57,6 +63,8 @@ public:
   //  */
   // void registerParser(const QStringList&,
   //                     const QStringList&);
+
+  void init();
 public slots:
   void login();
   void loggedin(bool);
@@ -81,5 +89,8 @@ private:
   WaitingSpinnerWidget* spinner;
 
   ShiftClient sClient;
+  ShiftCollection collection;
+
+  QMap<Game, QMap<Platform, CodeParser*>> parsers;
 
 };

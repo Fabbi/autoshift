@@ -51,10 +51,11 @@ const QRegularExpression rThru("\\((thru.*?)\\)",
 
 // this parser can handle all platforms
 BL2PS::BL2nBLPSParser(ControlWindow& cw, Game _g):
-  CodeParser(cw, {_g}, {Platform::PC, Platform::PS, Platform::XBOX}, {}), url(urls[_g])
+  CodeParser(cw, {_g}, {Platform::PC, Platform::PS, Platform::XBOX}, {}),
+  game(_g), url(urls[_g])
 {}
 
-void BL2PS::parse_keys(ShiftCollection& coll, Game game, Platform platform)
+void BL2PS::parse_keys(ShiftCollection& coll)
 {
   Request req(url);
 
@@ -126,6 +127,9 @@ void BL2PS::parse_keys(ShiftCollection& coll, Game game, Platform platform)
       }
     }
   }
+
+  Platform platform = tPlatform(FSETTINGS["platform"].toString().toStdString());
+
   coll = collections[platform];
 }
 

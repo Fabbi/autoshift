@@ -110,6 +110,14 @@ CW::ControlWindow(QWidget *parent) :
 CW::~ControlWindow()
 {}
 
+void CW::init()
+{
+  connect(ui->dropDGame, QOverload<int>::of(&QComboBox::currentIndexChanged),
+          this, &ControlWindow::updateTable);
+
+  connect(ui->dropDPlatform, QOverload<int>::of(&QComboBox::currentIndexChanged),
+          this, &ControlWindow::updateTable);
+}
 void CW::login()
 {
   ui->loginButton->setText("");
@@ -120,6 +128,7 @@ void CW::login()
 
   spinner->setAttribute(Qt::WA_TransparentForMouseEvents);
 }
+
 void CW::loggedin(bool v)
 {
   spinner->stop();
@@ -130,22 +139,38 @@ void CW::loggedin(bool v)
     QString user = FSETTINGS["user"].toString();
     ui->userLabel->setText(user);
   }
-
 }
 
-void CW::registerParser(const QString& game, const QString& platform, const QIcon& icon)
+void CW::registerParser(Game game, Platform platform, CodeParser* parser, const QIcon& icon)
 {
+  bool is_new = false;
+  QString game_s(sGame(game).c_str());
+  QString platform_s(sPlatform(platform).c_str());
+
   // add game to dropdown if not already there
-  if (ui->dropDGame->findText(game) >= 0)
+  if (ui->dropDGame->findText(game_s) == -1) {
     // add it with icon if there is one
     if (!icon.isNull())
-      ui->dropDGame->addItem(icon, game);
+      ui->dropDGame->addItem(icon, game_s);
     else
-      ui->dropDGame->addItem(game);
+      ui->dropDGame->addItem(game_s);
+
+    is_new = true;
+  }
 
   // add platform to dropdown if not already there
-  if (ui->dropDPlatform->findText(platform) >= 0)
-    ui->dropDPlatform->addItem(platform);
+  if (ui->dropDPlatform->findText(platform_s) == -1) {
+    ui->dropDPlatform->addItem(platform_s);
+    is_new = true;
+  }
+
+  // add to codeparser map
+  if (is_new) {
+    DEBUG << "registerParser(" << sGame(game) << ", " << sPlatform(platform) << ")" << endl;
+    if (!parsers.contains(game))
+      parsers.insert(game, {});
+    parsers[game].insert(platform, parser);
+  }
 }
 
 void CW::start()
