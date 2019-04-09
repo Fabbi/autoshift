@@ -31,11 +31,15 @@
 #include <waitingspinnerwidget.h>
 
 #include <QNetworkAccessManager>
+#include <QtConcurrent>
+#include <QFutureWatcher>
 
 #include <query.hpp>
 
+static bool no_gui_out = false;
 void logging_cb(const std::string& str, void* ud)
 {
+  if (no_gui_out) return;
   QString qstr = QString::fromStdString(str);
   static_cast<QAnsiTextEdit*>(ud)->append(qstr);
 }
@@ -112,6 +116,7 @@ CW::ControlWindow(QWidget *parent) :
 
   ui->keyTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
   ui->keyTable->setColumnWidth(0, 15);
+  ui->keyTable->setColumnWidth(2, 265);
 
   // setup networkmanager and make it globally available
   QNetworkAccessManager* nman = new QNetworkAccessManager(this);
@@ -131,13 +136,12 @@ void CW::init()
 
   updateTable();
 }
+
 void CW::updateTable()
 {
   // commit changes
-  // collection.commit();
   collection.clear();
-  // ui->keyTable->clear();
-  ui->keyTable->setRowCount(0);
+
   QString game_s = ui->dropDGame->currentText();
   QString platform_s = ui->dropDPlatform->currentText();
   Game game = tGame(game_s.toStdString());
@@ -157,12 +161,25 @@ void CW::updateTable()
 
   CodeParser* p = parsers[game][platform];
 
-  // now parse and add new keys
-  // TODO do the following in another thread
-  p->parse_keys(collection);
+  // after parsing new keys
+  QFutureWatcher<void>* watcher = new QFutureWatcher<void>();
+  connect(watcher, &QFutureWatcher<void>::finished,
+          [&, watcher]() {
+            collection.commit();
 
-  collection.commit();
+            addToTable();
 
+            delete watcher;
+            no_gui_out = false;
+          });
+
+  // don't output to GUI in another thread
+  // FIXME find a better solution
+  no_gui_out = true;
+  QFuture<void> future = QtConcurrent::run([&, p]() {
+    p->parseKeys(collection);
+  });
+  watcher->setFuture(future);
 }
 
 void CW::addToTable()
@@ -174,7 +191,6 @@ void CW::addToTable()
     insertRow(*it, i);
   }
 
-  ui->keyTable->resizeColumnToContents(2);
 }
 
 void CW::insertRow(const ShiftCode& code, size_t i)

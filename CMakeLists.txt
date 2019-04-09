@@ -81,12 +81,14 @@ set (MY_QT5_COMPONENTS
   Widgets
   PrintSupport
   Sql
+  Concurrent
   )
 if (LINUX)
   list (APPEND MY_QT5_COMPONENTS X11Extras)
 endif(LINUX)
 
 find_package_quiet(Qt5Extern COMPONENTS ${MY_QT5_COMPONENTS} REQUIRED)
+# find_package(Qt5Extern COMPONENTS ${MY_QT5_COMPONENTS} REQUIRED)
 
 if (Qt5Core_FOUND)
   set (CMAKE_INCLUDE_CURRENT_DIR ON)
