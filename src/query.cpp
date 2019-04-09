@@ -80,7 +80,6 @@ void BL2PS::parse_keys(ShiftCollection& coll)
     if (!match.hasMatch())
       return;
 
-    DEBUG << "find data" << endl;
     const QString& table = match.captured(1);
 
     // find all rows
@@ -142,11 +141,8 @@ void BL2PS::parse_keys(ShiftCollection& coll)
     }
   }
 ret:
-  DEBUG << "end parse_keys" << endl;
   Platform platform = tPlatform(FSETTINGS["platform"].toString().toStdString());
-  DEBUG << "before " << coll.size() << endl;
   coll << collections[platform];
-  DEBUG << "after " << coll.size() << endl;
 }
 
 #undef BL2PS
