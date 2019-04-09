@@ -131,7 +131,7 @@ void BL2PS::parse_keys(ShiftCollection& coll)
   Platform platform = tPlatform(FSETTINGS["platform"].toString().toStdString());
 
   // append to the set
-  coll += collections[platform];
+  coll << collections[platform];
 }
 
 #undef BL2PS

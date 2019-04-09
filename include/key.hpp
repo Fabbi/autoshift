@@ -250,6 +250,12 @@ public:
   void push_back(const ShiftCode& _c)
   {append(_c);}
   void append(const ShiftCode&);
+
+  QList<ShiftCode>& operator+=(const QList<ShiftCode> &other)
+  { for (auto& el: other) {append(el);}; return *this; }
+  QList<ShiftCode>& operator<<(const QList<ShiftCode> &other)
+  { return operator+=(other); }
+
 private:
   QMap<QString, ShiftCode*> codeMap;
 };
