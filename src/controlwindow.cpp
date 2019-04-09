@@ -128,6 +128,8 @@ void CW::init()
 
   connect(ui->dropDPlatform, QOverload<int>::of(&QComboBox::currentIndexChanged),
           this, &ControlWindow::updateTable);
+
+  updateTable();
 }
 void CW::updateTable()
 {
@@ -136,9 +138,14 @@ void CW::updateTable()
   collection.clear();
   // ui->keyTable->clear();
   ui->keyTable->setRowCount(0);
+  QString game_s = ui->dropDGame->currentText();
+  QString platform_s = ui->dropDPlatform->currentText();
+  Game game = tGame(game_s.toStdString());
+  Platform platform = tPlatform(platform_s.toStdString());
 
-  Game game = tGame(ui->dropDGame->currentText().toStdString());
-  Platform platform = tPlatform(ui->dropDPlatform->currentText().toStdString());
+  // because of race-conditions the values in FSETTINGS might not be updated yet
+  FSETTINGS["platform"].setValue(platform_s);
+  FSETTINGS["game"].setValue(game_s);
 
   if (game == Game::NONE || platform == Platform::NONE) {
     return;

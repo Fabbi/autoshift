@@ -74,7 +74,6 @@ int main(int argc, char *argv[])
   BLPSParser blps(w);
 
   //////////////////////
-  w.init();
 
   // get every QLineEdit and register it for sate memoization
   QList<QWidget*> widgets = w.findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly);
@@ -97,6 +96,8 @@ int main(int argc, char *argv[])
     w.show();
     w.bringToFront();
   }
+
+  w.init();
 
   // main loop
   int exec = a.exec();
