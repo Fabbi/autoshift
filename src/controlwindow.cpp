@@ -79,9 +79,9 @@ CW::ControlWindow(QWidget *parent) :
   // automatically set setting values from ui input
   FSETTINGS.observe(ui->limitCB, "limit_keys");
   FSETTINGS.observe(ui->limitBox, "limit_num");
-  FSETTINGS.observe(ui->dropDGame, "game");
-  FSETTINGS.observe(ui->dropDPlatform, "platform");
-  FSETTINGS.observe(ui->dropDType, "code_type");
+  FSETTINGS.observe<const QString&>(ui->dropDGame, "game");
+  FSETTINGS.observe<const QString&>(ui->dropDPlatform, "platform");
+  FSETTINGS.observe<const QString&>(ui->dropDType, "code_type");
 
   // change button text
   connect(ui->controlButton, &QPushButton::toggled,
