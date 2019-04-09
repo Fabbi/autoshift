@@ -247,6 +247,11 @@ public:
    */
   ShiftCollection filter(CodePredicate);
 
+  inline void clear()
+  {
+    QList<ShiftCode>::clear();
+    codeMap.clear();
+  }
   void push_back(const ShiftCode& _c)
   {append(_c);}
   void append(const ShiftCode&);
