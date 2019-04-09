@@ -91,7 +91,6 @@ SCOL::ShiftCollection(Platform platform, Game game, bool used)
   query(platform, game, used);
 }
 
-#include <QSQlError>
 void SCOL::query(Platform platform, Game game, bool used)
 {
   QString qry_s("SELECT * FROM keys "
@@ -109,24 +108,27 @@ void SCOL::query(Platform platform, Game game, bool used)
   qry.exec();
 
   while (qry.next()) {
-    QString code = qry.value("code").toString();
-    if (codeMap.contains(code)) continue;
+    QString code = qry.value("key").toString();
+    QString code_id = code + QString(sPlatform(platform).c_str()) + QString(sGame(game).c_str());
+    if (codeMap.contains(code_id)) continue;
 
     push_back({qry});
     ShiftCode* last = &back();
-    codeMap.insert(last->code(), last);
+    codeMap.insert(code_id, last);
   }
 }
 
 void SCOL::append(const ShiftCode& code)
 {
+  QString code_id = code.code() + QString(sPlatform(code.platform()).c_str())
+    + QString(sGame(code.game()).c_str());
   // append only if not there yet
-  if (codeMap.contains(code.code())) return;
+  if (codeMap.contains(code_id)) return;
 
-  // DEBUG << "ADD " << code << endl;
+  // DEBUG << "NEW  " << code << endl;
   QList<ShiftCode>::append(code);
 
-  codeMap.insert(code.code(), &back());
+  codeMap.insert(code_id, &back());
 }
 
 void SCOL::commit()
