@@ -50,16 +50,22 @@ CW::ControlWindow(QWidget *parent) :
   sClient(this), pStatus(new QLabel), tStatus(new QLabel)
 {
   ui->setupUi(this);
+
+  // setup statusbar
   statusBar()->addPermanentWidget(pStatus);
   statusBar()->addWidget(tStatus);
+
+  // connect login button
   connect(ui->loginButton, &QPushButton::pressed,
           this, &ControlWindow::login);
 
+  // did we start in no-gui mode?
   if (FSETTINGS["no_gui"].toBool()) {
     DEBUG << "no_gui" << endl;
     ashift::logger_debug.withCallback(0, 0);
     ashift::logger_info.withCallback(0, 0);
     ashift::logger_error.withCallback(0, 0);
+
   } else {
     spinner = new WaitingSpinnerWidget(ui->loginButton);
 
@@ -139,10 +145,10 @@ CW::~ControlWindow()
 
 void CW::init()
 {
-  connect(ui->dropDGame, QOverload<int>::of(&QComboBox::currentIndexChanged),
+  connect(ui->dropDGame, QOverload<const QString&>::of(&QComboBox::currentIndexChanged),
           this, &ControlWindow::updateTable);
 
-  connect(ui->dropDPlatform, QOverload<int>::of(&QComboBox::currentIndexChanged),
+  connect(ui->dropDPlatform, QOverload<const QString&>::of(&QComboBox::currentIndexChanged),
           this, &ControlWindow::updateTable);
 
   updateTable();
@@ -153,14 +159,8 @@ void CW::updateTable()
   // commit changes
   collection.clear();
 
-  QString game_s = ui->dropDGame->currentText();
-  QString platform_s = ui->dropDPlatform->currentText();
-  Game game = tGame(game_s.toStdString());
-  Platform platform = tPlatform(platform_s.toStdString());
-
-  // because of race-conditions the values in FSETTINGS might not be updated yet
-  FSETTINGS["platform"].setValue(platform_s);
-  FSETTINGS["game"].setValue(game_s);
+  Game game = tGame(ui->dropDGame->currentText().toStdString());
+  Platform platform = tPlatform(ui->dropDPlatform->currentText().toStdString());
 
   if (game == Game::NONE || platform == Platform::NONE) {
     return;
