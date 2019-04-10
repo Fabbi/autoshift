@@ -60,7 +60,6 @@ struct StatusC
   {}
   ~StatusC()
   {}
-  void reset() { code = Status::NONE; message = ""; data=0; }
 };
 
 

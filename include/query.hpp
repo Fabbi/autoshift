@@ -38,8 +38,9 @@
 class CodeParser
 {
 public:
-  CodeParser():
-    network_manager(static_cast<QNetworkAccessManager*>(FSETTINGS["nman"].value<void*>()))
+  typedef std::function<void(bool)> Callback;
+
+  CodeParser()
   {}
   CodeParser(ControlWindow& cw, Game _g, Platform _p, const QIcon& _i = QIcon()):
     CodeParser(cw, {_g, Game::NONE}, {_p, Platform::NONE}, {_i})
@@ -70,31 +71,12 @@ public:
   /**
    * Parse keys and add them to the passed ShiftCollection.
    *
-   * This function has spam-protection.
-   *
-   * @sa parse_keys(ShiftCollection&)
-   *
-   * @param coll output variable to contain the shift codes after parsing
+   * @param coll Output variable to contain the shift codes after parsing
+   * @param cb Callback to trigger after parsing is done (receives bool success-value)
    */
-  bool parseKeys(ShiftCollection& /* out */ coll)
-  {
-
-    return parse_keys(coll);
-  }
-
-  /**
-   * Parse keys and add them to the passed ShiftCollection.
-   *
-   * This function has no spam-protection.
-   *
-   * @sa parseKeys(ShiftCollection&)
-   *
-   * @param coll output variable to contain the shift codes after parsing
-   */
-  virtual bool parse_keys(ShiftCollection& /* out */) = 0;
+  virtual void parseKeys(ShiftCollection& /* out */, Callback=0) = 0;
 
 protected:
-  QNetworkAccessManager* network_manager;
 };
 
 /** @class BL2nBLPSParser
@@ -104,7 +86,7 @@ class BL2nBLPSParser: public CodeParser
 {
 public:
   BL2nBLPSParser(ControlWindow&, Game);
-  bool parse_keys(ShiftCollection&);
+  void parseKeys(ShiftCollection&, CodeParser::Callback=0);
 private:
   Game game;
   const QUrl& url;

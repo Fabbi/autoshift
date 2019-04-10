@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>985</width>
+    <width>968</width>
     <height>802</height>
    </rect>
   </property>
@@ -159,8 +159,22 @@
               </property>
              </widget>
             </item>
-            <item row="1" column="1">
-             <widget class="QComboBox" name="dropDGame"/>
+            <item row="0" column="0">
+             <widget class="QCheckBox" name="limitCB">
+              <property name="text">
+               <string>limit</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Code type</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QComboBox" name="dropDPlatform"/>
             </item>
             <item row="2" column="0">
              <widget class="QLabel" name="labelPlatform">
@@ -169,14 +183,48 @@
               </property>
              </widget>
             </item>
-            <item row="0" column="0">
-             <widget class="QCheckBox" name="limitCB">
+            <item row="5" column="1">
+             <widget class="QPushButton" name="controlButton">
+              <property name="toolTip">
+               <string>Start auto redeeming</string>
+              </property>
               <property name="text">
-               <string>limit</string>
+               <string>Start</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+              <property name="flat">
+               <bool>false</bool>
               </property>
              </widget>
             </item>
-            <item row="6" column="0">
+            <item row="1" column="1">
+             <widget class="QComboBox" name="dropDGame"/>
+            </item>
+            <item row="0" column="1">
+             <widget class="QSpinBox" name="limitBox">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximum">
+               <number>255</number>
+              </property>
+              <property name="value">
+               <number>100</number>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0">
              <widget class="QPushButton" name="redeemButton">
               <property name="toolTip">
                <string>Redeem once now</string>
@@ -185,6 +233,19 @@
                <string>redeem x1</string>
               </property>
              </widget>
+            </item>
+            <item row="4" column="1">
+             <spacer name="verticalSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
             </item>
             <item row="3" column="1">
              <widget class="QComboBox" name="dropDType">
@@ -206,74 +267,6 @@
                 <string>Non-Golden</string>
                </property>
               </item>
-             </widget>
-            </item>
-            <item row="6" column="1">
-             <widget class="QPushButton" name="controlButton">
-              <property name="toolTip">
-               <string>Start auto redeeming</string>
-              </property>
-              <property name="text">
-               <string>Start</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-              <property name="flat">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QSpinBox" name="limitBox">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximum">
-               <number>255</number>
-              </property>
-              <property name="value">
-               <number>100</number>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QComboBox" name="dropDPlatform"/>
-            </item>
-            <item row="4" column="1">
-             <spacer name="verticalSpacer">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>Code type</string>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="1">
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>TextLabel</string>
-              </property>
              </widget>
             </item>
            </layout>

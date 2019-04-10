@@ -55,29 +55,37 @@ BL2PS::BL2nBLPSParser(ControlWindow& cw, Game _g):
   game(_g), url(urls[_g])
 {}
 
-bool BL2PS::parse_keys(ShiftCollection& coll)
+void BL2PS::parseKeys(ShiftCollection& coll, Callback cb)
 {
   static QDateTime last_parsed;
   if (last_parsed.isValid()) {
     QDateTime now = QDateTime::currentDateTime();
     // every 5 minutes
-    if (last_parsed.secsTo(now) < 300) goto ret;
+    if (last_parsed.secsTo(now) < 300) {
+      Platform platform = tPlatform(FSETTINGS["platform"].toString().toStdString());
+      coll << collections[platform];
+
+      if (cb)
+        cb(true);
+      return;
+    }
   }
 
-  {
-    QNetworkAccessManager man;
-    Request req(url, &man);
+  Request* req = new Request(url);
 
-    req.send();
-    if (!wait(&req, &Request::finished)) {
-      DEBUG << "timed out" << endl;
-      return false;
+  req->send([&, req, cb, coll]() mutable {
+#define IFCB(v) if(cb) cb(v);
+    if (req->timed_out) {
+      IFCB(false);
+      return;
     }
 
     // extract table
-    auto match = rTable.match(req.data);
-    if (!match.hasMatch())
-      return false;
+    auto match = rTable.match(req->data);
+    if (!match.hasMatch()) {
+      IFCB(false);
+      return;
+    }
 
     const QString& table = match.captured(1);
 
@@ -140,12 +148,11 @@ bool BL2PS::parse_keys(ShiftCollection& coll)
     }
 
     last_parsed = QDateTime::currentDateTime();
-  }
 
-ret:
-  Platform platform = tPlatform(FSETTINGS["platform"].toString().toStdString());
-  coll << collections[platform];
-  return true;
+    IFCB(true);
+    req->deleteLater();
+  });
+#undef IFCB
 }
 
 #undef BL2PS

@@ -31,8 +31,6 @@
 #include <waitingspinnerwidget.h>
 
 #include <QNetworkAccessManager>
-#include <QtConcurrent>
-#include <QFutureWatcher>
 
 #include <query.hpp>
 
@@ -150,6 +148,7 @@ void CW::init()
 
   connect(ui->dropDPlatform, QOverload<const QString&>::of(&QComboBox::currentIndexChanged),
           this, &ControlWindow::updateTable);
+  // TODO ctrl_down => activate checkboxes to force-set redeemed flag of codes
 
   updateTable();
 }
@@ -173,25 +172,14 @@ void CW::updateTable()
   CodeParser* p = parsers[game][platform];
 
   // after parsing new keys
-  QFutureWatcher<void>* watcher = new QFutureWatcher<void>();
-  connect(watcher, &QFutureWatcher<void>::finished,
-          [&, watcher]() {
-            collection.commit();
-
-            addToTable();
-
-            delete watcher;
-            no_gui_out = false;
-          });
-
-  // don't output to GUI in another thread
-  // FIXME find a better solution
-  no_gui_out = true;
-  QFuture<void> future = QtConcurrent::run([&, p]() {
-    bool worked = p->parseKeys(collection);
+  CodeParser::Callback cb = [&](bool worked) {
+    DEBUG << "parsing " << worked << endl;
     statusBar()->showMessage(QString("Parsing %1").arg((worked)? "complete" : "failed"), 10000);
-  });
-  watcher->setFuture(future);
+    collection.commit();
+    addToTable();
+  };
+
+  p->parseKeys(collection, cb);
 }
 
 void CW::addToTable()
@@ -233,8 +221,6 @@ void CW::insertRow(const ShiftCode& code, size_t i)
   if (code.desc().contains("\n"))
     ui->keyTable->setRowHeight(i, 45);
 }
-
-
 
 void CW::login()
 {

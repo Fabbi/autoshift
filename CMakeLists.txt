@@ -81,7 +81,6 @@ set (MY_QT5_COMPONENTS
   Widgets
   PrintSupport
   Sql
-  Concurrent
   )
 if (LINUX)
   list (APPEND MY_QT5_COMPONENTS X11Extras)
