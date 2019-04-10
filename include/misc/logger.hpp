@@ -335,6 +335,7 @@ static const regex ansi_re(R"(\x1B\[([\d;]+)m)");
 
       _next_line = 1;
       _n_els = 0;
+      filler = "";
       _filler_els = 0;
       commands.clear();
       (*os) << endl;
