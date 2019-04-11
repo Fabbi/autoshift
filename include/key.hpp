@@ -41,7 +41,7 @@ FENUM(Game,
       BLPS,
       BL3);
 
-const QRegularExpression rGold("(\d+).*?gold", QRegularExpression::CaseInsensitiveOption);
+const QRegularExpression rGold("([0-9]+)[^0-9]*?gold", QRegularExpression::CaseInsensitiveOption);
 
 /** @class ShiftCode
  * @brief SHiFT code representation
