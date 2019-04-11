@@ -34,6 +34,17 @@
 
 #include <query.hpp>
 
+static const QString messages[] {
+
+  [Status::SUCCESS] = "Redeemed %1",
+  [Status::EXPIRED] = "This code expired by now.. (%1)",
+  [Status::REDEEMED] = "Already redeemed %1",
+  [Status::INVALID] = "The code `%2` is invalid",
+  [Status::TRYLATER] = "Please launch a SHiFT-enabled title or wait 1 hour.",
+  [Status::UNKNOWN] = "A unknown Error occured",
+  [Status::NONE] = "Something unexpected happened.."
+    };
+
 static bool no_gui_out = false;
 void logging_cb(const std::string& str, void* ud)
 {
@@ -119,13 +130,8 @@ CW::ControlWindow(QWidget *parent) :
         if (selection.isEmpty()) return;
 
         int row = selection[0]->row();
-        // QString code = static_cast<QLabel*>(ui->keyTable->cellWidget(row, 2))->text();
-        QString code = ui->keyTable->item(row, 2)->text();
-        // DEBUG << code << endl;
-        Status st = sClient.redeem(code);
-        // Status st = sClient.redeem(ui->codeInput->text());
-        // Status st = sClient.redeem("WWK3B-SSBZF-9TFKJ-HBK3T-FRRST");
-        // DEBUG << sStatus(st) << endl;
+        ShiftCode& code = *(collection.rbegin()+row);
+        redeem(code);
       }
     });
 
@@ -151,6 +157,18 @@ void CW::init()
   // TODO ctrl_down => activate checkboxes to force-set redeemed flag of codes
 
   updateTable();
+}
+
+void CW::updateRedemption()
+{
+  int c = ui->keyTable->rowCount();
+  auto keyIt = collection.rbegin();
+  for (int row = 0; row < c; ++row) {
+    ShiftCode& code = *(keyIt+row);
+    QCheckBox* cb = dynamic_cast<QCheckBox*>(ui->keyTable->cellWidget(row, 0));
+
+    cb->setChecked(code.redeemed());
+  }
 }
 
 void CW::updateTable()
@@ -258,18 +276,15 @@ void CW::registerParser(Game game, Platform platform, CodeParser* parser, const 
       ui->dropDGame->addItem(icon, game_s);
     else
       ui->dropDGame->addItem(game_s);
-
-    is_new = true;
   }
 
   // add platform to dropdown if not already there
   if (ui->dropDPlatform->findText(platform_s) == -1) {
     ui->dropDPlatform->addItem(platform_s);
-    is_new = true;
   }
 
   // add to codeparser map
-  if (is_new) {
+  if (!parsers.contains(game) || !parsers[game].contains(platform)) {
     DEBUG << "registerParser(" << sGame(game) << ", " << sPlatform(platform) << ")" << endl;
     if (!parsers.contains(game))
       parsers.insert(game, {});
@@ -287,9 +302,33 @@ void CW::stop()
   // TODO write logic
 }
 
-bool CW::redeem()
+bool CW::redeem(ShiftCode& code)
 {
-  // TODO write logic
-  return false;
+  QString desc = code.desc();
+  desc = desc.replace("\n", " / ");
+  Status st = sClient.redeem(code.code());
+
+  QString msg = messages[st];
+  if (msg.contains("%1"))
+    msg = msg.arg(desc);
+  if (msg.contains("%2"))
+    msg = msg.arg(code.code());
+
+  INFO << msg << endl;
+  statusBar()->showMessage(msg, 10000);
+
+  switch (st) {
+  case Status::SUCCESS:
+  case Status::REDEEMED:
+  case Status::EXPIRED:
+  case Status::INVALID:
+    code.setRedeemed(true);
+    code.commit();
+    updateRedemption();
+    break;
+  default: break;
+  };
+
+  return st == Status::SUCCESS;
 }
 #undef CW

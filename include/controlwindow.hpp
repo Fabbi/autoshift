@@ -70,6 +70,7 @@ public slots:
   void loggedin(bool);
 
   void updateTable();
+  void updateRedemption();
 
 private:
   /**
@@ -84,7 +85,7 @@ private:
   /**
    * Redeem one SHiFT code
    */
-  bool redeem();
+  bool redeem(ShiftCode&);
 
   void insertRow(const ShiftCode&, size_t);
 
