@@ -265,9 +265,13 @@ void CW::loggedin(bool v)
   ui->loginButton->setEnabled(!v);
   ui->loginButton->setText((v)?tr("signed in"):tr("login"));
 
+  ui->redeemButton->setEnabled(v);
+  ui->controlButton->setEnabled(v);
+
   if (v) {
     QString user = FSETTINGS["user"].toString();
     pStatus->setText(user);
+
   }
 }
 
