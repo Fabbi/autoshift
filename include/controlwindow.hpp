@@ -117,4 +117,9 @@ private:
    * StatusBar label for temporary messages (on the left)
    */
   QLabel* tStatus;
+
+  /**
+   * Timer for auto redemption every hour
+   */
+  QTimer* timer;
 };

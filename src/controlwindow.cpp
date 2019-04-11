@@ -57,9 +57,15 @@ void logging_cb(const std::string& str, void* ud)
 
 CW::ControlWindow(QWidget *parent) :
   QMainWindow(parent), ui(new Ui::ControlWindow),
-  sClient(this), pStatus(new QLabel), tStatus(new QLabel)
+  sClient(this), pStatus(new QLabel), tStatus(new QLabel),
+  timer(new QTimer(this))
 {
   ui->setupUi(this);
+
+  // setup timer
+  timer->setSingleShot(true);
+  connect(timer, &QTimer::timeout,
+          this, &CW::start);
 
   // setup statusbar
   statusBar()->addPermanentWidget(pStatus);
@@ -91,12 +97,13 @@ CW::ControlWindow(QWidget *parent) :
     // spinner->setRevolutionsPerSecond(1);
     spinner->setColor(QColor(255-bgcolor.red(), 255-bgcolor.green(), 255-bgcolor.blue()));
 
-    connect(&sClient, &ShiftClient::loggedin, this, &ControlWindow::loggedin);
     // installEventFilter(this);
     ashift::logger_debug.withCallback(logging_cb, ui->std_out);
     ashift::logger_info.withCallback(logging_cb, ui->std_out);
     ashift::logger_error.withCallback(logging_cb, ui->std_out);
   }
+
+  connect(&sClient, &ShiftClient::loggedin, this, &ControlWindow::loggedin);
 
   // automatically set setting values from ui input
   FSETTINGS.observe(ui->limitCB, "limit_keys");
@@ -294,10 +301,16 @@ void CW::registerParser(Game game, Platform platform, CodeParser* parser, const 
 
 void CW::start()
 {
-  // TODO write logic
+  while (redeemNext()) {
+    // keep on going
+  }
+
+  timer->start(3900000); // do this every hour + 5min
 }
 
 void CW::stop()
+{ timer->stop(); }
+
 bool CW::redeemNext()
 {
   QString code_type = FSETTINGS["code_type"].toString();
