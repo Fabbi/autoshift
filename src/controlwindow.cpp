@@ -34,15 +34,17 @@
 
 #include <query.hpp>
 
+#define CW ControlWindow
+
 static const QString messages[] {
 
-  [Status::SUCCESS] = "Redeemed %1",
-  [Status::EXPIRED] = "This code expired by now.. (%1)",
-  [Status::REDEEMED] = "Already redeemed %1",
-  [Status::INVALID] = "The code `%2` is invalid",
-  [Status::TRYLATER] = "Please launch a SHiFT-enabled title or wait 1 hour.",
-  [Status::UNKNOWN] = "A unknown Error occured",
-  [Status::NONE] = "Something unexpected happened.."
+  [Status::SUCCESS] = CW::tr("Redeemed %1"),
+  [Status::EXPIRED] = CW::tr("This code expired by now.. (%1)"),
+  [Status::REDEEMED] = CW::tr("Already redeemed %1"),
+  [Status::INVALID] = CW::tr("The code `%2` is invalid"),
+  [Status::TRYLATER] = CW::tr("Please launch a SHiFT-enabled title or wait 1 hour."),
+  [Status::UNKNOWN] = CW::tr("A unknown Error occured"),
+  [Status::NONE] = CW::tr("Something unexpected happened..")
     };
 
 static bool no_gui_out = false;
@@ -52,7 +54,6 @@ void logging_cb(const std::string& str, void* ud)
   QString qstr = QString::fromStdString(str);
   static_cast<QAnsiTextEdit*>(ud)->append(qstr);
 }
-#define CW ControlWindow
 
 CW::ControlWindow(QWidget *parent) :
   QMainWindow(parent), ui(new Ui::ControlWindow),
@@ -108,10 +109,10 @@ CW::ControlWindow(QWidget *parent) :
   connect(ui->controlButton, &QPushButton::toggled,
           [&](bool val) {
             if (val) {
-              ui->controlButton->setText("Running ...");
+              ui->controlButton->setText(tr("Running ..."));
               start();
             } else {
-              ui->controlButton->setText("Start");
+              ui->controlButton->setText(tr("Start"));
               stop();
             }
           });
@@ -191,8 +192,7 @@ void CW::updateTable()
 
   // after parsing new keys
   CodeParser::Callback cb = [&](bool worked) {
-    DEBUG << "parsing " << worked << endl;
-    statusBar()->showMessage(QString("Parsing %1").arg((worked)? "complete" : "failed"), 10000);
+    statusBar()->showMessage(QString(tr("Parsing %1")).arg((worked)? tr("complete") : tr("failed")), 10000);
     collection.commit();
     addToTable();
   };
@@ -255,7 +255,7 @@ void CW::loggedin(bool v)
 {
   spinner->stop();
   ui->loginButton->setEnabled(!v);
-  ui->loginButton->setText((v)?"signed in":"login");
+  ui->loginButton->setText((v)?tr("signed in"):tr("login"));
 
   if (v) {
     QString user = FSETTINGS["user"].toString();
@@ -304,6 +304,11 @@ void CW::stop()
 
 bool CW::redeem(ShiftCode& code)
 {
+  if (code.redeemed()) {
+    statusBar()->showMessage(tr("This code was already redeemed."));
+    return false;
+  }
+
   QString desc = code.desc();
   desc = desc.replace("\n", " / ");
   Status st = sClient.redeem(code.code());
