@@ -90,7 +90,9 @@ public:
 private:
   Game game;
   const QUrl& url;
+protected:
   ShiftCollection collections[3];
+  QDateTime last_parsed;
 };
 
 class BL2Parser: public BL2nBLPSParser
@@ -99,6 +101,10 @@ public:
   BL2Parser(ControlWindow& cw):
     BL2nBLPSParser(cw, Game::BL2)
   {}
+
+protected:
+  ShiftCollection collections[3];
+  QDateTime last_parsed;
 };
 
 class BLPSParser: public BL2nBLPSParser
@@ -107,4 +113,7 @@ public:
   BLPSParser(ControlWindow& cw):
     BL2nBLPSParser(cw, Game::BLPS)
   {}
+protected:
+  ShiftCollection collections[3];
+  QDateTime last_parsed;
 };

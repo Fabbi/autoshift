@@ -57,7 +57,6 @@ BL2PS::BL2nBLPSParser(ControlWindow& cw, Game _g):
 
 void BL2PS::parseKeys(ShiftCollection& coll, Callback cb)
 {
-  static QDateTime last_parsed;
   if (last_parsed.isValid()) {
     QDateTime now = QDateTime::currentDateTime();
     // every 5 minutes
@@ -73,7 +72,7 @@ void BL2PS::parseKeys(ShiftCollection& coll, Callback cb)
 
   Request* req = new Request(url);
 
-  req->send([&, req, cb, coll]() mutable {
+  req->send([this, req, cb, &coll]() mutable {
 #define IFCB(v) if(cb) cb(v);
     if (req->timed_out) {
       IFCB(false);
@@ -148,6 +147,9 @@ void BL2PS::parseKeys(ShiftCollection& coll, Callback cb)
     }
 
     last_parsed = QDateTime::currentDateTime();
+
+    Platform platform = tPlatform(FSETTINGS["platform"].toString().toStdString());
+    coll << collections[platform];
 
     IFCB(true);
     req->deleteLater();
