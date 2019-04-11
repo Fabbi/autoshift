@@ -25,6 +25,7 @@
 #include <QString>
 #include <QSqlQuery>
 #include <QList>
+#include <QRegularExpression>
 
 #include <misc/macros.hpp>
 #include <misc/logger.hpp>
@@ -39,6 +40,8 @@ FENUM(Game,
       BL2,
       BLPS,
       BL3);
+
+const QRegularExpression rGold("(\d+).*?gold", QRegularExpression::CaseInsensitiveOption);
 
 /** @class ShiftCode
  * @brief SHiFT code representation
@@ -127,6 +130,8 @@ public:
   {
     _desc = _d;
     dirty = true;
+
+    updateGolden();
   }
   inline void setCode(const QString& _c)
   {
@@ -158,9 +163,22 @@ public:
 
   inline const QString& expires() const
   { return _expires; }
-private:
 
-public:
+  inline uint8_t golden() const
+  { return _golden; }
+
+private:
+  void updateGolden()
+  {
+    _golden = 0;
+    auto match = rGold.match(desc());
+
+    if (match.hasMatch()) {
+      _golden = match.captured(1).toInt();
+    }
+  }
+
+private:
   QString _desc;  ///< Reward description
   QString _code;  ///< Code to redeem
   bool _redeemed; ///< Is this key already redeemed?
@@ -168,8 +186,8 @@ public:
 
   Platform _platform;
   Game _game;
+  uint8_t _golden; ///< number of golden Keys as reward (if any)
 
-private:
   uint32_t _id; ///< ID of this entry
 
   bool dirty;

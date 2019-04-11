@@ -29,8 +29,8 @@
 SC::ShiftCode(uint32_t m_id, const QString& _d, Platform _p, Game _g,
               const QString& _c, const QString& _e, bool _r):
   _id(m_id), _desc(_d), _platform(_p), _game(_g), _code(_c),
-  _redeemed(_r), _expires(_e), dirty(false)
-{}
+  _redeemed(_r), _expires(_e), _golden(0), dirty(false)
+{ updateGolden(); }
 SC::ShiftCode(const QString& _d, Platform _p, Game _g, const QString& _c, const QString& _e, bool _r):
   ShiftCode(UINT32_MAX, _d, _p, _g, _c, _e, _r)
 { dirty = true; }
