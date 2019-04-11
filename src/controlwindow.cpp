@@ -305,8 +305,8 @@ void CW::stop()
 bool CW::redeem(ShiftCode& code)
 {
   if (code.redeemed()) {
-    statusBar()->showMessage(tr("This code was already redeemed."));
-    return false;
+    statusBar()->showMessage(tr("This code was already redeemed."), 10000);
+    return true;
   }
 
   QString desc = code.desc();
@@ -334,6 +334,6 @@ bool CW::redeem(ShiftCode& code)
   default: break;
   };
 
-  return st == Status::SUCCESS;
+  return st != Status::TRYLATER;
 }
 #undef CW

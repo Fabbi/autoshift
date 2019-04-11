@@ -84,12 +84,17 @@ private:
 
   /**
    * Redeem one SHiFT code
+   *
+   * @param code The ShiftCode to redeem
+   *
+   * @return whether or not another one may be redeemed now
    */
   bool redeem(ShiftCode&);
 
   void insertRow(const ShiftCode&, size_t);
 
   void addToTable();
+
 private:
   Ui::ControlWindow *ui;
   WaitingSpinnerWidget* spinner;
@@ -99,6 +104,12 @@ private:
 
   QMap<Game, QMap<Platform, CodeParser*>> parsers;
 
+  /**
+   * StatusBar label for permanent messages (on the right)
+   */
   QLabel* pStatus;
+  /**
+   * StatusBar label for temporary messages (on the left)
+   */
   QLabel* tStatus;
 };
