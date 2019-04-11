@@ -314,10 +314,13 @@ void CW::stop()
 bool CW::redeemNext()
 {
   QString code_type = FSETTINGS["code_type"].toString();
+  bool golden = code_type == "Golden";
+  bool non_golden = code_type == "Non-Golden";
 
   // find first unredeemed code
   auto it = collection.rbegin();
   for (; it != collection.rend(); ++it) {
+    if ((golden && !it->golden()) || (non_golden && it->golden())) continue;
     if (!it->redeemed()) break;
   }
 
