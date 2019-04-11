@@ -298,8 +298,23 @@ void CW::start()
 }
 
 void CW::stop()
+bool CW::redeemNext()
 {
-  // TODO write logic
+  QString code_type = FSETTINGS["code_type"].toString();
+
+  // find first unredeemed code
+  auto it = collection.rbegin();
+  for (; it != collection.rend(); ++it) {
+    if (!it->redeemed()) break;
+  }
+
+  if (it == collection.rend()) {
+    // no unredeemed key left
+    statusBar()->showMessage(tr("There is no more unredeemed SHiFT code left."), 10000);
+    return false;
+  }
+
+  return redeem(*it);
 }
 
 bool CW::redeem(ShiftCode& code)

@@ -72,6 +72,11 @@ public slots:
   void updateTable();
   void updateRedemption();
 
+  /**
+   * Redeem next unredeemed SHiFT code
+   */
+  bool redeemNext();
+
 private:
   /**
    * Starts redeeming SHiFT codes
