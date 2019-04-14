@@ -40,6 +40,7 @@
 
 #include "macros.hpp"
 
+
 using std::endl;
 #ifndef TIMESTAMP
 # define DATESTAMP put_time(localtime(&time_now), "%y-%m-%d")

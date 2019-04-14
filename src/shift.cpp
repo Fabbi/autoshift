@@ -78,7 +78,6 @@ Status SC::redeem(const QString& code)
   }
 
   StatusC status = redeemForm(postData);
-  DEBUG << sStatus(status.code) << ": " << status.message << endl;
   return status.code;
 }
 
@@ -238,13 +237,11 @@ void SC::logout()
   Request req(baseUrl.resolved(QUrl("/logout")));
   req.send();
   wait(&req, &Request::finished);
-  DEBUG << "logout" << endl;
 }
 void SC::login()
 {
   // auto login
   if (load_cookie()) {
-    DEBUG << "COOKIE LOADED" << endl;
     logged_in = true;
     emit loggedin(logged_in);
     return;
@@ -278,7 +275,6 @@ void SC::login(const QString& user_name, const QString& pw)
 
   StatusC formData = getFormData(the_url);
   if (formData.code != Status::SUCCESS) {
-    DEBUG << formData.message << endl;
     emit loggedin(false);
     return;
   }
@@ -464,7 +460,6 @@ StatusC SC::checkRedemptionStatus(const Request& req)
     for (uint8_t cnt=0; ; ++cnt) {
       // query for status
       if (cnt > 5) {
-        DEBUG << "redirect to fallback" << endl;
         return {Status::REDIRECT, urls[1]};
       }
 
@@ -476,7 +471,6 @@ StatusC SC::checkRedemptionStatus(const Request& req)
 
       // query url
       Request new_req(baseUrl.resolved(new_location));
-      DEBUG << "query " << baseUrl.resolved(new_location).toString() << endl;
       new_req.req.setRawHeader("x-csrf-token", token.toUtf8());
       new_req.req.setRawHeader("x-requested-with", "XMLHttpRequest");
       new_req.send();
@@ -499,32 +493,6 @@ StatusC SC::checkRedemptionStatus(const Request& req)
   }
   return {};
 }
-
-// QStringList SC::queryRewards()
-// {
-//   QStringList ret;
-//   // Request req(baseUrl.resolved(QUrl("/rewards")));
-//   // req.send();
-//   // wait(&req, &Request::finished);
-
-//   // // DEBUG << req.status_code << "\n" << req.data.toStdString() << endl;
-//   // if (rBody.indexIn(req.data) == -1) {
-//   //   return ret;
-//   // }
-
-//   // QString body = rBody.cap(1);
-
-//   // // find form on url
-//   // QXmlStreamReader xml(body);
-
-//   // while (findNextWithAttr(xml, "div", "class", "reward_unlocked"))
-//   //   ret << xml.readElementText();
-
-//   // for (auto el: ret)
-//   //   DEBUG << el << ", ";
-//   // DEBUG << endl;
-//   return ret;
-// }
 
 StatusC SC::redeemForm(const QUrlQuery& data)
 {

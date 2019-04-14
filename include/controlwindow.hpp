@@ -122,4 +122,6 @@ private:
    * Timer for auto redemption every hour
    */
   QTimer* timer;
+
+  uint8_t current_limit;
 };

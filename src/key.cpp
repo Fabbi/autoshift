@@ -125,7 +125,6 @@ void SCOL::append(const ShiftCode& code)
   // append only if not there yet
   if (codeMap.contains(code_id)) return;
 
-  // DEBUG << "NEW  " << code << endl;
   QList<ShiftCode>::append(code);
 
   codeMap.insert(code_id, &back());

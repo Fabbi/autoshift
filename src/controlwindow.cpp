@@ -77,7 +77,7 @@ CW::ControlWindow(QWidget *parent) :
 
   // did we start in no-gui mode?
   if (FSETTINGS["no_gui"].toBool()) {
-    DEBUG << "no_gui" << endl;
+    // DEBUG << "no_gui" << endl;
     ashift::logger_debug.withCallback(0, 0);
     ashift::logger_info.withCallback(0, 0);
     ashift::logger_error.withCallback(0, 0);
@@ -297,7 +297,6 @@ void CW::registerParser(Game game, Platform platform, CodeParser* parser, const 
 
   // add to codeparser map
   if (!parsers.contains(game) || !parsers[game].contains(platform)) {
-    DEBUG << "registerParser(" << sGame(game) << ", " << sPlatform(platform) << ")" << endl;
     if (!parsers.contains(game))
       parsers.insert(game, {});
     parsers[game].insert(platform, parser);
@@ -306,10 +305,17 @@ void CW::registerParser(Game game, Platform platform, CodeParser* parser, const 
 
 void CW::start()
 {
-  while (redeemNext()) {
-    // keep on going
-  }
+  current_limit = 255;
+  if (FSETTINGS["limit_keys"].toBool())
+    current_limit = FSETTINGS["limit_num"].toInt();
 
+  do {
+    DEBUG << "redeeming " << ((int)current_limit) << " Keys" << endl;
+  }while (current_limit > 0 && redeemNext());// {
+    // keep on going
+  // }
+
+  // don't continue if there are no non-golden keys and limit is reached
   timer->start(3900000); // do this every hour + 5min
 }
 
@@ -326,6 +332,7 @@ bool CW::redeemNext()
   auto it = collection.rbegin();
   for (; it != collection.rend(); ++it) {
     if ((golden && !it->golden()) || (non_golden && it->golden())) continue;
+    if ((current_limit - it->golden()) < 0) continue;
     if (!it->redeemed()) break;
   }
 
@@ -360,6 +367,7 @@ bool CW::redeem(ShiftCode& code)
 
   switch (st) {
   case Status::SUCCESS:
+    current_limit -= code.golden();
   case Status::REDEEMED:
   case Status::EXPIRED:
   case Status::INVALID:

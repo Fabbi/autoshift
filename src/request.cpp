@@ -55,12 +55,10 @@ void Request::send(int timeout)
   switch (type) {
   case request_t::GET:
   {
-    DEBUG << "GET " << url.toString() << endl;
     reply = manager->get(req);
   } break;
   case request_t::POST:
   {
-    DEBUG << "POST " << url.toString() << endl;
     if (req.header(QNetworkRequest::ContentTypeHeader).isNull())
       req.setHeader(QNetworkRequest::ContentTypeHeader,
                     "application/x-www-form-urlencoded");
@@ -68,7 +66,6 @@ void Request::send(int timeout)
   } break;
   case request_t::HEAD:
   {
-    DEBUG << "HEAD " << url.toString() << endl;
     reply = manager->head(req);
   } break;
   default: break;
