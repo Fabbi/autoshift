@@ -117,10 +117,8 @@ CW::ControlWindow(QWidget *parent) :
   connect(ui->controlButton, &QPushButton::toggled,
           [&](bool val) {
             if (val) {
-              ui->controlButton->setText(tr("Running ..."));
               start();
             } else {
-              ui->controlButton->setText(tr("Start"));
               stop();
             }
           });
@@ -305,6 +303,8 @@ void CW::registerParser(Game game, Platform platform, CodeParser* parser, const 
 
 void CW::start()
 {
+  ui->controlButton->setText(tr("Running ..."));
+
   current_limit = 255;
   if (FSETTINGS["limit_keys"].toBool())
     current_limit = FSETTINGS["limit_num"].toInt();
@@ -315,12 +315,20 @@ void CW::start()
     // keep on going
   // }
 
-  // don't continue if there are no non-golden keys and limit is reached
-  timer->start(3900000); // do this every hour + 5min
+  QString code_type = FSETTINGS["code_type"].toString();
+  if (!current_limit && (code_type == "Golden"))
+    stop();
+  else
+    // don't continue if there are no non-golden keys and limit is reached
+    timer->start(3900000); // do this every hour + 5min
 }
 
 void CW::stop()
-{ timer->stop(); }
+{
+  timer->stop();
+  ui->controlButton->setText(tr("Start"));
+  ui->controlButton->setChecked(false);
+}
 
 bool CW::redeemNext()
 {
