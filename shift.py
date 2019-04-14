@@ -47,7 +47,12 @@ for i in range(len(__els)): # noqa
 # windows / unix `getch`
 try:
     import msvcrt
-    getch = msvcrt.getch
+
+    def getch():
+        return str(msvcrt.getch(), "utf8")
+
+    BACKSPACE = 8
+
 except ImportError:
     def getch():
         """Get keypress without echoing"""
@@ -62,6 +67,8 @@ except ImportError:
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return ch
+
+    BACKSPACE = 127
 
 
 def input_pw(qry):
@@ -80,17 +87,15 @@ def input_pw(qry):
         if c == '\r':
             break
 
-        # ignore non-chars
-        if ord(c) < 32:
-            continue
-
         # backspace
-        if ord(c) == 127:
+        if ord(c) == BACKSPACE:
             pw = pw[:-1]
-            print("\r{}{}".format(qry, "*" * len(pw)), end=" \b")
         else:
+            # ignore non-chars
+            if ord(c) < 32:
+                continue
             pw += c
-            print("\r{}{}".format(qry, "*" * len(pw)), end="")
+        print("\r{}{}".format(qry, "*" * len(pw)), end=" \b")
         sys.stdout.flush()
     return pw
 
