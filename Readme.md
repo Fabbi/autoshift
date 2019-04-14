@@ -17,13 +17,13 @@ or download it as zip
 you'll need to install a few dependencies
 
 ```sh
-pip install requests bs4 lxml
+pip install requests beautifulsoup4 lxml
 ```
 
 or if you want to use the scheduling
 
 ```sh
-pip install requests bs4 lxml apscheduler
+pip install requests beautifulsoup4 lxml apscheduler
 ```
 
 ### Usage
