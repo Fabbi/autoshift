@@ -25,6 +25,35 @@
 #include <QTimer>
 #include <QEventLoop>
 #include <QApplication>
+inline char* strtok_r(char *str, const char *delim, char **nextp)
+{
+  char *ret;
+
+  if (str == NULL)
+  {
+    str = *nextp;
+  }
+
+  str += strspn(str, delim);
+
+  if (*str == '\0')
+  {
+    return NULL;
+  }
+
+  ret = str;
+
+  str += strcspn(str, delim);
+
+  if (*str)
+  {
+    *str++ = '\0';
+  }
+
+  *nextp = str;
+
+  return ret;
+}
 
 #define ENUM_FUNCS(name, first, ...)                              \
   typedef name ## _enum::name ## _enum name;                      \
@@ -39,7 +68,8 @@
   static std::vector<std::string> names;                                \
   if (names.empty()) {                                                  \
     char str[] { #first ", " #__VA_ARGS__ ", SIZE, NONE"};              \
-    for(char* token = std::strtok(&str[0], ", "); token != 0x0; token = std::strtok(0x0, ", ")) { \
+    char* sv = str;                                                     \
+    for(char* token = strtok_r(&str[0], ", ", &sv); token != 0x0; token = strtok_r(0x0, ", ", &sv)) { \
       names.push_back(token);                                           \
     }                                                                   \
   }                                                                     \
@@ -50,7 +80,8 @@
     static std::vector<std::string> names;                              \
     if (names.empty()) {                                                \
       char str[] { #first ", " #__VA_ARGS__ ", SIZE, NONE"};            \
-      for(char* token = std::strtok(&str[0], ", "); token != 0x0; token = std::strtok(0x0, ", ")) { \
+      char* sv = str;                                                   \
+      for(char* token = strtok_r(&str[0], ", ", &sv); token != 0x0; token = strtok_r(0x0, ", ", &sv)) { \
         names.push_back(token);                                         \
       }                                                                 \
     }                                                                   \
