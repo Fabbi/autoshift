@@ -79,13 +79,13 @@ public:
 protected:
 };
 
-/** @class BL2nBLPSParser
+/** @class BLnBLPSParser
  * BL2 and BLPS code Parser
  */
-class BL2nBLPSParser: public CodeParser
+class BLnBLPSParser: public CodeParser
 {
 public:
-  BL2nBLPSParser(ControlWindow&, Game);
+  BLnBLPSParser(ControlWindow&, Game);
   void parseKeys(ShiftCollection&, CodeParser::Callback=0);
 private:
   Game game;
@@ -95,11 +95,11 @@ protected:
   QDateTime last_parsed;
 };
 
-class BL2Parser: public BL2nBLPSParser
+class BL1Parser: public BLnBLPSParser
 {
 public:
-  BL2Parser(ControlWindow& cw):
-    BL2nBLPSParser(cw, Game::BL2)
+  BL1Parser(ControlWindow& cw):
+    BLnBLPSParser(cw, Game::BL1)
   {}
 
 protected:
@@ -107,11 +107,23 @@ protected:
   QDateTime last_parsed;
 };
 
-class BLPSParser: public BL2nBLPSParser
+class BL2Parser: public BLnBLPSParser
+{
+public:
+  BL2Parser(ControlWindow& cw):
+    BLnBLPSParser(cw, Game::BL2)
+  {}
+
+protected:
+  ShiftCollection collections[3];
+  QDateTime last_parsed;
+};
+
+class BLPSParser: public BLnBLPSParser
 {
 public:
   BLPSParser(ControlWindow& cw):
-    BL2nBLPSParser(cw, Game::BLPS)
+    BLnBLPSParser(cw, Game::BLPS)
   {}
 protected:
   ShiftCollection collections[3];

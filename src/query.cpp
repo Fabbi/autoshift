@@ -26,7 +26,7 @@
 #include <misc/macros.hpp>
 
 const QUrl urls[] {
-  [Game::BL1]  = {""}, // {"http://orcz.com/Borderlands:_Golden_Key"}, // not active yet
+  [Game::BL1]  = {"http://orcz.com/Borderlands:_Golden_Key"},
   [Game::BL2]  = {"http://orcz.com/Borderlands_2:_Golden_Key"},
   [Game::BLPS] = {"http://orcz.com/Borderlands_Pre-Sequel:_Shift_Codes"},
   [Game::BL3]  = {""}};
@@ -47,10 +47,10 @@ const QRegularExpression rExp("<span[^>]*red",
 const QRegularExpression rThru("\\((thru.*?)\\)",
                                QRegularExpression::DotMatchesEverythingOption|
                                QRegularExpression::CaseInsensitiveOption);
-#define BL2PS BL2nBLPSParser
+#define BL2PS BLnBLPSParser
 
 // this parser can handle all platforms
-BL2PS::BL2nBLPSParser(ControlWindow& cw, Game _g):
+BL2PS::BLnBLPSParser(ControlWindow& cw, Game _g):
   CodeParser(cw, {_g}, {Platform::PC, Platform::PS, Platform::XBOX}, {}),
   game(_g), url(urls[_g])
 {}
