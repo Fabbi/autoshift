@@ -103,7 +103,7 @@ class ShiftClient:
         self.cookie_file = path.join(DIRNAME, ".cookies.save")
         # try to load cookies. Query for login data if not present
         if not self.__load_cookie():
-            print("First time usage: You need to login...")
+            print("First time usage: Login to your SHiFT account...")
             user = input("Username: ")
             pw = input_pw("Password: ")
             self.__login(user, pw)
