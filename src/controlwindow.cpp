@@ -75,33 +75,24 @@ CW::ControlWindow(QWidget *parent) :
   connect(ui->loginButton, &QPushButton::pressed,
           this, &ControlWindow::login);
 
-  // did we start in no-gui mode?
-  if (FSETTINGS["no_gui"].toBool()) {
-    // DEBUG << "no_gui" << endl;
-    ashift::logger_debug.withCallback(0, 0);
-    ashift::logger_info.withCallback(0, 0);
-    ashift::logger_error.withCallback(0, 0);
+  spinner = new WaitingSpinnerWidget(ui->loginButton);
 
-  } else {
-    spinner = new WaitingSpinnerWidget(ui->loginButton);
+  QGuiApplication* app = static_cast<QGuiApplication*>(QGuiApplication::instance());
+  QPalette palette = app->palette();
+  QColor bgcolor = palette.color(QPalette::Window);
 
-    QGuiApplication* app = static_cast<QGuiApplication*>(QGuiApplication::instance());
-    QPalette palette = app->palette();
-    QColor bgcolor = palette.color(QPalette::Window);
+  // setup waiting spinner
+  spinner->setNumberOfLines(10);
+  spinner->setLineLength(5);
+  spinner->setLineWidth(2);
+  spinner->setInnerRadius(3);
+  // spinner->setRevolutionsPerSecond(1);
+  spinner->setColor(QColor(255-bgcolor.red(), 255-bgcolor.green(), 255-bgcolor.blue()));
 
-    // setup waiting spinner
-    spinner->setNumberOfLines(10);
-    spinner->setLineLength(5);
-    spinner->setLineWidth(2);
-    spinner->setInnerRadius(3);
-    // spinner->setRevolutionsPerSecond(1);
-    spinner->setColor(QColor(255-bgcolor.red(), 255-bgcolor.green(), 255-bgcolor.blue()));
-
-    // installEventFilter(this);
-    ashift::logger_debug.withCallback(logging_cb, ui->std_out);
-    ashift::logger_info.withCallback(logging_cb, ui->std_out);
-    ashift::logger_error.withCallback(logging_cb, ui->std_out);
-  }
+  // installEventFilter(this);
+  ashift::logger_debug.withCallback(logging_cb, ui->std_out);
+  ashift::logger_info.withCallback(logging_cb, ui->std_out);
+  ashift::logger_error.withCallback(logging_cb, ui->std_out);
 
   connect(&sClient, &ShiftClient::loggedin, this, &ControlWindow::loggedin);
 

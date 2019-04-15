@@ -29,7 +29,3 @@ add_executable(autoshift
 
 target_link_libraries(autoshift ${MY_Qt5_LIBRARIES})
 target_link_libraries(autoshift spinner)
-
-target_include_directories(autoshift SYSTEM PRIVATE ${lib_include_dirs})
-
-target_link_libraries(autoshift ${MY_Boost_LIBRARIES})

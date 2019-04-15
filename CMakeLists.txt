@@ -103,19 +103,6 @@ else()
 endif()
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${ROOT}/include/ui)
 
-## boost
-# find_package_quiet(BoostExtern REQUIRED)
-find_package(BoostExtern REQUIRED)
-
-if (Boost_FOUND)
-  # message (STATUS "Found Boost ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}")
-  include_directories(${Boost_INCLUDE_DIRS})
-  link_directories(${Boost_LIBRARY_DIRS})
-  set (MY_Boost_LIBRARIES ${Boost_LIBRARIES})
-else()
-  message (FATAL_ERROR "Boost not found.")
-endif()
-
 #############
 ### FLAGS ###
 

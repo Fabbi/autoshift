@@ -26,7 +26,6 @@ Logger logger_info = Logger("[33mINFO[0m");
 Logger logger_debug = Logger("DEBUG");
 Logger logger_null = Logger();
 }
-#include <boost/program_options.hpp>
 
 #include <QApplication>
 #include <QSqlDatabase>
@@ -36,31 +35,15 @@ Logger logger_null = Logger();
 #include <shift.hpp>
 #include <query.hpp>
 
-namespace po = boost::program_options;
+#if defined(_WIN32) && defined(QT_STATICPLUGIN)
+  #include <QtPlugin>
+  Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)
+  Q_IMPORT_PLUGIN(QSQLiteDriverPlugin)
+#endif
 
 int main(int argc, char *argv[])
 {
   FSettings& settings = FSettings::get();
-
-  bool no_gui = false;
-
-  po::options_description desc("Options");
-  desc.add_options()
-    ("help", "produce help message")
-    ("no-gui", po::bool_switch(&no_gui), "deactivate GUI")
-    // ...
-    ;
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, desc), vm);
-  po::notify(vm);
-
-  // --help
-  if (vm.count("help")) {
-    std::cout << desc << std::endl;
-    return 0;
-  }
-
-  settings.setValue("no_gui", no_gui);
 
   QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
   db.setDatabaseName(".keys.db");
@@ -93,10 +76,8 @@ int main(int argc, char *argv[])
   }
 #undef REGISTER
 
-  if (!no_gui) {
-    w.show();
-    w.bringToFront();
-  }
+  w.show();
+  w.bringToFront();
 
   w.init();
 
