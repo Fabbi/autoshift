@@ -43,6 +43,10 @@ FENUM(Game,
 
 const QRegularExpression rGold("([0-9]+)[^0-9]*?gold", QRegularExpression::CaseInsensitiveOption);
 
+const QString CREATE_TABLE("CREATE TABLE IF NOT EXISTS keys "
+                           "(id INTEGER primary key, description TEXT,"
+                           "key TEXT, platform TEXT, game TEXT, "
+                           "redeemed INTEGER, expires Text)");
 /** @class ShiftCode
  * @brief SHiFT code representation
  *

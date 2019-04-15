@@ -149,6 +149,9 @@ CW::ControlWindow(QWidget *parent) :
   // setup networkmanager and make it globally available
   QNetworkAccessManager* nman = new QNetworkAccessManager(this);
   FSETTINGS.setValue("nman", qVariantFromValue((void*)nman));
+
+  // create table if not present
+  QSqlQuery create_table(CREATE_TABLE);
 }
 
 CW::~ControlWindow()
