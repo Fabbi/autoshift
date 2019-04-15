@@ -88,6 +88,10 @@ if (LINUX)
   list (APPEND MY_QT5_COMPONENTS X11Extras)
 endif(LINUX)
 
+if (WIN32)
+  list (APPEND MY_QT5_COMPONENTS WinExtras)
+endif(WIN32)
+
 find_package_quiet(Qt5Extern COMPONENTS ${MY_QT5_COMPONENTS} REQUIRED)
 # find_package(Qt5Extern COMPONENTS ${MY_QT5_COMPONENTS} REQUIRED)
 
@@ -125,6 +129,7 @@ else(MSVC)
   else(CMAKE_BUILD_TYPE MATCHES Release)
     set (FLAGS
       # -g
+# -fstandalone-debug
       -O0
       -w
       -Winline

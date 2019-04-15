@@ -35,16 +35,16 @@
 #include <query.hpp>
 
 #define CW ControlWindow
-
 static const QString messages[] {
-
-  [Status::SUCCESS] = CW::tr("Redeemed %1"),
-  [Status::EXPIRED] = CW::tr("This code expired by now.. (%1)"),
-  [Status::REDEEMED] = CW::tr("Already redeemed %1"),
-  [Status::INVALID] = CW::tr("The code `%2` is invalid"),
-  [Status::TRYLATER] = CW::tr("Please launch a SHiFT-enabled title or wait 1 hour."),
-  [Status::UNKNOWN] = CW::tr("A unknown Error occured"),
-  [Status::NONE] = CW::tr("Something unexpected happened..")
+    /*[Status::REDIRECT] = */ "",
+    /*[Status::TRYLATER] =*/ CW::tr("Please launch a SHiFT-enabled title or wait 1 hour."),
+    /*[Status::EXPIRED] =*/ CW::tr("This code expired by now.. (%1)"),
+    /*[Status::REDEEMED] =*/ CW::tr("Already redeemed %1"),
+    /*[Status::SUCCESS] =*/ CW::tr("Redeemed %1"),
+    /*[Status::INVALID] =*/ CW::tr("The code `%2` is invalid"),
+    /*[Status::UNAVAILABLE] =*/ "",
+    /*[Status::UNKNOWN] =*/ CW::tr("A unknown Error occured"),
+    /*[Status::NONE] =*/ CW::tr("Something unexpected happened..")
     };
 
 static bool no_gui_out = false;
