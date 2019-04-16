@@ -119,7 +119,7 @@ private:
   }
 
   void register_completer(QLineEdit* widget, const QString& path) {
-    QStringList lis = settings.value(path + "/autocomplete",
+    QStringList lis = settings.value("autocomplete/" + path,
                                      QStringList(widget->text())).value<QStringList>();
     completion_lists.insert(widget, lis);
 
@@ -163,7 +163,7 @@ public:
 
     // see if there is a previously saved value in the settings
     QString path = getPath(widget);
-    QVariant saved_val = settings.value(path + "/state");
+    QVariant saved_val = settings.value("state/" + path);
 
     if (saved_val.isValid())
       _loadState(widget, path, saved_val);
@@ -263,25 +263,25 @@ private slots:
     // at this point. `qobject_cast` will always return 0x00
     CASE("QComboBox") {
       QComboBox* cb = static_cast<QComboBox*>(w);
-      settings.setValue(p + "/state", cb->currentIndex());
+      settings.setValue("state/" + p, cb->currentIndex());
       BREAK;
     }
     CASE("QLineEdit") {
       QLineEdit* edit = static_cast<QLineEdit*>(w);
-      settings.setValue(p + "/state", edit->text());
-      settings.setValue(p + "/autocomplete", completion_lists[edit]);
+      settings.setValue("state/" + p, edit->text());
+      settings.setValue("autocomplete/" + p, completion_lists[edit]);
       BREAK;
     }
     CASE("QCheckBox") {
       QCheckBox* cb = static_cast<QCheckBox*>(w);
       // settings.setValue(p + "/state", cb->checkState());
-      settings.setValue(p + "/state", cb->isChecked());
+      settings.setValue("state/" + p, cb->isChecked());
       BREAK;
     }
     CASE("QSpinBox") {
       QSpinBox* sb = static_cast<QSpinBox*>(w);
-      settings.setValue(p + "/state", sb->value());
-      settings.setValue(p + "/autocomplete", completion_lists[sb]);
+      settings.setValue("state/" + p, sb->value());
+      settings.setValue("autocomplete/" + p, completion_lists[sb]);
       BREAK;
     }
   }
