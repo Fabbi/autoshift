@@ -55,12 +55,19 @@ public:
 
 private:
   FSettings() :
-    settings("fsettings.conf", QSettings::NativeFormat)
+#ifdef _WIN32
+    settings("Fabbi", "autoshift")
+#else
+  settings("fsettings.conf", QSettings::NativeFormat)
+#endif
   {}
 
   ~FSettings()
   {
+#ifndef _WIN32
+    // until I figured out why windows crashes on syncing..
     settings.sync();
+#endif
   }
 
 public:
