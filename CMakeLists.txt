@@ -135,9 +135,15 @@ else(MSVC)
       -Winline
       )
   endif(CMAKE_BUILD_TYPE MATCHES Release)
+
   if (NOT MAC)
     list (APPEND FLAGS -pg)
   endif (NOT MAC)
+
+  if (WIN32)
+    list (APPEND FLAGS -mwindows) # no cmd window on app start
+  endif(WIN32)
+
   string (REPLACE ";" " " FLAGS_STR "${FLAGS}")
 endif(MSVC)
 
