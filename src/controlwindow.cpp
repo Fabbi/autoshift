@@ -319,9 +319,13 @@ void CW::start()
   if (st != Status::TRYLATER)
     // redeem every second unless we need to slow down.
     timer->start((st == Status::SLOWDOWN)? 60000 : 1000);
-  else
+  else {
     // don't continue if there are no non-golden keys and limit is reached
     timer->start(3900000); // do this every hour + 5min
+
+    // reparse now
+    updateTable();
+  }
 }
 
 void CW::stop()
