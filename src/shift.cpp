@@ -62,6 +62,8 @@ Status SC::redeem(const QString& code)
     int status_code = formData.data.toInt();
     if (status_code == 500)
       return Status::INVALID;
+    if (status_code == 429)
+      return Status::SLOWDOWN;
     if (formData.message.contains("expired"))
       return Status::EXPIRED;
     if (formData.message.contains("not available"))
@@ -510,7 +512,7 @@ StatusC SC::redeemForm(const QUrlQuery& data)
 
   req.send();
   if (!wait(&req, &Request::finished))
-    return {};
+    return {Status::UNKNOWN, "timed out"};
 
   status = checkRedemptionStatus(req);
   if (status.code == Status::REDIRECT) {

@@ -38,7 +38,8 @@ FENUM(Status,
       SUCCESS,
       INVALID,
       UNAVAILABLE,
-      UNKNOWN);
+      UNKNOWN,
+      SLOWDOWN);
 
 /**
  * Status Object with message and optional data

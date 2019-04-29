@@ -43,8 +43,10 @@ static const QString messages[] {
     /*[Status::SUCCESS] =*/ CW::tr("Redeemed %1"),
     /*[Status::INVALID] =*/ CW::tr("The code `%2` is invalid"),
     /*[Status::UNAVAILABLE] =*/ "",
-    /*[Status::UNKNOWN] =*/ CW::tr("A unknown Error occured"),
-    /*[Status::NONE] =*/ CW::tr("Something unexpected happened..")
+    /*[Status::UNKNOWN] =*/ CW::tr("An unknown Error occured"),
+    /*[Status::SLOWDOWN] =*/ CW::tr("Redeeming too fast, slowing down"),
+    /* SIZE */ "",
+    /*[Status::NONE] =*/ CW::tr("Something unexpected happened.."),
     };
 
 static bool no_gui_out = false;
@@ -108,6 +110,10 @@ CW::ControlWindow(QWidget *parent) :
   connect(ui->controlButton, &QPushButton::toggled,
           [&](bool val) {
             if (val) {
+              current_limit = 255;
+              if (FSETTINGS["limit_keys"].toBool())
+                current_limit = FSETTINGS["limit_num"].toInt();
+
               start();
             } else {
               stop();
@@ -297,21 +303,22 @@ void CW::registerParser(Game game, Platform platform, CodeParser* parser, const 
 
 void CW::start()
 {
+  QString code_type = FSETTINGS["code_type"].toString();
+  if (!ui->controlButton->isChecked() ||
+     (!current_limit && (code_type == "Golden"))) {
+    stop();
+    return;
+  }
+
   ui->controlButton->setText(tr("Running ..."));
 
-  current_limit = 255;
-  if (FSETTINGS["limit_keys"].toBool())
-    current_limit = FSETTINGS["limit_num"].toInt();
+  DEBUG << "redeeming " << ((int)current_limit) << " Keys" << endl;
+  // redeem next code
+  Status st = redeemNext();
 
-  do {
-    DEBUG << "redeeming " << ((int)current_limit) << " Keys" << endl;
-  }while (current_limit > 0 && redeemNext());// {
-    // keep on going
-  // }
-
-  QString code_type = FSETTINGS["code_type"].toString();
-  if (!current_limit && (code_type == "Golden"))
-    stop();
+  if (st != Status::TRYLATER)
+    // redeem every second unless we need to slow down.
+    timer->start((st == Status::SLOWDOWN)? 60000 : 1000);
   else
     // don't continue if there are no non-golden keys and limit is reached
     timer->start(3900000); // do this every hour + 5min
@@ -324,7 +331,7 @@ void CW::stop()
   ui->controlButton->setChecked(false);
 }
 
-bool CW::redeemNext()
+Status CW::redeemNext()
 {
   QString code_type = FSETTINGS["code_type"].toString();
   bool golden = code_type == "Golden";
@@ -341,17 +348,17 @@ bool CW::redeemNext()
   if (it == collection.rend()) {
     // no unredeemed key left
     statusBar()->showMessage(tr("There is no more unredeemed SHiFT code left."), 10000);
-    return false;
+    return Status::TRYLATER;
   }
 
   return redeem(*it);
 }
 
-bool CW::redeem(ShiftCode& code)
+Status CW::redeem(ShiftCode& code)
 {
   if (code.redeemed()) {
     statusBar()->showMessage(tr("This code was already redeemed."), 10000);
-    return true;
+    return Status::REDEEMED;
   }
 
   QString desc = code.desc();
@@ -380,6 +387,6 @@ bool CW::redeem(ShiftCode& code)
   default: break;
   };
 
-  return st != Status::TRYLATER;
+  return st;
 }
 #undef CW
