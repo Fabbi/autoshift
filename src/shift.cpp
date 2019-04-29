@@ -269,6 +269,7 @@ void SC::login()
 
 void SC::login(const QString& user_name, const QString& pw)
 {
+  FSETTINGS.setValue("user", user_name);
   // TODO redirect_to=false => wrong pw
   // get login form
   QUrl the_url = baseUrl.resolved(QUrl("/home"));
