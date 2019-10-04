@@ -205,7 +205,7 @@ void BL3Parser::parseKeys(ShiftCollection& coll, Callback cb)
       auto cIt = rCol.globalMatch(row);
       QString cols[8];
       uint8_t i = 0;
-      while (cIt.hasNext() && i < 7) {
+      while (cIt.hasNext() && i < 8) {
         cols[i] = cIt.next().captured(1);
         ++i;
       }
@@ -228,7 +228,9 @@ void BL3Parser::parseKeys(ShiftCollection& coll, Callback cb)
       // add keys for every platform
       for (i = 5; i < 8; ++i) {
         if (cols[i].trimmed() != "✅") continue;
-        collections[i-5].push_back({desc, toPlatform(2-(i-5)), game, code, exp});
+
+		    Platform pl = toPlatform(2 - (i - 5));
+        collections[pl].push_back({desc, pl, game, code, exp});
       }
     }
 
