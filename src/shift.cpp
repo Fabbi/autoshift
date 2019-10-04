@@ -328,18 +328,54 @@ StatusC SC::getFormData(const QUrl& url)
     return {Status::UNKNOWN, "Could not query " + url.toString()};
   }
 
-  return getFormData(req.data);
+  return getFormData(req.data, Platform::NONE);
 }
 
-StatusC SC::getFormData(const QString& data)
+StatusC SC::getFormData(const QString& data, Platform platform)
 {
   QStringList formData;
+
+  // TODO: filter for the services (psn, xbox, epic, steam)
+  //    <input value="epic" type="hidden" name="archway_code_redemption[service]" id="archway_code_redemption_service">
   // only parse body as the parser doesn't like <meta .. > tags
   QString form;
-  auto match = rForm.match(data);
-  if (!match.hasMatch())
+  QRegularExpressionMatchIterator i = rForm.globalMatch(data);
+  QString searchPlatform = QString::fromStdString(sPlatform(platform)).toLower();
+  const QRegularExpression rInput(
+	  QString(".*<input value=\"%1\"[^>]*?name=\"archway_code_redemption\[service\].*?>.*").arg(
+			(platform == Platform::PC) ? "(epic|steam)" : searchPlatform),
+	  QRegularExpression::DotMatchesEverythingOption);
+
+  while (i.hasNext()) {
+	  QRegularExpressionMatch match = i.next();
+	  std::string tmp = match.captured(1).toStdString();
+	  if (platform == Platform::NONE) {
+		  form = match.captured(1);
+		  break;
+	  }
+	  QXmlStreamReader xml(match.captured(1));
+	  bool found;
+	  if (platform == Platform::PC)
+      found = findNext(xml, "input", [&](QXmlStreamReader& _xml) {
+        auto attrs = _xml.attributes();
+        return (attrs.hasAttribute("value") && (attrs.value("value") == "epic"
+          || attrs.value("value") == "steam"));
+			});
+    else 
+      found = findNext(xml, "input", [&](QXmlStreamReader& _xml) {
+        auto attrs = _xml.attributes(); 
+        return (attrs.hasAttribute("value") && (attrs.value("value") == "epic"
+          || attrs.value("value") == "steam"));
+      });
+
+	  if (found) {
+		  form = match.captured(1);
+		  break;
+	  }
+  }
+
+  if (form.isEmpty())
     return {Status::UNKNOWN, data};
-  form = match.captured(1);
 
   // find form on url
   QXmlStreamReader xml(form);
@@ -363,7 +399,7 @@ StatusC SC::getFormData(const QString& data)
   return {Status::SUCCESS, form, formData};
 }
 
-StatusC SC::getRedemptionData(const QString& code)
+StatusC SC::getRedemptionData(const ShiftCode& code)
 {
   StatusC ret;
 
@@ -378,7 +414,7 @@ StatusC SC::getRedemptionData(const QString& code)
 
   // get form
   Request req(baseUrl.resolved(
-                QUrl(QString("/entitlement_offer_codes?code=%1").arg(code))));
+                QUrl(QString("/entitlement_offer_codes?code=%1").arg(code.code()))));
   req.req.setRawHeader("x-csrf-token", token.toUtf8());
   req.req.setRawHeader("x-requested-with", "XMLHttpRequest");
 
@@ -392,7 +428,7 @@ StatusC SC::getRedemptionData(const QString& code)
   ret.data = req.reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
 
   // now extract form-data
-  StatusC formData = getFormData(req.data);
+  StatusC formData = getFormData(req.data, code.platform());
 
   ret.code = formData.code;
   ret.message = formData.message;

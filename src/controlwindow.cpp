@@ -367,7 +367,8 @@ Status CW::redeem(ShiftCode& code)
 
   QString desc = code.desc();
   desc = desc.replace("\n", " / ");
-  Status st = sClient.redeem(code.code());
+  INFO << "Redeeming '" << desc << "'..." << endl;
+  Status st = sClient.redeem(code);
 
   QString msg = messages[st];
   if (msg.contains("%1"))

@@ -28,6 +28,8 @@
 #include <QNetworkAccessManager>
 #include <QUrl>
 
+#include "key.hpp"
+
 class Request;
 
 FENUM(Status,
@@ -81,7 +83,7 @@ public:
    *
    * @return Status of redemption
    */
-  Status redeem(const QString&);
+  Status redeem(const ShiftCode&);
 
 private:
   /**
@@ -124,7 +126,7 @@ private slots:
    *
    * @return QUrlQuery with POST data.
    */
-  StatusC getRedemptionData(const QString&);
+  StatusC getRedemptionData(const ShiftCode&);
 
   /**
    * Extract Name/Value-Pairs from HTML <form>.
@@ -141,7 +143,7 @@ private slots:
    *
    * @return Status
    */
-  StatusC getFormData(const QString&);
+  StatusC getFormData(const QString&, Platform);
 
   /**
    * Extract Alert message from HTML
