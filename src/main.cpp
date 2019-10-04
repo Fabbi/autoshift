@@ -43,6 +43,9 @@ Logger logger_null = Logger();
 
 int main(int argc, char *argv[])
 {
+#if defined(_WIN32)
+  QApplication::setStyle("fusion");
+#endif
   FSettings& settings = FSettings::get();
 
   QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");

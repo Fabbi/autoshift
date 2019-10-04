@@ -22,10 +22,18 @@ set(autoshift_SOURCE
   query.cpp
   )
 
-add_executable(autoshift
-  ${autoshift_HEADERS}
-  ${autoshift_SOURCE}
+if (WIN32)
+  add_executable(autoshift
+	WIN32 
+	${autoshift_HEADERS}
+	${autoshift_SOURCE}
   )
+else()
+  add_executable(autoshift 
+	${autoshift_HEADERS}
+	${autoshift_SOURCE}
+  )
+endif(WIN32)
 
 target_link_libraries(autoshift ${MY_Qt5_LIBRARIES})
 target_link_libraries(autoshift spinner)

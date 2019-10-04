@@ -65,13 +65,16 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/${CMAKE_BUILD_TYPE})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/${CMAKE_BUILD_TYPE})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})
 
-# Xcode automatically generates Release and Debug Folders
-if(CMAKE_GENERATOR STREQUAL Xcode)
-  set(CMAKE_XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
+# Xcode and VC automatically generate Release and Debug Folders
+if((CMAKE_GENERATOR MATCHES "Visual Studio.*") OR (CMAKE_GENERATOR STREQUAL Xcode))
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-endif(CMAKE_GENERATOR STREQUAL Xcode)
+  
+  if(CMAKE_GENERATOR STREQUAL Xcode)
+	set(CMAKE_XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
+  endif(CMAKE_GENERATOR STREQUAL Xcode)
+endif()
 
 
 #########################
@@ -140,13 +143,9 @@ else(MSVC)
     list (APPEND FLAGS -pg)
   endif (NOT MAC)
 
-  if (WIN32)
-    list (APPEND FLAGS -mwindows) # no cmd window on app start
-  endif(WIN32)
-
-  string (REPLACE ";" " " FLAGS_STR "${FLAGS}")
 endif(MSVC)
 
+string (REPLACE ";" " " FLAGS_STR "${FLAGS}")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS_STR}")
 
 set_default(NODEBUG no STRING "no debug output")
