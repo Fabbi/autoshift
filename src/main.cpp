@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
   BL1Parser bl1(w);
   BL2Parser bl2(w);
   BLPSParser blps(w);
+  BL3Parser bl3(w);
 
   //////////////////////
 

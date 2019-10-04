@@ -29,7 +29,7 @@ const QUrl urls[] {
   [Game::BL1]  = {"http://orcz.com/Borderlands:_Golden_Key"},
   [Game::BL2]  = {"http://orcz.com/Borderlands_2:_Golden_Key"},
   [Game::BLPS] = {"http://orcz.com/Borderlands_Pre-Sequel:_Shift_Codes"},
-  [Game::BL3]  = {""}};
+  [Game::BL3]  = {"http://orcz.com/Borderlands_3:_Shift_Codes"}};
 
 const QRegularExpression rTable("(<table.*?>.*?</table>)",
                                QRegularExpression::DotMatchesEverythingOption);
@@ -157,4 +157,89 @@ void BL2PS::parseKeys(ShiftCollection& coll, Callback cb)
 #undef IFCB
 }
 
+void BL3Parser::parseKeys(ShiftCollection& coll, Callback cb)
+{
+  if (last_parsed.isValid()) {
+    QDateTime now = QDateTime::currentDateTime();
+    // every 5 minutes
+    if (last_parsed.secsTo(now) < 300) {
+      Platform platform = tPlatform(FSETTINGS["platform"].toString().toStdString());
+      coll << collections[platform];
+
+      if (cb)
+        cb(true);
+      return;
+    }
+  }
+
+  Request* req = new Request(url);
+
+  // get whole page
+  req->send([this, req, cb, &coll]() mutable {
+#define IFCB(v) if(cb) cb(v);
+    if (req->timed_out) {
+      IFCB(false);
+      return;
+    }
+
+    // extract table
+    auto match = rTable.match(req->data);
+    if (!match.hasMatch()) {
+      IFCB(false);
+      return;
+    }
+
+    const QString& table = match.captured(1);
+
+    // find all rows
+    auto rIt = rRow.globalMatch(table);
+
+    // skip header row
+    rIt.next();
+
+    // extract information per row
+    while (rIt.hasNext()) {
+      QString row = rIt.next().captured(1);
+
+      // extract cols in this row
+      auto cIt = rCol.globalMatch(row);
+      QString cols[8];
+      uint8_t i = 0;
+      while (cIt.hasNext() && i < 7) {
+        cols[i] = cIt.next().captured(1);
+        ++i;
+      }
+
+      // has at least one active key
+      QString desc = cols[1].trimmed();
+      // replace HTML breaks
+      desc = desc.replace(QRegExp("<br ?/?>"), "\n");
+      desc = desc.replace(rTag, "");
+
+      // extract "expires" information
+      QString exp = cols[3].trimmed();
+
+      // extract key
+      auto kMatch = rCode.match(cols[4]);
+      if (!kMatch.hasMatch()) continue;
+      cols[4] = kMatch.captured(1).trimmed();
+      QString code = cols[4];
+
+      // add keys for every platform
+      for (i = 5; i < 8; ++i) {
+        if (cols[i].trimmed() != "✅") continue;
+        collections[i-5].push_back({desc, toPlatform(2-(i-5)), game, code, exp});
+      }
+    }
+
+    last_parsed = QDateTime::currentDateTime();
+
+    Platform platform = tPlatform(FSETTINGS["platform"].toString().toStdString());
+    coll << collections[platform];
+
+    IFCB(true);
+    req->deleteLater();
+  });
+#undef IFCB
+}
 #undef BL2PS

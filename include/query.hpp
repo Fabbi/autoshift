@@ -87,10 +87,9 @@ class BLnBLPSParser: public CodeParser
 public:
   BLnBLPSParser(ControlWindow&, Game);
   void parseKeys(ShiftCollection&, CodeParser::Callback=0);
-private:
+protected:
   Game game;
   const QUrl& url;
-protected:
   ShiftCollection collections[3];
   QDateTime last_parsed;
 };
@@ -125,6 +124,19 @@ public:
   BLPSParser(ControlWindow& cw):
     BLnBLPSParser(cw, Game::BLPS)
   {}
+protected:
+  ShiftCollection collections[3];
+  QDateTime last_parsed;
+};
+
+class BL3Parser: public BLnBLPSParser
+{
+public:
+  BL3Parser(ControlWindow& cw):
+    BLnBLPSParser(cw, Game::BL3)
+  {}
+
+  void parseKeys(ShiftCollection&, CodeParser::Callback=0);
 protected:
   ShiftCollection collections[3];
   QDateTime last_parsed;

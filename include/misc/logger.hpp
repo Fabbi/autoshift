@@ -113,6 +113,7 @@ using namespace std;
 
 static const regex ansi_re(R"(\x1B\[([\d;]+)m)");
 
+using endl_type = ostream&(ostream&);
   class Logger {
 
     typedef void (*callback) (const string&, void* usrData);
@@ -125,7 +126,6 @@ static const regex ansi_re(R"(\x1B\[([\d;]+)m)");
     // };
   private:
     // using endl_type = decltype(std::endl);
-    using endl_type = ostream&(ostream&);
     char _next_line;
     uint8_t _n_els;
     uint8_t _filler_els;
@@ -489,10 +489,12 @@ static const regex ansi_re(R"(\x1B\[([\d;]+)m)");
       os->flush();
     }
 
+    /*
     void out() {
       cout << &((*os) << endl);
       os->flush();
     }
+    */
 
   };
 
