@@ -30,6 +30,7 @@
 #include <misc/fsettings.hpp>
 
 #include <shift.hpp>
+
 #include "ui_loginwindow.h"
 
 #include <request.hpp>
@@ -48,13 +49,20 @@ const QRegularExpression rRed_status("(<div[^>]*id=\"[^\"]*?check_redemption_sta
 
 SC::ShiftClient(QObject* parent)
   :QObject(parent), logged_in(false)
-{}
+{
+  connect(this, &ShiftClient::loggedin, this, &ShiftClient::loggedinAct);
+}
 
 SC::~ShiftClient()
 {
 }
 
-Status SC::redeem(const QString& code)
+void SC::loggedinAct(bool v)
+{
+  INFO << "login " << ((v)? "successfull" : "failed") << "!" << endl;
+}
+
+Status SC::redeem(const ShiftCode& code)
 {
   StatusC formData = getRedemptionData(code);
 

@@ -189,6 +189,7 @@ public slots:
    * Login via Cookie or data-prompt
    */
   void login();
+  void loggedinAct(bool);
 
 signals:
   void loggedin(bool);
