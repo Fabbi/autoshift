@@ -175,6 +175,15 @@ void CW::updateRedemption()
     QCheckBox* cb = dynamic_cast<QCheckBox*>(ui->keyTable->cellWidget(row, 0));
 
     cb->setChecked(code.redeemed());
+
+    if (code.redeemed()) {
+      QFont font = ui->keyTable->item(row, 1)->font();
+      font.setStrikeOut(true);
+      ui->keyTable->item(row, 1)->setFont(font);
+      font = ui->keyTable->item(row, 2)->font();
+      font.setStrikeOut(true);
+      ui->keyTable->item(row, 2)->setFont(font);
+    }
   }
 }
 
@@ -244,6 +253,15 @@ void CW::insertRow(const ShiftCode& code, size_t i)
 
   if (code.desc().contains("\n"))
     ui->keyTable->setRowHeight(i, 45);
+
+  if (code.redeemed()) {
+  QFont font = ui->keyTable->item(i, 1)->font();
+  font.setStrikeOut(true);
+  ui->keyTable->item(i, 1)->setFont(font);
+  font = ui->keyTable->item(i, 2)->font();
+  font.setStrikeOut(true);
+  ui->keyTable->item(i, 2)->setFont(font);
+  }
 }
 
 void CW::login()
