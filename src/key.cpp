@@ -27,18 +27,24 @@
 #define SC ShiftCode
 
 SC::ShiftCode(uint32_t m_id, const QString& _d, Platform _p, Game _g,
-              const QString& _c, const QString& _e, bool _r):
+              const QString& _c, const QString& _e,
+              const QString& _s, const QString& _n, bool _r):
   _id(m_id), _desc(_d), _platform(_p), _game(_g), _code(_c),
-  _redeemed(_r), _expires(_e), _golden(0), dirty(false)
+  _redeemed(_r), _expires(_e), _golden(0), _source(_s),
+  _note(_n), dirty(false)
 { updateGolden(); }
-SC::ShiftCode(const QString& _d, Platform _p, Game _g, const QString& _c, const QString& _e, bool _r):
-  ShiftCode(UINT32_MAX, _d, _p, _g, _c, _e, _r)
+
+SC::ShiftCode(const QString& _d, Platform _p, Game _g, const QString& _c, const QString& _e,
+  const QString& _s, const QString& _n, bool _r):
+  ShiftCode(UINT32_MAX, _d, _p, _g, _c, _e, _s, _n, _r)
 { dirty = true; }
+
 SC::ShiftCode(const QSqlQuery& qry):
   ShiftCode(qry.value("id").toInt(), qry.value("description").toString(),
             tPlatform(qry.value("platform").toString().toStdString()),
             tGame(qry.value("game").toString().toStdString()),
             qry.value("key").toString(), qry.value("expires").toString(),
+            qry.value("source").toString(), qry.value("note").toString(),
             qry.value("redeemed").toBool())
 {}
 SC::ShiftCode():
@@ -55,12 +61,12 @@ bool SC::commit()
   QSqlQuery qry;
   if (new_code) {
     // insert new key
-    qry.prepare("INSERT INTO keys(description, key, platform, game, redeemed, expires) "
-                "VAlUES (:d,:k,:p,:g,:r,:e)");
+    qry.prepare("INSERT INTO keys(description, key, platform, game, redeemed, expires, source, note) "
+                "VAlUES (:d,:k,:p,:g,:r,:e,:s,:n)");
   } else {
     // update key
     qry.prepare("UPDATE keys SET description=(:d), key=(:k), redeemed=(:r), "
-                "platform=(:p), game=(:g), expires=(:e)"
+                "platform=(:p), game=(:g), expires=(:e), source=(:s), note=(:n)"
                 "WHERE id=(:id)");
     qry.bindValue(":id", id());
   }
@@ -71,6 +77,8 @@ bool SC::commit()
   qry.bindValue(":k", code());
   qry.bindValue(":r", redeemed());
   qry.bindValue(":e", expires());
+  qry.bindValue(":s", source());
+  qry.bindValue(":n", note());
 
   bool ret = qry.exec();
 
@@ -89,6 +97,38 @@ bool SC::commit()
 SCOL::ShiftCollection(Platform platform, Game game, bool used)
 {
   query(platform, game, used);
+}
+
+// TODO implement own database wrapper with this stuff..
+void SCOL::update_database()
+{
+  int version;
+  {
+    // query database version
+    QSqlQuery qry("PRAGMA user_version");
+    qry.next();
+    version = qry.value(0).toInt();
+    if (version == database_version) return;
+  }
+
+  // execute update steps for database
+  if (version < 2) {
+    QSqlDatabase::database().exec("ALTER TABLE keys ADD COLUMN source TEXT;");
+    QSqlDatabase::database().exec("ALTER TABLE keys ADD COLUMN note TEXT;");
+    version = 2;
+  }
+
+  /*
+  if (version < 3) {
+  ...
+  version = 3;
+  }
+  */
+
+  // update database version
+  QSqlDatabase::database().exec(QString("PRAGMA user_version = %1")
+                                  .arg(database_version));
+  QSqlDatabase::database().commit();
 }
 
 void SCOL::query(Platform platform, Game game, bool used)

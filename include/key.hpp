@@ -46,7 +46,9 @@ const QRegularExpression rGold("([0-9]+)[^0-9]*?gold", QRegularExpression::CaseI
 const QString CREATE_TABLE("CREATE TABLE IF NOT EXISTS keys "
                            "(id INTEGER primary key, description TEXT,"
                            "key TEXT, platform TEXT, game TEXT, "
-                           "redeemed INTEGER, expires Text)");
+                           "redeemed INTEGER, expires Text, source TEXT, "
+                           "note TEXT)");
+
 /** @class ShiftCode
  * @brief SHiFT code representation
  *
@@ -72,7 +74,8 @@ public:
    * @param expires String containing expiration information
    * @param redeemed is this code already redeemed?
    */
-  ShiftCode(uint32_t, const QString&, Platform, Game, const QString&, const QString&, bool=false);
+  ShiftCode(uint32_t, const QString&, Platform, Game, const QString&, const QString&, 
+            const QString&, const QString&, bool=false);
 
   /**
    * Construct a SHiFT code. The ID will be set on pushing to database.
@@ -87,7 +90,8 @@ public:
    * @param expires String containing expiration information
    * @param redeemed is this code already redeemed?
    */
-  ShiftCode(const QString&, Platform, Game, const QString&, const QString&, bool=false);
+  ShiftCode(const QString&, Platform, Game, const QString&, const QString&,
+            const QString&, const QString&, bool=false);
 
   /**
    * Construct a SHiFT code
@@ -168,6 +172,12 @@ public:
   inline const QString& expires() const
   { return _expires; }
 
+  inline const QString& note() const
+  { return _note; } 
+
+  inline const QString& source() const
+  { return _source; }
+
   inline uint8_t golden() const
   { return _golden; }
 
@@ -187,6 +197,8 @@ private:
   QString _code;  ///< Code to redeem
   bool _redeemed; ///< Is this key already redeemed?
   QString _expires;   ///< (When) does this code expire?
+  QString _note;  ///< additional info
+  QString _source; ///< source information
 
   Platform _platform;
   Game _game;
@@ -203,6 +215,7 @@ inline ashift::Logger& operator<<(ashift::Logger& l, const ShiftCode& c)
 {
   l << "Key{" << JOIN(", ");
   l << c.id() << c.desc() << c.code() << c.redeemed() << c.expires();
+  l << c.note() << c.source();
   l << JOINE << "}";
   return l;
 }
@@ -224,6 +237,7 @@ typedef std::function<bool(const ShiftCode&)> CodePredicate;
 
 class ShiftCollection: public QList<ShiftCode>
 {
+  static const uint8_t database_version = 2;
 
 public:
 
@@ -278,6 +292,7 @@ public:
   {append(_c);}
   void append(const ShiftCode&);
 
+  void update_database();
   QList<ShiftCode>& operator+=(const QList<ShiftCode> &other)
   { for (auto& el: other) {append(el);}; return *this; }
   QList<ShiftCode>& operator<<(const QList<ShiftCode> &other)

@@ -35,6 +35,13 @@
 #include <query.hpp>
 
 #define CW ControlWindow
+
+#define SOURCE_COL 1
+#define REWARD_COL 2
+#define CODE_COL 3
+#define EXPIRES_COL 4
+#define NOTE_COL 5
+
 static const QString messages[] {
     /*[Status::REDIRECT] = */ "",
     /*[Status::TRYLATER] =*/ CW::tr("Please launch a SHiFT-enabled title or wait 1 hour."),
@@ -139,9 +146,10 @@ CW::ControlWindow(QWidget *parent) :
       }
     });
 
-  ui->keyTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
   ui->keyTable->setColumnWidth(0, 15);
-  ui->keyTable->setColumnWidth(2, 265);
+  ui->keyTable->horizontalHeader()->setSectionResizeMode(REWARD_COL, QHeaderView::Stretch);
+  ui->keyTable->setColumnWidth(EXPIRES_COL, 132);
+  ui->keyTable->setColumnWidth(CODE_COL, 265);
 
   // setup networkmanager and make it globally available
   QNetworkAccessManager* nman = new QNetworkAccessManager(this);
@@ -149,6 +157,7 @@ CW::ControlWindow(QWidget *parent) :
 
   // create table if not present
   QSqlQuery create_table(CREATE_TABLE);
+  collection.update_database();
 }
 
 CW::~ControlWindow()
@@ -242,14 +251,18 @@ void CW::insertRow(const ShiftCode& code, size_t i)
   QCheckBox* cb = new QCheckBox;
   cb->setChecked(code.redeemed());
   cb->setEnabled(false);
-  ui->keyTable->setCellWidget(i, 0, cb);
+  ui->keyTable->setCellWidget(i, 0, cb); 
 
   // description
-  ui->keyTable->setItem(i, 1, new QTableWidgetItem(code.desc()));
+  ui->keyTable->setItem(i, REWARD_COL, new QTableWidgetItem(code.desc()));
   // code
-  ui->keyTable->setItem(i, 2, new QTableWidgetItem(code.code()));
+  ui->keyTable->setItem(i, CODE_COL, new QTableWidgetItem(code.code()));
   // expiration
-  ui->keyTable->setItem(i, 3, new QTableWidgetItem(code.expires()));
+  ui->keyTable->setItem(i, EXPIRES_COL, new QTableWidgetItem(code.expires()));
+  // expiration
+  ui->keyTable->setItem(i, NOTE_COL, new QTableWidgetItem(code.note()));
+  // expiration
+  ui->keyTable->setItem(i, SOURCE_COL, new QTableWidgetItem(code.source()));
 
   if (code.desc().contains("\n"))
     ui->keyTable->setRowHeight(i, 45);

@@ -84,6 +84,11 @@
          </column>
          <column>
           <property name="text">
+           <string>Source</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
            <string>Reward(s)</string>
           </property>
          </column>
@@ -95,6 +100,11 @@
          <column>
           <property name="text">
            <string>Expires By</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Note</string>
           </property>
          </column>
         </widget>

@@ -141,7 +141,7 @@ void BL2PS::parseKeys(ShiftCollection& coll, Callback cb)
         // add keys for every platform
         for (i = 4; i < 7; ++i) {
           if (cols[i].isEmpty()) continue;
-          collections[i-4].push_back({desc, toPlatform(i-4), game, cols[i], exp});
+          collections[i-4].push_back({desc, toPlatform(i-4), game, cols[i], exp, "", ""});
         }
       }
     }
@@ -230,7 +230,7 @@ void BL3Parser::parseKeys(ShiftCollection& coll, Callback cb)
         if (cols[i].trimmed() != "✅") continue;
 
 		    Platform pl = toPlatform(2 - (i - 5));
-        collections[pl].push_back({desc, pl, game, code, exp});
+        collections[pl].push_back({desc, pl, game, code, exp, "", ""});
       }
     }
 
