@@ -7,7 +7,9 @@ set(autoshift_HEADERS
   ${INC}/shift.hpp
   ${INC}/request.hpp
   ${INC}/key.hpp
-  ${INC}/query.hpp
+  
+  # parser
+  ${INC}/parser_orcz.hpp
   )
 
 set(autoshift_SOURCE
@@ -19,7 +21,9 @@ set(autoshift_SOURCE
   controlwindow.cpp
   shift.cpp
   key.cpp
-  query.cpp
+  
+  # parser
+  parser_orcz.cpp
   )
 
 if (WIN32)

@@ -28,56 +28,21 @@
 #include <misc/fsettings.hpp>
 #include <controlwindow.hpp>
 
+#include "parser.hpp"
+
 /** @class CodeParser
  * @brief A parser for SHiFT codes
  *
  * This class queries and parses various sources for SHiFT codes
  */
 // class ControlWindow;
+const QUrl urls[]{
+  /*[Game::BL1]  =*/ {"http://orcz.com/Borderlands:_Golden_Key"},
+  /*[Game::BL2]  =*/ {"http://orcz.com/Borderlands_2:_Golden_Key"},
+  /*[Game::BLPS] =*/ {"http://orcz.com/Borderlands_Pre-Sequel:_Shift_Codes"},
+  /*[Game::BL3]  =*/ {"http://orcz.com/Borderlands_3:_Shift_Codes"} };
 
-class CodeParser
-{
-public:
-  typedef std::function<void(bool)> Callback;
 
-  CodeParser()
-  {}
-  CodeParser(ControlWindow& cw, Game _g, Platform _p, const QIcon& _i = QIcon()):
-    CodeParser(cw, {_g, Game::NONE}, {_p, Platform::NONE}, {_i})
-  {}
-
-  // CodeParser(ControlWindow& cw, Game _gs[], Platform _ps[], const QIcon& _i = QIcon()):
-  CodeParser(ControlWindow& cw, std::initializer_list<Game> _gs,
-             std::initializer_list<Platform> _ps, std::initializer_list<QIcon> _i):
-    CodeParser()
-  {
-    // register this parser
-    auto icon_it = _i.begin();
-
-    for (Game _g: _gs) {
-      if (_g == Game::NONE) continue;
-      QIcon icn;
-      if (icon_it != _i.end()) {
-        icn = *icon_it;
-        ++icon_it;
-      }
-      for (Platform _p: _ps) {
-        if (_p == Platform::NONE) continue;
-        cw.registerParser(_g, _p, this, icn);
-      }
-    }
-  }
-
-  /**
-   * Parse keys and add them to the passed ShiftCollection.
-   *
-   * @param coll Output variable to contain the shift codes after parsing
-   * @param cb Callback to trigger after parsing is done (receives bool success-value)
-   */
-  virtual void parseKeys(ShiftCollection& /* out */, Callback=0) = 0;
-
-protected:
-};
 
 /** @class BLnBLPSParser
  * BL2 and BLPS code Parser
@@ -85,6 +50,7 @@ protected:
 class BLnBLPSParser: public CodeParser
 {
 public:
+  using CodeParser::CodeParser;
   BLnBLPSParser(ControlWindow&, Game);
   void parseKeys(ShiftCollection&, CodeParser::Callback=0);
 protected:
@@ -129,15 +95,17 @@ protected:
   QDateTime last_parsed;
 };
 
-class BL3Parser: public BLnBLPSParser
+class BL3Parser : public CodeParser
 {
 public:
   BL3Parser(ControlWindow& cw):
-    BLnBLPSParser(cw, Game::BL3)
+    CodeParser(cw, { Game::BL3 }, { Platform::EPIC, Platform::PS, Platform::XBOX }, {}),
+    url(urls[Game::BL3])
   {}
-
-  void parseKeys(ShiftCollection&, CodeParser::Callback=0);
+  void parseKeys(ShiftCollection&, CodeParser::Callback = 0);
 protected:
+  static const Game game = Game::BL3;
+  const QUrl& url = QUrl();
   ShiftCollection collections[3];
   QDateTime last_parsed;
 };

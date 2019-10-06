@@ -31,7 +31,8 @@
 #include <misc/logger.hpp>
 
 FENUM(Platform,
-      PC,
+      EPIC,
+      STEAM,
       PS,
       XBOX);
 

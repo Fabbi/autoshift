@@ -33,7 +33,7 @@ Logger logger_null = Logger();
 #include <misc/fsettings.hpp>
 
 #include <shift.hpp>
-#include <query.hpp>
+#include <parser_orcz.hpp>
 
 #if defined(_WIN32) && defined(QT_STATICPLUGIN)
   #include <QtPlugin>

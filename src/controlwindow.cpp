@@ -32,7 +32,7 @@
 
 #include <QNetworkAccessManager>
 
-#include <query.hpp>
+#include <parser_orcz.hpp>
 
 #define CW ControlWindow
 
@@ -213,15 +213,19 @@ void CW::updateTable()
   addToTable();
 
   CodeParser* p = parsers[game][platform];
+  
+  // only parse if there actually is a parser for this combination
+  if (p) {
+    // after parsing new keys
+    CodeParser::Callback cb = [&](bool worked) {
+      statusBar()->showMessage(QString(tr("Parsing %1")).arg((worked) ? tr("complete") : tr("failed")), 10000);
+      collection.commit();
+      addToTable();
+    };
 
-  // after parsing new keys
-  CodeParser::Callback cb = [&](bool worked) {
-    statusBar()->showMessage(QString(tr("Parsing %1")).arg((worked)? tr("complete") : tr("failed")), 10000);
-    collection.commit();
-    addToTable();
-  };
-
-  p->parseKeys(collection, cb);
+    p->parseKeys(collection, cb);
+  }
+    
 }
 
 void CW::addToTable()

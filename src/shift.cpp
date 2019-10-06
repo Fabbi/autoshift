@@ -28,6 +28,7 @@
 
 #include <misc/logger.hpp>
 #include <misc/fsettings.hpp>
+#include <misc/xmlreader.hpp>
 
 #include <shift.hpp>
 
@@ -180,32 +181,6 @@ bool SC::load_cookie()
   return logged_in;
 }
 
-// TODO in own module
-bool findNext(QXmlStreamReader& xml, const QString& token)
-{
-  while (!xml.atEnd())
-    if (xml.readNextStartElement() && xml.name() == token) break;
-  return !xml.atEnd();
-}
-
-template<typename FUNC>
-bool findNext(QXmlStreamReader& xml, const QString& token, FUNC f)
-{
-  while (!xml.atEnd())
-    if (xml.readNextStartElement() && xml.name() == token && f(xml)) break;
-
-  return !xml.atEnd();
-}
-
-bool findNextWithAttr(QXmlStreamReader& xml, const QString& token,
-                      const QString& attr_name, const QString& attr_val)
-{
-  return findNext(xml, token, [&](QXmlStreamReader& _xml) {
-    auto attrs = xml.attributes();
-    return (attrs.hasAttribute(attr_name) && attrs.value(attr_name) == attr_val);
-  });
-}
-
 StatusC SC::getToken(const QUrl& url)
 {
   Request req(url);
@@ -224,9 +199,9 @@ StatusC SC::getToken(const QString& data)
 {
   StatusC ret;
   // extract token from DOM
-  QXmlStreamReader xml(data);
+  XMLReader xml(data);
   while (true) {
-    findNext(xml, "meta");
+    xml.findNext("meta");
     if (xml.atEnd()) break;
 
     auto attrs = xml.attributes();
@@ -341,10 +316,6 @@ StatusC SC::getFormData(const QString& data, Platform platform)
   QString form;
   QRegularExpressionMatchIterator i = rForm.globalMatch(data);
   QString searchPlatform = QString::fromStdString(sPlatform(platform)).toLower();
-  const QRegularExpression rInput(
-	  QString(".*<input value=\"%1\"[^>]*?name=\"archway_code_redemption\[service\].*?>.*").arg(
-			(platform == Platform::PC) ? "(epic|steam)" : searchPlatform),
-	  QRegularExpression::DotMatchesEverythingOption);
 
   while (i.hasNext()) {
 	  QRegularExpressionMatch match = i.next();
@@ -353,20 +324,8 @@ StatusC SC::getFormData(const QString& data, Platform platform)
 		  form = match.captured(1);
 		  break;
 	  }
-	  QXmlStreamReader xml(match.captured(1));
-	  bool found;
-	  if (platform == Platform::PC)
-      found = findNext(xml, "input", [&](QXmlStreamReader& _xml) {
-        auto attrs = _xml.attributes();
-        return (attrs.hasAttribute("value") && (attrs.value("value") == "epic"
-          || attrs.value("value") == "steam"));
-			});
-    else 
-      found = findNext(xml, "input", [&](QXmlStreamReader& _xml) {
-        auto attrs = _xml.attributes(); 
-        return (attrs.hasAttribute("value") && (attrs.value("value") == "epic"
-          || attrs.value("value") == "steam"));
-      });
+	  XMLReader xml(match.captured(1));
+    bool found = xml.findNextWithAttr("input", "value", searchPlatform);
 
 	  if (found) {
 		  form = match.captured(1);
@@ -378,7 +337,7 @@ StatusC SC::getFormData(const QString& data, Platform platform)
     return {Status::UNKNOWN, data};
 
   // find form on url
-  QXmlStreamReader xml(form);
+  XMLReader xml(form);
 
   // find input fields
   while (true) {
@@ -473,7 +432,7 @@ StatusC SC::getStatus(const QString& content)
   QString text = match.captured(2).trimmed();
 
   // find form on url
-  QXmlStreamReader xml(div);
+  XMLReader xml(div);
   xml.readNextStartElement();
 
   QStringList urls;

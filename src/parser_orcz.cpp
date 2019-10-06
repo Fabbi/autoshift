@@ -19,17 +19,13 @@
  ** along with autoshift.  If not, see <http://www.gnu.org/licenses/>.
  **
  *****************************************************************************/
-#include <query.hpp>
+#include <parser_orcz.hpp>
 #include <request.hpp>
 
 #include <misc/fsettings.hpp>
 #include <misc/macros.hpp>
 
-const QUrl urls[] {
-  [Game::BL1]  = {"http://orcz.com/Borderlands:_Golden_Key"},
-  [Game::BL2]  = {"http://orcz.com/Borderlands_2:_Golden_Key"},
-  [Game::BLPS] = {"http://orcz.com/Borderlands_Pre-Sequel:_Shift_Codes"},
-  [Game::BL3]  = {"http://orcz.com/Borderlands_3:_Shift_Codes"}};
+
 
 const QRegularExpression rTable("(<table.*?>.*?</table>)",
                                QRegularExpression::DotMatchesEverythingOption);
@@ -51,7 +47,7 @@ const QRegularExpression rThru("\\((thru.*?)\\)",
 
 // this parser can handle all platforms
 BL2PS::BLnBLPSParser(ControlWindow& cw, Game _g):
-  CodeParser(cw, {_g}, {Platform::PC, Platform::PS, Platform::XBOX}, {}),
+  CodeParser(cw, {_g}, {Platform::STEAM, Platform::PS, Platform::XBOX}, {}),
   game(_g), url(urls[_g])
 {}
 
