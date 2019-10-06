@@ -149,5 +149,6 @@ dmypy.json
 *.app
 
 /build*
-/extern_libs
+/extern_libs/*
 compile_commands.json
+!/extern_libs/QtWaitingSpinner
