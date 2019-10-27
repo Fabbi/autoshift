@@ -162,7 +162,7 @@ bool SC::load_cookie()
   in.readRawData((char*)&data_size, sizeof(data_size));
   data = new char[data_size];
   in.readRawData(data, data_size);
-  QString user(data);
+  QString user = QString::fromUtf8(data, data_size);
   FSETTINGS["user"] = user;
   delete[] data;
 
