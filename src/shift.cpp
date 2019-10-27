@@ -66,23 +66,23 @@ void SC::loggedinAct(bool v)
   INFO << "login " << ((v)? "successfull" : "failed") << "!" << endl;
 }
 
-Status SC::redeem(const ShiftCode& code)
+StatusC SC::redeem(const ShiftCode& code)
 {
   StatusC formData = getRedemptionData(code);
 
   if (formData.code != Status::SUCCESS) {
     int status_code = formData.data.toInt();
     if (status_code == 500)
-      return Status::INVALID;
+      return { Status::INVALID, "" };
     if (status_code == 429)
-      return Status::SLOWDOWN;
+      return { Status::SLOWDOWN, "" };
     if (formData.message.contains("expired"))
-      return Status::EXPIRED;
+      return { Status::EXPIRED, "" };
     if (formData.message.contains("not available"))
-      return Status::UNAVAILABLE;
+      return { Status::UNAVAILABLE, "" };
     // unknown
     ERROR << formData.message.trimmed() << endl;
-    return Status::UNKNOWN;
+    return formData;
   }
 
   QStringList lis = formData.data.value<QStringList>();
@@ -92,7 +92,7 @@ Status SC::redeem(const ShiftCode& code)
   }
 
   StatusC status = redeemForm(postData);
-  return status.code;
+  return status;
 }
 
 void SC::delete_cookies()

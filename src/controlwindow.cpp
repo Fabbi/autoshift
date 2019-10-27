@@ -50,7 +50,7 @@ static const QString messages[] {
     /*[Status::SUCCESS] =*/ CW::tr("Redeemed %1"),
     /*[Status::INVALID] =*/ CW::tr("The code `%2` is invalid"),
     /*[Status::UNAVAILABLE] =*/ "",
-    /*[Status::UNKNOWN] =*/ CW::tr("An unknown Error occured"),
+    /*[Status::UNKNOWN] =*/ CW::tr("An unknown Error occured: %3"),
     /*[Status::SLOWDOWN] =*/ CW::tr("Redeeming too fast, slowing down"),
     /* SIZE */ "",
     /*[Status::NONE] =*/ CW::tr("Something unexpected happened.."),
@@ -364,11 +364,11 @@ void CW::start()
 
   DEBUG << "redeeming " << ((int)current_limit) << " Keys" << endl;
   // redeem next code
-  Status st = redeemNext();
+  StatusC st = redeemNext();
 
-  if (st != Status::TRYLATER)
+  if (st.code != Status::TRYLATER)
     // redeem every second unless we need to slow down.
-    timer->start((st == Status::SLOWDOWN)? 60000 : 1000);
+    timer->start((st.code == Status::SLOWDOWN)? 60000 : 1000);
   else {
     // don't continue if there are no non-golden keys and limit is reached
     timer->start(3900000); // do this every hour + 5min
@@ -385,7 +385,7 @@ void CW::stop()
   ui->controlButton->setChecked(false);
 }
 
-Status CW::redeemNext()
+StatusC CW::redeemNext()
 {
   QString code_type = FSETTINGS["code_type"].toString();
   bool golden = code_type == "Golden";
@@ -402,34 +402,36 @@ Status CW::redeemNext()
   if (it == collection.rend()) {
     // no unredeemed key left
     statusBar()->showMessage(tr("There is no more unredeemed SHiFT code left."), 10000);
-    return Status::TRYLATER;
+    return { Status::TRYLATER, "No more keys left" };
   }
 
   return redeem(*it);
 }
 
-Status CW::redeem(ShiftCode& code)
+StatusC CW::redeem(ShiftCode& code)
 {
   if (code.redeemed()) {
     statusBar()->showMessage(tr("This code was already redeemed."), 10000);
-    return Status::REDEEMED;
+    return { Status::REDEEMED, "" };
   }
 
   QString desc = code.desc();
   desc = desc.replace("\n", " / ");
   INFO << "Redeeming '" << desc << "'..." << endl;
-  Status st = sClient.redeem(code);
+  StatusC st = sClient.redeem(code);
 
-  QString msg = messages[st];
+  QString msg = messages[st.code];
   if (msg.contains("%1"))
     msg = msg.arg(desc);
   if (msg.contains("%2"))
     msg = msg.arg(code.code());
+  if (msg.contains("%3"))
+    msg = msg.arg(st.message.trimmed());
 
   INFO << msg << endl;
   statusBar()->showMessage(msg, 10000);
 
-  switch (st) {
+  switch (st.code) {
   case Status::SUCCESS:
     current_limit -= code.golden();
   case Status::REDEEMED:

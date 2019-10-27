@@ -75,7 +75,7 @@ public slots:
   /**
    * Redeem next unredeemed SHiFT code
    */
-  Status redeemNext();
+  StatusC redeemNext();
 
 private:
   /**
@@ -94,7 +94,7 @@ private:
    *
    * @return whether or not another one may be redeemed now
    */
-  Status redeem(ShiftCode&);
+  StatusC redeem(ShiftCode&);
 
   void insertRow(const ShiftCode&, size_t);
 

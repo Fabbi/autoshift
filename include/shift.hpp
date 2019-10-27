@@ -83,7 +83,7 @@ public:
    *
    * @return Status of redemption
    */
-  Status redeem(const ShiftCode&);
+  StatusC redeem(const ShiftCode&);
 
 private:
   /**
