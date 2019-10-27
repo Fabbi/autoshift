@@ -1,6 +1,8 @@
 BUILD_TYPE := $(if $(BUILD_TYPE),$(BUILD_TYPE),Debug)
 .SILENT: all
 all: .build
+.SILENT: debug
+debug: .build
 
 .PHONY: cmake
 .SILENT: cmake
