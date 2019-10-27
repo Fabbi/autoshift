@@ -233,7 +233,11 @@ void CW::updateTable()
   if (p) {
     // after parsing new keys
     CodeParser::Callback cb = [&](bool worked) {
-      statusBar()->showMessage(QString(tr("Parsing %1")).arg((worked) ? tr("complete") : tr("failed")), 10000);
+      //statusBar()->showMessage(QString(tr("Parsing %1")).arg((worked) ? tr("complete") : tr("failed")), 10000);
+      if (worked) {
+        QDateTime now = QDateTime::currentDateTime();
+        tStatus->setText("Last update: " + now.toString("dd.MM.yyyy - hh:mm:ss"));
+      }
       collection.commit();
       addToTable();
     };
