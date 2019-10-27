@@ -183,7 +183,7 @@ private slots:
 
 private:
   bool logged_in; ///< are we logged in?
-
+  const QString cookieFile;
   // QStringList old_rewards;
 
 public slots:

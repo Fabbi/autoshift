@@ -27,6 +27,8 @@ Logger logger_debug = Logger("DEBUG");
 Logger logger_null = Logger();
 }
 
+#include <QStandardPaths>
+#include <QDir>
 #include <QApplication>
 #include <QSqlDatabase>
 #include <controlwindow.hpp>
@@ -43,13 +45,18 @@ Logger logger_null = Logger();
 
 int main(int argc, char *argv[])
 {
+  QApplication::setApplicationName("AutoShift");
+  // create settings/database path
+  QDir appLocalData(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
+  appLocalData.mkpath(".");
+
 #if defined(_WIN32)
   QApplication::setStyle("fusion");
 #endif
   FSettings& settings = FSettings::get();
 
   QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-  db.setDatabaseName(".keys.db");
+  db.setDatabaseName(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/.keys.db");
   db.open();
 
   QApplication a(argc, argv);
@@ -85,6 +92,7 @@ int main(int argc, char *argv[])
 
   w.init();
 
+  DEBUG << QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/.keys.db" << endl;
   // main loop
   int exec = a.exec();
   db.close();

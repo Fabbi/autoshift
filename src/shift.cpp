@@ -38,8 +38,9 @@
 
 #define SC ShiftClient
 
+#define COOKIE_FILE_NAME ".cookie.sav"
+
 const QUrl baseUrl("https://shift.gearboxsoftware.com");
-const QString cookieFile(".cookie.sav");
 
 const QRegularExpression rForm("(<form.*?>.*?</form>)",
                                QRegularExpression::DotMatchesEverythingOption);
@@ -49,7 +50,9 @@ const QRegularExpression rRed_status("(<div[^>]*id=\"[^\"]*?check_redemption_sta
                                      QRegularExpression::DotMatchesEverythingOption);
 
 SC::ShiftClient(QObject* parent)
-  :QObject(parent), logged_in(false)
+  :QObject(parent), logged_in(false), 
+  cookieFile(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
+    + "/" + COOKIE_FILE_NAME)
 {
   connect(this, &ShiftClient::loggedin, this, &ShiftClient::loggedinAct);
 }
