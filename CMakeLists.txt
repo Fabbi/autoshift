@@ -38,7 +38,7 @@ else()
 endif()
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
-  set (CMAKE_BUILD_TYPE Debug)
+  set (CMAKE_BUILD_TYPE Release)
 endif()
 
 # set build type
@@ -153,6 +153,9 @@ set_property(CACHE NODEBUG PROPERTY STRINGS no yes)
 set_default(NOINFO no STRING "no info output")
 set_property(CACHE NOINFO PROPERTY STRINGS no yes)
 
+if(CMAKE_BUILD_TYPE MATCHES Release)
+  set(NODEBUG yes)
+endif()
 if (NODEBUG MATCHES yes)
   add_definitions(-DNODEBUG)
 endif()
