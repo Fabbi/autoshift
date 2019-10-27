@@ -147,9 +147,19 @@ CW::ControlWindow(QWidget *parent) :
     });
 
   ui->keyTable->setColumnWidth(0, 15);
+  ui->keyTable->setColumnWidth(SOURCE_COL, 100);
   ui->keyTable->horizontalHeader()->setSectionResizeMode(REWARD_COL, QHeaderView::Stretch);
   ui->keyTable->setColumnWidth(EXPIRES_COL, 132);
   ui->keyTable->setColumnWidth(CODE_COL, 265);
+
+  // load state from settings
+  for (uint8_t i = 0; i < ui->keyTable->columnCount(); ++i) {
+    int w = FSETTINGS.loadValue(
+      QString("state/keyTable/columnWidth/%1").arg(i),
+      ui->keyTable->columnWidth(i))
+      .toInt();
+    ui->keyTable->setColumnWidth(i, w);
+  }
 
   // setup networkmanager and make it globally available
   QNetworkAccessManager* nman = new QNetworkAccessManager(this);
@@ -161,7 +171,12 @@ CW::ControlWindow(QWidget *parent) :
 }
 
 CW::~ControlWindow()
-{}
+{
+  for (uint8_t i = 0; i < ui->keyTable->columnCount(); ++i) {
+    int w = ui->keyTable->columnWidth(i);
+    FSETTINGS.saveValue(QString("state/keyTable/columnWidth/%1").arg(i), w);
+  }
+}
 
 void CW::init()
 {

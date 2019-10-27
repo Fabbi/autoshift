@@ -55,19 +55,15 @@ public:
 
 private:
   FSettings() :
-#ifdef _WIN32
-    settings("Fabbi", "autoshift")
-#else
-  settings("fsettings.conf", QSettings::NativeFormat)
-#endif
+    settings("Fabbi", "AutoShift")
   {}
 
   ~FSettings()
   {
-#ifndef _WIN32
+//#ifndef _WIN32
     // until I figured out why windows crashes on syncing..
-    settings.sync();
-#endif
+    //settings.sync();
+//#endif
   }
 
 public:
@@ -149,6 +145,11 @@ public:
 
   void setValue(const QString& key, const QVariant& value)
   { insert(key, value); }
+
+  void saveValue(const QString& key, const QVariant& value)
+  { settings.setValue(key, value); }
+  QVariant loadValue(const QString& key, const QVariant& defaultVal=QVariant())
+  { return settings.value(key, defaultVal); }
 
   template<typename T, typename std::enable_if<IS(QCheckBox) ||
                                                IS(QLineEdit) ||
