@@ -92,7 +92,6 @@ int main(int argc, char *argv[])
 
   w.init();
 
-  DEBUG << QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/.keys.db" << endl;
   // main loop
   int exec = a.exec();
   db.close();
