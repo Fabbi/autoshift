@@ -168,6 +168,9 @@ CW::ControlWindow(QWidget *parent) :
   // create table if not present
   QSqlQuery create_table(CREATE_TABLE);
   collection.update_database();
+
+  connect(ui->updateButton, &QPushButton::pressed,
+          this, &ControlWindow::updateTable);
 }
 
 CW::~ControlWindow()

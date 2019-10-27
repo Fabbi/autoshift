@@ -162,13 +162,6 @@
             <string>Options</string>
            </property>
            <layout class="QGridLayout" name="gridLayout_2">
-            <item row="1" column="0">
-             <widget class="QLabel" name="labelGame">
-              <property name="text">
-               <string>Game</string>
-              </property>
-             </widget>
-            </item>
             <item row="0" column="0">
              <widget class="QCheckBox" name="limitCB">
               <property name="enabled">
@@ -178,48 +171,6 @@
                <string>limit</string>
               </property>
              </widget>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>Code type</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QComboBox" name="dropDPlatform"/>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="labelPlatform">
-              <property name="text">
-               <string>Platform</string>
-              </property>
-             </widget>
-            </item>
-            <item row="6" column="1">
-             <widget class="QPushButton" name="controlButton">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="toolTip">
-               <string>Start auto redeeming</string>
-              </property>
-              <property name="text">
-               <string>Start</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-              <property name="flat">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QComboBox" name="dropDGame"/>
             </item>
             <item row="0" column="1">
              <widget class="QSpinBox" name="limitBox">
@@ -240,16 +191,10 @@
               </property>
              </widget>
             </item>
-            <item row="6" column="0">
-             <widget class="QPushButton" name="redeemButton">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="toolTip">
-               <string>Redeem once now</string>
-              </property>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label">
               <property name="text">
-               <string>redeem x1</string>
+               <string>Code type</string>
               </property>
              </widget>
             </item>
@@ -265,6 +210,19 @@
                </size>
               </property>
              </spacer>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="labelGame">
+              <property name="text">
+               <string>Game</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QComboBox" name="dropDGame"/>
+            </item>
+            <item row="2" column="1">
+             <widget class="QComboBox" name="dropDPlatform"/>
             </item>
             <item row="3" column="1">
              <widget class="QComboBox" name="dropDType">
@@ -298,6 +256,35 @@
               </property>
              </widget>
             </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="labelPlatform">
+              <property name="text">
+               <string>Platform</string>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="1">
+             <widget class="QPushButton" name="controlButton">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="toolTip">
+               <string>Start auto redeeming</string>
+              </property>
+              <property name="text">
+               <string>Start</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+              <property name="flat">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
             <item row="4" column="1">
              <widget class="QPushButton" name="clearButton">
               <property name="enabled">
@@ -305,6 +292,26 @@
               </property>
               <property name="text">
                <string>clear used</string>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="0">
+             <widget class="QPushButton" name="redeemButton">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="toolTip">
+               <string>Redeem once now</string>
+              </property>
+              <property name="text">
+               <string>redeem x1</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1">
+             <widget class="QPushButton" name="updateButton">
+              <property name="text">
+               <string>update table</string>
               </property>
              </widget>
             </item>
