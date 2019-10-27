@@ -201,16 +201,16 @@ void BL3Parser::parseKeys(ShiftCollection& coll, Callback cb)
       auto cIt = rCol.globalMatch(row);
       QString cols[8];
       uint8_t i = 0;
+      QTextDocument text;
       while (cIt.hasNext() && i < 8) {
         cols[i] = cIt.next().captured(1);
+        text.setHtml(cols[i]);
+        cols[i] = text.toPlainText();
         ++i;
       }
 
-      // has at least one active key
+      QString source = cols[0].trimmed();
       QString desc = cols[1].trimmed();
-      // replace HTML breaks
-      desc = desc.replace(QRegExp("<br ?/?>"), "\n");
-      desc = desc.replace(rTag, "");
 
       // extract "expires" information
       QString exp = cols[3].trimmed();
@@ -226,7 +226,7 @@ void BL3Parser::parseKeys(ShiftCollection& coll, Callback cb)
         if (cols[i].trimmed() != "✅") continue;
 
 		    Platform pl = toPlatform(2 - (i - 5));
-        collections[pl].push_back({desc, pl, game, code, exp, "", ""});
+        collections[pl].push_back({desc, pl, game, code, exp, source, ""});
       }
     }
 

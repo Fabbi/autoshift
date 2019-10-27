@@ -73,6 +73,8 @@ public:
    * @param game The game
    * @param code SHiFT code (AAAAA-BBBBB-CCCCC-EEEEE-FFFFF)
    * @param expires String containing expiration information
+   * @param source The Source this key comes from
+   * @param note Some additional notes on this key
    * @param redeemed is this code already redeemed?
    */
   ShiftCode(uint32_t, const QString&, Platform, Game, const QString&, const QString&, 
@@ -89,6 +91,8 @@ public:
    * @param game The game
    * @param code SHiFT code (AAAAA-BBBBB-CCCCC-EEEEE-FFFFF)
    * @param expires String containing expiration information
+   * @param source The Source this key comes from
+   * @param note Some additional notes on this key
    * @param redeemed is this code already redeemed?
    */
   ShiftCode(const QString&, Platform, Game, const QString&, const QString&,
@@ -97,8 +101,8 @@ public:
   /**
    * Construct a SHiFT code
    *
-   * @sa ShiftCode(uint32_t, const QString&, Platform, Game, const QString&, bool)
-   * @sa ShiftCode(const QString&, Platform, Game, const QString&, bool)
+   * @sa ShiftCode(uint32_t, const QString&, Platform, Game, const QString&, const QString&, const QString&, bool)
+   * @sa ShiftCode(const QString&, Platform, Game, const QString&, const QString&, const QString&, bool)
    *
    * @param query SQL Query object with data from database
    */
