@@ -391,7 +391,7 @@ StatusC SC::getRedemptionData(const ShiftCode& code)
 
   req.send();
   if (!wait(&req, &Request::finished)) {
-    DEBUG << "Request `" << req.url << "` timed out!" << endl;
+    DEBUG << "Request `" << req.url.toString() << "` timed out!" << endl;
     return ret;
   }
 
