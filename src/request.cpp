@@ -51,6 +51,7 @@ void Request::send(int timeout)
   if (!req.hasRawHeader("Accept"))
     req.setRawHeader("Accept", "*/*");
 
+  DEBUG << srequest_t(type) << " " << url.toString() << endl;
   // send request
   switch (type) {
   case request_t::GET:
@@ -81,6 +82,8 @@ void Request::send(int timeout)
     timeout_timer->setSingleShot(true);
     connect(timeout_timer, &QTimer::timeout, this, [&](){
       disconnect(reply, &QNetworkReply::finished, this, 0);
+      DEBUG << "timed out" << endl;
+      DEBUG << reply->readAll().toStdString() << endl;
       reply->abort();
       timed_out = true;
       // disconnect from `finished` to not further handle this one.
@@ -127,6 +130,7 @@ void Request::send(int timeout)
       // only keep referer
       QByteArray oldReferer = req.rawHeader("Referer");
       url = url.resolved(redirectionTarget.toUrl());
+      DEBUG << "REDIRECT TO " << url.toString() << endl;
       req = QNetworkRequest(url);
       req.setRawHeader("Referer", oldReferer);
 

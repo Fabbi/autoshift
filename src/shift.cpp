@@ -531,6 +531,8 @@ StatusC SC::redeemForm(const QUrlQuery& data)
   status = checkRedemptionStatus(req);
   if (status.code == Status::REDIRECT) {
     the_url = baseUrl.resolved(QUrl(status.message));
+    DEBUG << "REDIRECT TO " << the_url.toString() << endl;
+    DEBUG << status.message << endl;
     if (status.message.contains("home?redirect_to"))
       return {Status::UNKNOWN, "Something weird happened..."};
   }
