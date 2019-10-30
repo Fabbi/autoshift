@@ -264,6 +264,7 @@ void SC::login(const QString& user_name, const QString& pw)
 
   StatusC formData = getFormData(the_url);
   if (formData.code != Status::SUCCESS) {
+    DEBUG << "Login failed: " << formData.message << endl;
     emit loggedin(false);
     return;
   }
