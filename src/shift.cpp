@@ -496,7 +496,7 @@ StatusC SC::checkRedemptionStatus(const Request& req)
       // extract json and generate usable information
       QJsonDocument json = QJsonDocument::fromJson(new_req.data);
       if (json["text"] != QJsonValue::Undefined) {
-        QString json_text = json["text"].toString();
+        QString json_text = json["text"].toString().toLower();
         if (json_text.contains("success"))
           return {Status::SUCCESS, json_text};
         if (json_text.contains("failed"))
