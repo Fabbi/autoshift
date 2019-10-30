@@ -153,9 +153,8 @@ set_property(CACHE NODEBUG PROPERTY STRINGS no yes)
 set_default(NOINFO no STRING "no info output")
 set_property(CACHE NOINFO PROPERTY STRINGS no yes)
 
-if(CMAKE_BUILD_TYPE MATCHES Release)
-  set(NODEBUG yes)
-endif()
+add_definitions(-D${CMAKE_BUILD_TYPE})
+
 if (NODEBUG MATCHES yes)
   add_definitions(-DNODEBUG)
 endif()

@@ -27,9 +27,10 @@ Logger logger_debug = Logger("DEBUG");
 Logger logger_null = Logger();
 }
 
+#include <QApplication>
+#include <QCommandLineParser>
 #include <QStandardPaths>
 #include <QDir>
-#include <QApplication>
 #include <QSqlDatabase>
 #include <controlwindow.hpp>
 #include <misc/fsettings.hpp>
@@ -42,6 +43,17 @@ Logger logger_null = Logger();
   Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)
   Q_IMPORT_PLUGIN(QSQLiteDriverPlugin)
 #endif
+
+void setupParser(QCommandLineParser& parser)
+{
+  parser.addHelpOption();
+  parser.addOption({ QStringList() << "v" << "verbose",
+    "Turn on verbose logging." });
+
+  //parser.addOption({ "headless",
+  //  "Turn on headless mode." });
+
+}
 
 int main(int argc, char *argv[])
 {
@@ -60,6 +72,18 @@ int main(int argc, char *argv[])
   db.open();
 
   QApplication a(argc, argv);
+
+  // setup command line parser
+  QCommandLineParser parser;
+  setupParser(parser);
+
+  parser.process(a);
+
+  if (parser.isSet("verbose"))
+    ashift::logger_debug.toFile("debug.log");
+  else
+    ashift::logger_debug.toNull();
+
   ControlWindow w;
 
   ////// PARSER

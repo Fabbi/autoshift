@@ -271,7 +271,8 @@ using endl_type = ostream&(ostream&);
 
     void toNull()
     {
-      toFile("/dev/null");
+      prefix = "NULL";
+      //toFile("/dev/null");
     }
 
     ostream* getOs()
@@ -512,11 +513,7 @@ using endl_type = ostream&(ostream&);
 #else
 # define INFO ashift::logger_info
 #endif
-#ifdef NODEBUG
-  # define DEBUG NUL
-#else
-  # define DEBUG ashift::logger_debug(__FILENAME__, __LINE__)
-#endif
+# define DEBUG ashift::logger_debug(__FILENAME__, __LINE__)
 #endif
 }
 // #undef SC
