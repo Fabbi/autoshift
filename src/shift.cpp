@@ -64,6 +64,7 @@ SC::~ShiftClient()
 void SC::loggedinAct(bool v)
 {
   INFO << "login " << ((v)? "successfull" : "failed") << "!" << endl;
+  DEBUG << "login " << ((v)? "successfull" : "failed") << "!" << endl;
 }
 
 StatusC SC::redeem(const ShiftCode& code)
@@ -82,6 +83,7 @@ StatusC SC::redeem(const ShiftCode& code)
       return { Status::UNAVAILABLE, "" };
     // unknown
     ERROR << formData.message.trimmed() << endl;
+    DEBUG << formData.message.trimmed() << endl;
     return formData;
   }
 
@@ -124,8 +126,10 @@ bool SC::save_cookie()
   if (data.isEmpty()) return false;
 
   QFile cookie_f(cookieFile);
-  if (!cookie_f.open(QIODevice::WriteOnly))
+  if (!cookie_f.open(QIODevice::WriteOnly)) {
+    DEBUG << "Couldn't open CookieFile `" << cookieFile << "`" << endl;
     return false;
+  }
 
   // write cookie to file
   int data_size = data.size();
@@ -370,6 +374,7 @@ StatusC SC::getRedemptionData(const ShiftCode& code)
 
   if (s.code != Status::SUCCESS) {
     ERROR << "Token Request Error: " << s.message << endl;
+    DEBUG << "Token Request Error: " << s.message << endl;
     return ret;
   }
 
@@ -385,8 +390,10 @@ StatusC SC::getRedemptionData(const ShiftCode& code)
   req.followRedirects(true);
 
   req.send();
-  if (!wait(&req, &Request::finished))
+  if (!wait(&req, &Request::finished)) {
+    DEBUG << "Request `" << req.url << "` timed out!" << endl;
     return ret;
+  }
 
   ret.data = req.reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
 

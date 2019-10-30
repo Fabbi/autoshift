@@ -436,6 +436,7 @@ StatusC CW::redeem(ShiftCode& code)
     msg = msg.arg(st.message.trimmed());
 
   INFO << msg << endl;
+  DEBUG << msg << endl;
   statusBar()->showMessage(msg, 10000);
 
   switch (st.code) {
