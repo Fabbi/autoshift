@@ -101,7 +101,7 @@ def input_pw(qry):
 
 
 class ShiftClient:
-    def __init__(self):
+    def __init__(self, user=None, pw=None):
         from os import path
         self.client = requests.session()
         self.last_status = Status.NONE
@@ -109,10 +109,16 @@ class ShiftClient:
         # try to load cookies. Query for login data if not present
         if not self.__load_cookie():
             print("First time usage: Login to your SHiFT account...")
-            user = input("Username: ")
-            pw = input_pw("Password: ")
+            if not user:
+                user = input("Username: ")
+            if not pw:
+                pw = input_pw("Password: ")
+
             self.__login(user, pw)
-            self.__save_cookie()
+            if self.__save_cookie():
+                _L.info("Login Successful")
+            else:
+                exit(0)
 
     def redeem(self, code):
         found, status_code, form_data = self.__get_redemption_form(code)

@@ -102,6 +102,15 @@ def setup_argparser():
     import textwrap
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("-u", "--user",
+                        default=None,
+                        help=("User login you want to use "
+                              "(optional. You will be prompted to enter your "
+                              " credentials if you didn't specify them here)"))
+    parser.add_argument("-p", "--pass",
+                        help=("Password for your login. "
+                              "(optional. You will be prompted to enter your "
+                              " credentials if you didn't specify them here)"))
     parser.add_argument("--golden",
                         action="store_true",
                         help="Only redeem golden keys")
@@ -137,7 +146,7 @@ def main(args):
     import re
 
     if not client:
-        client = ShiftClient()
+        client = ShiftClient(args.user, args.pw)
 
     g_reg = re.compile(r"^(\d+).*gold.*", re.I)
 
@@ -197,6 +206,8 @@ if __name__ == "__main__":
     # build argument parser
     parser = setup_argparser()
     args = parser.parse_args()
+
+    args.pw = getattr(args, "pass")
 
     _L.setLevel(INFO)
     if args.verbose:
