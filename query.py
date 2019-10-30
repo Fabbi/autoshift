@@ -25,7 +25,7 @@ from bs4 import BeautifulSoup as BSoup
 
 from common import _L, DIRNAME
 
-platforms = ["pc", "ps", "xbox"]
+platforms = ["steam", "epic", "ps", "xbox"]
 # will be filled later
 games = []
 game_funcs = {}
@@ -108,6 +108,8 @@ def insert(desc, code, platform, game):
 
 def get_keys(platform, game, all_keys=False):
     """Get all (unredeemed) keys of given platform and game"""
+    if (platform not in ["xbox", "ps"]):
+        platform = "pc"
     cmd = """
         SELECT id, description, key, redeemed FROM keys
         WHERE platform=?
@@ -167,12 +169,28 @@ def parse_keys(game, platform):
         insert(*code)
 
 
-@registerParser("bl2", "blps")
+# @registerParser("bl3")
+# def parse_bl3(game, platform):
+#     key_url = "http://orcz.com/Borderlands_3:_Golden_Key"
+#     r = requests.get(key_url)
+#     soup = BSoup(r.text, "lxml")
+#     table = soup.find("table")
+#     rows = table.find_all("tr")[1:]
+#     import ipdb; ipdb.set_trace()
+#     for row in rows:
+#         cols = row.find_all("td")
+#         desc = cols[1].text.strip()
+#         code = cols[4].text.strip()
+#         for i in range(5, len(platforms)):
+#             print(cols[i])
+
+@registerParser("bl", "bl2", "blps", "bl3")
 def parse_bl2blps(game, platform):
     """Get all Keys from orcz"""
-    key_urls = {"bl2": "http://orcz.com/Borderlands_2:_Golden_Key",
+    key_urls = {"bl": "http://orcz.com/Borderlands:_Golden_Key",
+                "bl2": "http://orcz.com/Borderlands_2:_Golden_Key",
                 "blps": "http://orcz.com/Borderlands_Pre-Sequel:_Shift_Codes",
-                # "bl3": "http://orcz.com/Borderlands_3:_Golden_Key"
+                "bl3": "http://orcz.com/Borderlands_3:_Golden_Key"
                 }
 
     def check(key):
@@ -207,6 +225,11 @@ def parse_bl2blps(game, platform):
                 _L.debug(e)
                 pass
 
-        for i in range(3):
+        codes.insert(1, None)
+
+        for i in range(len(codes)):
             if codes[i]:
-                yield desc, codes[i], platforms[i], game
+                the_platform = platforms[i]
+                if platforms[i] in ["steam", "epic"]:
+                    the_platform = "pc"
+                yield desc, codes[i], the_platform, game

@@ -120,8 +120,8 @@ class ShiftClient:
             else:
                 exit(0)
 
-    def redeem(self, code):
-        found, status_code, form_data = self.__get_redemption_form(code)
+    def redeem(self, code, platform):
+        found, status_code, form_data = self.__get_redemption_form(code, platform)
         # the expired message comes from even wanting to redeem
         if not found:
             # entered key was invalid
@@ -130,6 +130,8 @@ class ShiftClient:
             # entered key expired by now
             if "expired" in form_data:
                 return Status.EXPIRED
+            if "not available" in form_data:
+                return Status.INVALID
             # unknown
             _L.error(form_data)
             return Status.UNKNOWN
@@ -162,6 +164,7 @@ class ShiftClient:
         """Get CSRF-Token from given URL"""
         if type(url_or_reply) == str:
             r = self.client.get(url_or_reply)
+            _L.debug("{} {} {}".format(r.request.method, r.url, r.status_code))
         else:
             r = url_or_reply
 
@@ -182,11 +185,13 @@ class ShiftClient:
                       "user[password]": pw}
         headers = {"Referer": the_url}
         r = self.client.post("{}/sessions".format(base_url),
+        # r = self.client.post("{}/sessions".format("http://127.0.0.1:8000"),
                              data=login_data,
                              headers=headers)
+        _L.debug("{} {} {}".format(r.request.method, r.url, r.status_code))
         return r
 
-    def __get_redemption_form(self, code):
+    def __get_redemption_form(self, code, platform):
         """Get Form data for code redemption"""
         the_url = "{}/code_redemptions/new".format(base_url)
         status_code, token = self.__get_token(the_url)
@@ -197,19 +202,29 @@ class ShiftClient:
         r = self.client.get("{base_url}/entitlement_offer_codes?code={code}"
                             .format(base_url=base_url, **locals()),
                             headers=json_headers(token))
+
+        _L.debug("{} {} {}".format(r.request.method, r.url, r.status_code))
         soup = BSoup(r.text, "html.parser")
         if not soup.find("form", class_="new_archway_code_redemption"):
             return False, r.status_code, r.text.strip()
 
-        inp = soup.find("input", attrs=dict(name="authenticity_token"))
-        form_code = soup.find(id="archway_code_redemption_code")["value"]
-        check = soup.find(id="archway_code_redemption_check")["value"]
-        service = soup.find(id="archway_code_redemption_service")["value"]
+        inp = soup.find_all("input", attrs=dict(name="authenticity_token"))
+        form_code = soup.find_all(id="archway_code_redemption_code")
+        check = soup.find_all(id="archway_code_redemption_check")
+        service = soup.find_all(id="archway_code_redemption_service")
 
-        form_data = {"authenticity_token": inp["value"],
-                     "archway_code_redemption[code]": form_code,
-                     "archway_code_redemption[check]": check,
-                     "archway_code_redemption[service]": service}
+        ind = None
+        for i, s in enumerate(service):
+            if platform in s["value"]:
+                ind = i
+                break
+        if (ind is None):
+            return False, r.status_code, "This code is not available for your platform"
+
+        form_data = {"authenticity_token": inp[ind]["value"],
+                     "archway_code_redemption[code]": form_code[ind]["value"],
+                     "archway_code_redemption[check]": check[ind]["value"],
+                     "archway_code_redemption[service]": service[ind]["value"]}
         return True, r.status_code, form_data
 
     def __get_status(self, alert):
@@ -248,6 +263,7 @@ class ShiftClient:
                     return Status.REDIRECT, fallback
                 _L.info(get_status)
                 # wait 500
+                _L.debug("get " + "{}/{}".format(base_url, url))
                 raw_json = self.client.get("{}/{}".format(base_url, url),
                                            allow_redirects=False,
                                            headers=json_headers(token))
@@ -284,6 +300,7 @@ class ShiftClient:
                              data=data,
                              headers=headers,
                              allow_redirects=False)
+        _L.debug("{} {} {}".format(r.request.method, r.url, r.status_code))
         status, redirect = self.__check_redemption_status(r)
         # did we visit /code_redemptions/...... route?
         redemption = False

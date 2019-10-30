@@ -42,7 +42,7 @@ under certain conditions; see LICENSE for details.
 """
 
 
-def redeem(key):
+def redeem(key, platform):
     """Redeem key and set as redeemed if successfull"""
     messages = {
         Status.SUCCESS: "Redeemed {key.description}",
@@ -54,8 +54,8 @@ def redeem(key):
         Status.NONE: "Something unexpected happened.."
     }
 
-    _L.debug("Trying to redeem {} ({})".format(key.description, key.key))
-    status = client.redeem(key.key)
+    _L.info("Trying to redeem {} ({})".format(key.description, key.key))
+    status = client.redeem(key.key, platform)
     _L.debug("Status: {}".format(Status(status)))
 
     # set redeemed status
@@ -185,7 +185,7 @@ def main(args):
                     if (args.limit - num_g_keys) < 0:
                         continue
 
-                redeemed = redeem(key)
+                redeemed = redeem(key, platform)
                 if redeemed:
                     args.limit -= num_g_keys
                     _L.info("Redeeming another {} Keys".format(args.limit))
