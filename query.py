@@ -76,7 +76,7 @@ class Key:
 def open_db():
     from os import path
     global conn, c
-    conn = sqlite3.connect(path.join(DIRNAME, "keys.db"),
+    conn = sqlite3.connect(path.join(DIRNAME, "data", "keys.db"),
                            detect_types=sqlite3.PARSE_DECLTYPES)
     c = conn.cursor()
 
