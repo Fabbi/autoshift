@@ -93,7 +93,8 @@ docker run confusingboat/autoshift:latest \
   -e SHIFT_GAMES='bl3 blps bl2 bl' \
   -e SHIFT_PLATFORMS='epic xbox ps' \
   -e SHIFT_ARGS='--schedule -v' \
-  -e TZ='America/Chicago'
+  -e TZ='America/Chicago' \
+  -v /path/to/keysdb/dir:/autoshift/data
 ```
 
 ## Variables
