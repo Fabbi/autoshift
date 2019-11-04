@@ -230,24 +230,19 @@ void CW::updateTable()
   collection.query(platform, game, true);
   addToTable();
 
-  CodeParser* p = parsers[game][platform];
-  
-  // only parse if there actually is a parser for this combination
-  if (p) {
-    // after parsing new keys
-    CodeParser::Callback cb = [&](bool worked) {
-      //statusBar()->showMessage(QString(tr("Parsing %1")).arg((worked) ? tr("complete") : tr("failed")), 10000);
-      if (worked) {
-        QDateTime now = QDateTime::currentDateTime();
-        tStatus->setText("Last update: " + now.toString("dd.MM.yyyy - hh:mm:ss"));
-      }
-      collection.commit();
-      addToTable();
-    };
+  // after parsing new keys
+  CodeParser::Callback cb = [&](bool worked) {
+    //statusBar()->showMessage(QString(tr("Parsing %1")).arg((worked) ? tr("complete") : tr("failed")), 10000);
+    if (worked) {
+      QDateTime now = QDateTime::currentDateTime();
+      tStatus->setText("Last update: " + now.toString("dd.MM.yyyy - hh:mm:ss"));
+    }
+    collection.commit();
+    addToTable();
+  };
 
-    p->parseKeys(collection, cb);
-  }
-    
+  // tell every parser to do its thing.
+  emit parse(game, platform, collection, cb);
 }
 
 void CW::addToTable()
@@ -316,7 +311,7 @@ void CW::login()
 
 void CW::loggedin(bool v)
 {
-  spinner->stop();
+  spinner->stop(); 
   ui->loginButton->setEnabled(!v);
   ui->loginButton->setText((v)?tr("signed in"):tr("login"));
 
@@ -350,12 +345,13 @@ void CW::registerParser(Game game, Platform platform, CodeParser* parser, const 
     ui->dropDPlatform->addItem(platform_s);
   }
 
-  // add to codeparser map
-  if (!parsers.contains(game) || !parsers[game].contains(platform)) {
-    if (!parsers.contains(game))
-      parsers.insert(game, {});
-    parsers[game].insert(platform, parser);
-  }
+  // TODO: find a better solution to filter parsers
+  connect(this, &ControlWindow::parse,
+    [=](Game g, Platform p, ShiftCollection& c, CodeParser::Callback cb)
+    {
+      if (g == game && p == platform)
+        parser->parseKeys(c, cb);
+    });
 }
 
 void CW::start()
@@ -392,6 +388,7 @@ void CW::stop()
   ui->controlButton->setChecked(false);
 }
 
+// doc
 StatusC CW::redeemNext()
 {
   QString code_type = FSETTINGS["code_type"].toString();

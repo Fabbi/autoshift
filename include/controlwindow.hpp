@@ -34,6 +34,7 @@ class ControlWindow : public QMainWindow
 {
   Q_OBJECT
 
+  typedef std::function<void(bool)> Callback;
 public:
   explicit ControlWindow(QWidget *parent = 0);
   ~ControlWindow();
@@ -65,6 +66,7 @@ public:
   //                     const QStringList&);
 
   void init();
+
 public slots:
   void login();
   void loggedin(bool);
@@ -76,6 +78,9 @@ public slots:
    * Redeem next unredeemed SHiFT code
    */
   StatusC redeemNext();
+
+signals:
+  void parse(Game, Platform, ShiftCollection&, Callback);
 
 private:
   /**
@@ -106,8 +111,6 @@ private:
 
   ShiftClient sClient;
   ShiftCollection collection;
-
-  QMap<Game, QMap<Platform, CodeParser*>> parsers;
 
   /**
    * StatusBar label for permanent messages (on the right)

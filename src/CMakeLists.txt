@@ -11,6 +11,7 @@ set(autoshift_HEADERS
   # parser
   ${INC}/parser.hpp
   ${INC}/parser_orcz.hpp
+  ${INC}/parser_orcicorn.hpp
   )
 
 set(autoshift_SOURCE
@@ -25,6 +26,7 @@ set(autoshift_SOURCE
   
   # parser
   parser_orcz.cpp
+  parser_orcicorn.cpp
   )
 
 if (WIN32)

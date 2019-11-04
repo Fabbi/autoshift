@@ -49,7 +49,7 @@ const QRegularExpression rThru("\\((thru.*?)\\)",
 BL2PS::BLnBLPSParser(ControlWindow& cw, Game _g):
   CodeParser(cw, {_g}, {Platform::STEAM, Platform::PS, Platform::XBOX}, {}),
   game(_g), url(urls[_g])
-{}
+  {}
 
 void BL2PS::parseKeys(ShiftCollection& coll, Callback cb)
 {
