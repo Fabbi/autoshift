@@ -120,11 +120,12 @@ void BL2PS::parseKeys(ShiftCollection& coll, Callback cb)
       }
 
       if (keep) {
-        // has at least one active key
-        QString desc = cols[1].trimmed();
-        // replace HTML breaks
-        desc = desc.replace(QRegExp("<br ?/?>"), "\n");
-        desc = desc.replace(rTag, "");
+        QTextDocument text;
+        text.setHtml(cols[0]);
+        QString src = QString("Orcz(%1)").arg(text.toPlainText().trimmed());
+
+        text.setHtml(cols[1]);
+        QString desc = text.toPlainText().trimmed();
 
         // extract "expires" information
         QString exp = cols[2].trimmed();
@@ -137,7 +138,7 @@ void BL2PS::parseKeys(ShiftCollection& coll, Callback cb)
         // add keys for every platform
         for (i = 4; i < 7; ++i) {
           if (cols[i].isEmpty()) continue;
-          collections[i-4].push_back({desc, toPlatform(i-4), game, cols[i], exp, "", ""});
+          collections[i-3].push_back({desc, toPlatform(i-3), game, cols[i], exp, src, ""});
         }
       }
     }
@@ -209,11 +210,15 @@ void BL3Parser::parseKeys(ShiftCollection& coll, Callback cb)
         ++i;
       }
 
-      QString source = cols[0].trimmed();
-      QString desc = cols[1].trimmed();
+      text.setHtml(cols[0]);
+      QString src = QString("Orcz(%1)").arg(text.toPlainText().trimmed());
+      std::string ssrc = src.toStdString();
 
-      // extract "expires" information
-      QString exp = cols[3].trimmed();
+      text.setHtml(cols[1]);
+      QString desc = text.toPlainText().trimmed();
+
+      text.setHtml(cols[3]);
+      QString exp = text.toPlainText().trimmed();
 
       // extract key
       auto kMatch = rCode.match(cols[4]);
@@ -226,7 +231,7 @@ void BL3Parser::parseKeys(ShiftCollection& coll, Callback cb)
         if (cols[i].trimmed() != "✅") continue;
 
 		    Platform pl = toPlatform(2 - (i - 5));
-        collections[pl].push_back({desc, pl, game, code, exp, source, ""});
+        collections[pl].push_back({desc, pl, game, code, exp, src, ""});
       }
     }
 

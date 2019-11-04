@@ -56,7 +56,7 @@ public:
 protected:
   Game game;
   const QUrl& url;
-  ShiftCollection collections[3];
+  ShiftCollection collections[4];
   QDateTime last_parsed;
 };
 

@@ -9,6 +9,7 @@ set(autoshift_HEADERS
   ${INC}/key.hpp
   
   # parser
+  ${INC}/parser.hpp
   ${INC}/parser_orcz.hpp
   )
 
