@@ -333,7 +333,11 @@ StatusC SC::getFormData(const QString& data, Platform platform)
 		  break;
 	  }
 	  XMLReader xml(match.captured(1));
-    bool found = xml.findNextWithAttr("input", "value", searchPlatform);
+
+    bool found = xml.findNext("input", [&](QXmlStreamReader& _xml) {
+      auto attrs = _xml.attributes();
+      return (attrs.hasAttribute("value") && attrs.value("value").contains(searchPlatform));
+      });
 
 	  if (found) {
 		  form = match.captured(1);
