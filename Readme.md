@@ -80,3 +80,86 @@ If you'd want to add other sources for SHiFT codes or future games, you'd make t
 #### `auto.py`
 
 This one is the commandline interface you call to use this tool.
+
+# Docker
+Available as a docker image based on `python3.8-alpine`
+
+## Usage
+
+```
+docker run confusingboat/autoshift:latest \
+  -e SHIFT_USER='<username>' \
+  -e SHIFT_PASS='<password>' \
+  -e SHIFT_GAMES='bl3 blps bl2 bl' \
+  -e SHIFT_PLATFORMS='epic xbox ps' \
+  -e SHIFT_ARGS='--schedule -v' \
+  -e TZ='America/Chicago' \
+  -v /path/to/keysdb/dir:/autoshift/data
+```
+
+## Variables
+
+#### **SHIFT_USER** (required)
+The username for your SHiFT account
+
+Example: `johndoe123`
+
+
+#### **SHIFT_PASS** (required)
+The password for your SHiFT account
+
+Example: `p@ssw0rd`
+
+
+#### **SHIFT_GAMES** (recommended)
+The game(s) you want to redeem codes for
+
+Default: `bl3 blps bl2 bl`
+
+Example: `blps` or `bl bl2 bl3`
+
+|Game|Code|
+|---|---|
+|Borderlands|`bl`|
+|Borderlands 2|`bl2`|
+|Borderlands: The Pre-Sequel|`blps`|
+|Borderlands 3|`bl3`|
+
+
+#### **SHIFT_PLATFORM** (recommended)
+The platform(s) you want to redeem codes for
+
+Default: `epic steam`
+
+Example: `xbox` or `xbox ps`
+
+|Platform|Code|
+|---|---|
+|PC (Epic)|`epic`|
+|PC (Steam)|`steam`|
+|Xbox|`xbox`|
+|Playstation|`ps`|
+
+
+#### **SHIFT_ARGS** (optional)
+Additional arguments to pass to the script
+
+Default: `--schedule`
+
+Example: `--schedule --golden --limit 30`
+
+|Arg|Description|
+|---|---|
+|`--golden`|Only redeem golden keys|
+|`--non-golden`|Only redeem non-golden keys|
+|`--limit n`|Max number of golden keys you want to redeem|
+|`--schedule`|Keep checking for keys and redeeming every hour|
+|`-v`|Verbose mode|
+
+
+#### **TZ** (optional)
+Your timezone
+
+Default: `America/Chicago`
+
+Example: `Europe/London`
