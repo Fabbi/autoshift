@@ -59,6 +59,8 @@ void setupParser(QCommandLineParser& parser)
 int main(int argc, char *argv[])
 {
   QApplication::setApplicationName("AutoShift");
+  QApplication::setApplicationVersion("0.4-alpha");
+
   // create settings/database path
   QDir appLocalData(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
   appLocalData.mkpath(".");
