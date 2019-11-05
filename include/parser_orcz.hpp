@@ -40,72 +40,35 @@ const QUrl urls[]{
   /*[Game::BL1]  =*/ {"http://orcz.com/Borderlands:_Golden_Key"},
   /*[Game::BL2]  =*/ {"http://orcz.com/Borderlands_2:_Golden_Key"},
   /*[Game::BLPS] =*/ {"http://orcz.com/Borderlands_Pre-Sequel:_Shift_Codes"},
-  /*[Game::BL3]  =*/ {"http://orcz.com/Borderlands_3:_Shift_Codes"} };
+  /*[Game::BL3]  =*/ {"http://orcz.com/Borderlands_3:_Golden_Key"} };
+
+
 
 
 
 /** @class BLnBLPSParser
  * BL2 and BLPS code Parser
  */
+template<Game GAME>
 class BLnBLPSParser: public CodeParser
 {
 public:
   using CodeParser::CodeParser;
-  BLnBLPSParser(ControlWindow&, Game);
+  BLnBLPSParser(ControlWindow &cw): 
+    CodeParser(cw, {GAME},
+                   {Platform::STEAM, Platform::EPIC, Platform::PS, Platform::XBOX}, {}),
+    url(urls[GAME])
+  {}
   void parseKeys(ShiftCollection&, CodeParser::Callback=0);
 protected:
-  Game game;
   const QUrl& url;
   ShiftCollection collections[4];
   QDateTime last_parsed;
 };
 
-class BL1Parser: public BLnBLPSParser
-{
-public:
-  BL1Parser(ControlWindow& cw):
-    BLnBLPSParser(cw, Game::BL1)
-  {}
-
-protected:
-  ShiftCollection collections[3];
-  QDateTime last_parsed;
-};
-
-class BL2Parser: public BLnBLPSParser
-{
-public:
-  BL2Parser(ControlWindow& cw):
-    BLnBLPSParser(cw, Game::BL2)
-  {}
-
-protected:
-  ShiftCollection collections[3];
-  QDateTime last_parsed;
-};
-
-class BLPSParser: public BLnBLPSParser
-{
-public:
-  BLPSParser(ControlWindow& cw):
-    BLnBLPSParser(cw, Game::BLPS)
-  {}
-protected:
-  ShiftCollection collections[3];
-  QDateTime last_parsed;
-};
-
-class BL3Parser : public CodeParser
-{
-public:
-  BL3Parser(ControlWindow& cw):
-    CodeParser(cw, { Game::BL3 }, { Platform::EPIC, Platform::PS, Platform::XBOX }, {}),
-    url(urls[Game::BL3])
-  {}
-  void parseKeys(ShiftCollection&, CodeParser::Callback = 0);
-protected:
-  static const Game game = Game::BL3;
-  const QUrl& url = QUrl();
-  ShiftCollection collections[3];
-  QDateTime last_parsed;
-};
+namespace orcz {
+  typedef BLnBLPSParser<Game::BL1> BL1Parser;
+  typedef BLnBLPSParser<Game::BLPS> BLPSParser;
+  typedef BLnBLPSParser<Game::BL2> BL2Parser;
+  typedef BLnBLPSParser<Game::BL3> BL3Parser;
+}

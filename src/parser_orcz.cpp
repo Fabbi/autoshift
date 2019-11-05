@@ -43,14 +43,10 @@ const QRegularExpression rExp("<span[^>]*red",
 const QRegularExpression rThru("\\((thru.*?)\\)",
                                QRegularExpression::DotMatchesEverythingOption|
                                QRegularExpression::CaseInsensitiveOption);
-#define BL2PS BLnBLPSParser
+#define BL2PS BLnBLPSParser<GAME>
 
 // this parser can handle all platforms
-BL2PS::BLnBLPSParser(ControlWindow& cw, Game _g):
-  CodeParser(cw, {_g}, {Platform::STEAM, Platform::PS, Platform::XBOX}, {}),
-  game(_g), url(urls[_g])
-{}
-
+template<Game GAME>
 void BL2PS::parseKeys(ShiftCollection& coll, Callback cb)
 {
   if (last_parsed.isValid()) {
@@ -138,7 +134,7 @@ void BL2PS::parseKeys(ShiftCollection& coll, Callback cb)
         // add keys for every platform
         for (i = 4; i < 7; ++i) {
           if (cols[i].isEmpty()) continue;
-          collections[i-3].push_back({desc, toPlatform(i-3), game, cols[i], exp, src, ""});
+          collections[i-3].push_back({desc, toPlatform(i-3), GAME, cols[i], exp, src, ""});
         }
       }
     }
@@ -154,95 +150,8 @@ void BL2PS::parseKeys(ShiftCollection& coll, Callback cb)
 #undef IFCB
 }
 
-void BL3Parser::parseKeys(ShiftCollection& coll, Callback cb)
-{
-  if (last_parsed.isValid()) {
-    QDateTime now = QDateTime::currentDateTime();
-    // every 5 minutes
-    if (last_parsed.secsTo(now) < 300) {
-      Platform platform = tPlatform(FSETTINGS["platform"].toString().toStdString());
-      coll << collections[platform];
-
-      if (cb)
-        cb(true);
-      return;
-    }
-  }
-
-  Request* req = new Request(url);
-
-  // get whole page
-  req->send([this, req, cb, &coll]() mutable {
-#define IFCB(v) if(cb) cb(v);
-    if (req->timed_out) {
-      IFCB(false);
-      return;
-    }
-
-    // extract table
-    auto match = rTable.match(req->data);
-    if (!match.hasMatch()) {
-      IFCB(false);
-      return;
-    }
-
-    const QString& table = match.captured(1);
-
-    // find all rows
-    auto rIt = rRow.globalMatch(table);
-
-    // skip header row
-    rIt.next();
-
-    // extract information per row
-    while (rIt.hasNext()) {
-      QString row = rIt.next().captured(1);
-
-      // extract cols in this row
-      auto cIt = rCol.globalMatch(row);
-      QString cols[8];
-      uint8_t i = 0;
-      QTextDocument text;
-      while (cIt.hasNext() && i < 8) {
-        cols[i] = cIt.next().captured(1);
-        text.setHtml(cols[i]);
-        cols[i] = text.toPlainText();
-        ++i;
-      }
-
-      text.setHtml(cols[0]);
-      QString src = QString("Orcz(%1)").arg(text.toPlainText().trimmed());
-      std::string ssrc = src.toStdString();
-
-      text.setHtml(cols[1]);
-      QString desc = text.toPlainText().trimmed();
-
-      text.setHtml(cols[3]);
-      QString exp = text.toPlainText().trimmed();
-
-      // extract key
-      auto kMatch = rCode.match(cols[4]);
-      if (!kMatch.hasMatch()) continue;
-      cols[4] = kMatch.captured(1).trimmed();
-      QString code = cols[4];
-
-      // add keys for every platform
-      for (i = 5; i < 8; ++i) {
-        if (cols[i].trimmed() != "✅") continue;
-
-		    Platform pl = toPlatform(2 - (i - 5));
-        collections[pl].push_back({desc, pl, game, code, exp, src, ""});
-      }
-    }
-
-    last_parsed = QDateTime::currentDateTime();
-
-    Platform platform = tPlatform(FSETTINGS["platform"].toString().toStdString());
-    coll << collections[platform];
-
-    IFCB(true);
-    req->deleteLater();
-  });
-#undef IFCB
-}
+template BLnBLPSParser<Game::BL1>;
+template BLnBLPSParser<Game::BLPS>;
+template BLnBLPSParser<Game::BL2>;
+template BLnBLPSParser<Game::BL3>;
 #undef BL2PS

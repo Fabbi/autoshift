@@ -3,8 +3,10 @@
 #include <key.hpp>
 #include <controlwindow.hpp>
 
-class CodeParser
+class CodeParser: QObject
 {
+  Q_OBJECT
+
 public:
   typedef std::function<void(bool)> Callback;
 
@@ -36,6 +38,7 @@ public:
     }
   }
 
+public slots:
   /**
    * Parse keys and add them to the passed ShiftCollection.
    *

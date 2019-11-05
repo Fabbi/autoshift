@@ -219,8 +219,8 @@ private:
 inline ashift::Logger& operator<<(ashift::Logger& l, const ShiftCode& c)
 {
   l << "Key{" << JOIN(", ");
-  l << c.id() << c.desc() << c.code() << c.redeemed() << c.expires();
-  l << c.note() << c.source();
+  l << c.id() << c.desc() << c.code() << c.expires();
+  l << c.note() << c.source() << sPlatform(c.platform()) << c.redeemed();
   l << JOINE << "}";
   return l;
 }
