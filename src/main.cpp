@@ -85,18 +85,17 @@ int main(int argc, char *argv[])
   else
     ashift::logger_debug.toNull();
 
-  DEBUG << "==============================================================================" << endl;
   ControlWindow w;
 
   ////// PARSER
-  BL1Parser bl1(w);
-  // orcicorn::BL1Parser obl1(w);
-  BL2Parser bl2(w);
+  orcz::BL1Parser bl1(w);
+  orcicorn::BL1Parser obl1(w);
+  orcz::BL2Parser bl2(w);
   orcicorn::BL2Parser obl2(w);
-  BLPSParser blps(w);
-  //orcicorn::BLPSParser oblps(w);
-  BL3Parser bl3(w);
-  //orcicorn::BL3Parser obl3(w);
+  orcz::BLPSParser blps(w);
+  orcicorn::BLPSParser oblps(w);
+  orcz::BL3Parser bl3(w);
+  orcicorn::BL3Parser obl3(w);
 
   //////////////////////
 
