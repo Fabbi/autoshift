@@ -200,7 +200,7 @@ def main(args):
 if __name__ == "__main__":
     import os
     # only print license text on first use
-    if not os.path.exists(os.path.join(DIRNAME, ".cookies.save")):
+    if not os.path.exists(os.path.join(DIRNAME, "data", ".cookies.save")):
         print(LICENSE_TEXT)
 
     # build argument parser
