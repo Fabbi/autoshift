@@ -184,6 +184,7 @@ bool SC::load_cookie()
   if (!wait(&req, &Request::finished))
     return false;
 
+  DEBUG << "Logged in with Cookie '" << cookieFile << "'" << endl;
   logged_in = req.status_code == 200;
   return logged_in;
 }

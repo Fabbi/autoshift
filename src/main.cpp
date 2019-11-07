@@ -89,6 +89,8 @@ int main(int argc, char *argv[])
 
   ControlWindow w;
 
+  DEBUG << "Using Keys Database '" << db.databaseName() << "'" << endl;
+
   ////// PARSER
   orcz::BL1Parser bl1(w);
   orcicorn::BL1Parser obl1(w);
