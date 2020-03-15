@@ -143,6 +143,11 @@ class ShiftClient:
         return status
 
     def __save_cookie(self):
+        """Make ./data folder if not present"""
+        from os import path, mkdir
+        if not path.exists(path.dirname(self.cookie_file)):
+            mkdir(path.dirname(self.cookie_file))
+
         """Save cookie for auto login"""
         with open(self.cookie_file, "wb") as f:
             for cookie in self.client.cookies:
