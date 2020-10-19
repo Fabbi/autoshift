@@ -28,7 +28,7 @@ from query import games, platforms # noqa
 # from query import BL3
 from shift import ShiftClient, Status
 from common import _L, INFO, DEBUG, DIRNAME
-
+import time
 
 client = None
 
@@ -193,7 +193,8 @@ def main(args):
                     # don't spam if we reached the hourly limit
                     if client.last_status == Status.TRYLATER:
                         return
-
+                _L.info("Sleeping 3 seconds")
+                time.sleep(3)                
     query.close_db()
 
 
