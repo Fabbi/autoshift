@@ -95,7 +95,7 @@ Available as a docker image based on `python3.8-alpine`
 docker run confusingboat/autoshift:latest \
   -e SHIFT_USER='<username>' \
   -e SHIFT_PASS='<password>' \
-  -e SHIFT_GAMES='bl3 blps bl2 bl' \
+  -e SHIFT_GAMES='bl3 blps bl2 bl ttw' \
   -e SHIFT_PLATFORMS='epic xbox ps' \
   -e SHIFT_ARGS='--schedule -v' \
   -e TZ='America/Chicago' \
@@ -129,6 +129,7 @@ Example: `blps` or `bl bl2 bl3`
 |Borderlands 2|`bl2`|
 |Borderlands: The Pre-Sequel|`blps`|
 |Borderlands 3|`bl3`|
+|Tiny Tina's Wonderlands|`ttw`|
 
 
 #### **SHIFT_PLATFORM** (recommended)
