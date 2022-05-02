@@ -185,13 +185,14 @@ def parse_keys(game, platform):
 #         for i in range(5, len(platforms)):
 #             print(cols[i])
 
-@registerParser("bl", "bl2", "blps", "bl3")
+@registerParser("bl", "bl2", "blps", "bl3", "ttw")
 def parse_bl2blps(game, platform):
     """Get all Keys from orcz"""
     key_urls = {"bl": "http://orcz.com/Borderlands:_Golden_Key",
                 "bl2": "http://orcz.com/Borderlands_2:_Golden_Key",
                 "blps": "http://orcz.com/Borderlands_Pre-Sequel:_Shift_Codes",
-                "bl3": "http://orcz.com/Borderlands_3:_Golden_Key"
+                "bl3": "http://orcz.com/Borderlands_3:_Golden_Key",
+                "ttw": "http://orcz.com/Tiny_Tina%27s_Wonderlands:_Shift_Codes"
                 }
 
     def check(key):

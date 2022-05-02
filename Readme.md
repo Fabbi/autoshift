@@ -33,34 +33,39 @@ pip install requests beautifulsoup4 lxml apscheduler
 ./auto.py --help
 ```
 
-- redeem codes for Borderlands 2 on PC
+- redeem codes for Borderlands 3 on Steam
 ```sh
-./auto.py --game bl2 --platform pc
+./auto.py --game bl3 --platform steam
+```
+
+- redeem codes for Borderlands 3 on Steam using Username and Password (Use quotes for User and Password)
+```sh
+./auto.py --game bl3 --platform steam --user "my@user.edu" --pass "p4ssw0rd!123"
 ```
 
 - keep redeeming every hour (you need `apscheduler` for that)
 ```sh
-./auto.py --game bl2 --platform pc --schedule
+./auto.py --game bl3 --platform steam --schedule
 ```
 
 - only redeem golden keys
 ```sh
-./auto.py --game bl2 --platform pc --schedule --golden
+./auto.py --game bl3 --platform steam --schedule --golden
 ```
 
 - only redeem non-golden keys
 ```sh
-./auto.py --game bl2 --platform pc --schedule --non-golden
+./auto.py --game bl3 --platform steam --schedule --non-golden
 ```
 
 - only redeem up to 30 keys
 ```sh
-./auto.py --game bl2 --platform pc --schedule --golden --limit 30
+./auto.py --game bl3 --platform steam --schedule --golden --limit 30
 ```
 
 - only query new keys (why though..)
 ```sh
-./auto.py --game bl2 --platform pc --golden --limit 0
+./auto.py --game bl3 --platform steam --golden --limit 0
 ```
 
 ### Overview
@@ -90,7 +95,7 @@ Available as a docker image based on `python3.8-alpine`
 docker run confusingboat/autoshift:latest \
   -e SHIFT_USER='<username>' \
   -e SHIFT_PASS='<password>' \
-  -e SHIFT_GAMES='bl3 blps bl2 bl' \
+  -e SHIFT_GAMES='bl3 blps bl2 bl ttw' \
   -e SHIFT_PLATFORMS='epic xbox ps' \
   -e SHIFT_ARGS='--schedule -v' \
   -e TZ='America/Chicago' \
@@ -100,7 +105,7 @@ docker run confusingboat/autoshift:latest \
 ## Variables
 
 #### **SHIFT_USER** (required)
-The username for your SHiFT account
+The username/email for your SHiFT account
 
 Example: `johndoe123`
 
@@ -124,6 +129,7 @@ Example: `blps` or `bl bl2 bl3`
 |Borderlands 2|`bl2`|
 |Borderlands: The Pre-Sequel|`blps`|
 |Borderlands 3|`bl3`|
+|Tiny Tina's Wonderlands|`ttw`|
 
 
 #### **SHIFT_PLATFORM** (recommended)

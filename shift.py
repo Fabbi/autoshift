@@ -40,13 +40,23 @@ __els = ["NONE", "REDIRECT", "TRYLATER",
          "SUCCESS", "INVALID", "UNKNOWN"]
 def Status(n): # noqa
     return __els[n]
-for i in range(len(__els)): # noqa
-    setattr(Status, Status(i), i)
+
+
+Status.NONE = 0
+Status.REDIRECT = 1
+Status.TRYLATER = 2
+Status.EXPIRED = 3
+Status.REDEEMED = 4
+Status.SUCCESS = 5
+Status.INVALID = 6
+Status.UNKNOWN = 7
+# for i in range(len(__els)): # noqa
+#     setattr(Status, Status(i), i)
 
 
 # windows / unix `getch`
 try:
-    import msvcrt
+    import msvcrt # noqa
 
     def getch():
         return str(msvcrt.getch(), "utf8")
@@ -101,7 +111,7 @@ def input_pw(qry):
 
 
 class ShiftClient:
-    def __init__(self, user=None, pw=None):
+    def __init__(self, user: str = None, pw: str = None):
         from os import path
         self.client = requests.session()
         self.last_status = Status.NONE
@@ -118,10 +128,12 @@ class ShiftClient:
             if self.__save_cookie():
                 _L.info("Login Successful")
             else:
+                _L.error("Couldn't login. Are your credentials correct?")
                 exit(0)
 
     def redeem(self, code, platform):
-        found, status_code, form_data = self.__get_redemption_form(code, platform)
+        found, status_code, form_data = self.__get_redemption_form(code,
+                                                                   platform)
         # the expired message comes from even wanting to redeem
         if not found:
             # entered key was invalid
@@ -143,6 +155,11 @@ class ShiftClient:
         return status
 
     def __save_cookie(self):
+        """Make ./data folder if not present"""
+        from os import path, mkdir
+        if not path.exists(path.dirname(self.cookie_file)):
+            mkdir(path.dirname(self.cookie_file))
+
         """Save cookie for auto login"""
         with open(self.cookie_file, "wb") as f:
             for cookie in self.client.cookies:
@@ -154,10 +171,13 @@ class ShiftClient:
     def __load_cookie(self):
         """Check if there is a saved cookie and load it."""
         from os import path
-        if not path.exists(self.cookie_file):
+        if (not path.exists(self.cookie_file)):
             return False
         with open(self.cookie_file, "rb") as f:
-            self.client.cookies.update(pickle.load(f))
+            content = f.read()
+            if (not content):
+                return False
+            self.client.cookies.update(pickle.loads(content))
         return True
 
     def __get_token(self, url_or_reply):
@@ -185,7 +205,6 @@ class ShiftClient:
                       "user[password]": pw}
         headers = {"Referer": the_url}
         r = self.client.post("{}/sessions".format(base_url),
-        # r = self.client.post("{}/sessions".format("http://127.0.0.1:8000"),
                              data=login_data,
                              headers=headers)
         _L.debug("{} {} {}".format(r.request.method, r.url, r.status_code))
@@ -219,7 +238,8 @@ class ShiftClient:
                 ind = i
                 break
         if (ind is None):
-            return False, r.status_code, "This code is not available for your platform"
+            return (False, r.status_code,
+                    "This code is not available for your platform")
 
         form_data = {"authenticity_token": inp[ind]["value"],
                      "archway_code_redemption[code]": form_code[ind]["value"],
