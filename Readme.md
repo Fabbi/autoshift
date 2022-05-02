@@ -92,7 +92,7 @@ Available as a docker image based on `python3.8-alpine`
 ## Usage
 
 ```
-docker run confusingboat/autoshift:latest \
+docker run zacharmstrong/autoshift:latest \
   -e SHIFT_USER='<username>' \
   -e SHIFT_PASS='<password>' \
   -e SHIFT_GAMES='bl3 blps bl2 bl ttw' \
