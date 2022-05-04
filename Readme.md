@@ -102,6 +102,27 @@ docker run zacharmstrong/autoshift:latest \
   -v /path/to/keysdb/dir:/autoshift/data
 ```
 
+Compose:
+
+```
+---
+version: "3.0"
+services:
+  autoshift:
+    image: zacharmstrong/autoshift:latest
+    container_name: autoshift_all
+    restart: always
+    volumes:
+      - /path/to/keysdb/dir:/autoshift/data
+    environment:
+      - TZ=America/Denver
+      - SHIFT_PLATFORMS=epic xbox ps
+      - SHIFT_USER=<username>
+      - SHIFT_PASS=<password>
+      - SHIFT_GAMES=bl3 blps bl2 bl ttw
+      - SHIFT_ARGS=--schedule -v
+```
+
 ## Variables
 
 #### **SHIFT_USER** (required)
