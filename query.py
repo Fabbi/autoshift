@@ -195,23 +195,6 @@ def parse_bl2blps(game, platform):
                 "ttw": "http://orcz.com/Tiny_Tina%27s_Wonderlands:_Shift_Codes"
                 }
 
-    def check(key):
-        """Check if key is expired (return None if so)"""
-        ret = None
-        span = key.find("span")
-        if (not span) or (not span.get("style")) or ("black" in span["style"]):
-            ret = key.text.strip()
-
-            # must be of format ABCDE-FGHIJ-KLMNO-PQRST
-            if ret.count("-") != 4:
-                return None
-            spl = ret.split("-")
-            spl = [len(el) == 5 for el in spl]
-            if not all(spl):
-                return None
-
-        return ret
-
     r = requests.get(key_urls[game])
     soup = BSoup(r.text, "lxml")
     table = soup.find("table")
@@ -219,15 +202,10 @@ def parse_bl2blps(game, platform):
     for row in rows:
         cols = row.find_all("td")
         desc = cols[1].text.strip()
-        codes = [None, None, None]
-        for i in range(4, 7):
-            try:
-                codes[i - 4] = check(cols[i])
-            except Exception as e: # noqa
-                _L.debug(e)
-                pass
-
-        codes.insert(1, None)
+        if game == "ttw":
+            codes = get_codes_by_platform_ttw(cols)
+        else:
+            codes = get_codes_by_platform_default(cols)
 
         for i in range(len(codes)):
             if codes[i]:
@@ -235,3 +213,43 @@ def parse_bl2blps(game, platform):
                 if platforms[i] in ["steam", "epic"]:
                     the_platform = "pc"
                 yield desc, codes[i], the_platform, game
+
+
+def get_codes_by_platform_default(cols):
+    codes = [None, None, None]
+    for i in range(4, 7):
+        try:
+            codes[i - 4] = check_for_code(cols[i])
+        except Exception as e:  # noqa
+            _L.debug(e)
+            pass
+    codes.insert(1, None)
+    return codes
+
+
+def get_codes_by_platform_ttw(cols):
+    code_index = 4
+    code = check_for_code(cols[code_index])
+    codes = []
+    """ All codes are universal, so all platforms are returned """
+    for x in range(len(platforms)):
+        codes.append(code)
+    return codes
+
+
+def check_for_code(key):
+    """Check if key is expired (return None if so)"""
+    ret = None
+    span = key.find("span")
+    if (not span) or (not span.get("style")) or ("black" in span["style"]):
+        ret = key.text.strip()
+
+        # must be of format ABCDE-FGHIJ-KLMNO-PQRST
+        if ret.count("-") != 4:
+            return None
+        spl = ret.split("-")
+        spl = [len(el) == 5 for el in spl]
+        if not all(spl):
+            return None
+
+    return ret
