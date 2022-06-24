@@ -135,24 +135,30 @@ class ShiftClient:
         found, status_code, form_data = self.__get_redemption_form(code,
                                                                    platform)
         # the expired message comes from even wanting to redeem
-        if not found and form_data=="This SHiFT code has already been redeemed":
-                status = Status.REDEEMED
-                result = "Already Redeemed"
-        elif not found :
-            # entered key was invalid
+        if not found :
             if status_code == 500:
-                return Status.INVALID
-            # entered key expired by now
-            if "expired" in form_data:
-                return Status.EXPIRED
-            if "not available" in form_data:
-                return Status.INVALID
-            # unknown
-            _L.error(form_data)
-            return Status.UNKNOWN
+                # entered key was invalid
+                status = Status.INVALID
+                result = "Invalid Code"
+            elif "expired" in form_data:
+                # entered key expired by now
+                status = Status.EXPIRED
+                result = "Code expired"
+            elif "not available" in form_data:
+                status = Status.INVALID
+                result = "Code not available"
+            elif "already been redeemed" in form_data:
+                status = Status.REDEEMED
+                result = "Code already redeemed"
+            else:
+                # unknown
+                _L.error(form_data)
+                status = Status.UNKNOWN
+                result = form_data
         else:
-        # the key is valid and all.
+            # the key is valid and all.
             status, result = self.__redeem_form(form_data)
+
         self.last_status = status
         _L.debug("{}: {}".format(Status(status), result))
         return status
