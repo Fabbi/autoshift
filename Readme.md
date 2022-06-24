@@ -92,7 +92,7 @@ Available as a docker image based on `python3.8-alpine`
 ## Usage
 
 ```
-docker run confusingboat/autoshift:latest \
+docker run zacharmstrong/autoshift:latest \
   -e SHIFT_USER='<username>' \
   -e SHIFT_PASS='<password>' \
   -e SHIFT_GAMES='bl3 blps bl2 bl ttw' \
@@ -100,6 +100,27 @@ docker run confusingboat/autoshift:latest \
   -e SHIFT_ARGS='--schedule -v' \
   -e TZ='America/Chicago' \
   -v /path/to/keysdb/dir:/autoshift/data
+```
+
+Compose:
+
+```
+---
+version: "3.0"
+services:
+  autoshift:
+    image: zacharmstrong/autoshift:latest
+    container_name: autoshift_all
+    restart: always
+    volumes:
+      - /path/to/keysdb/dir:/autoshift/data
+    environment:
+      - TZ=America/Denver
+      - SHIFT_PLATFORMS=epic xbox ps
+      - SHIFT_USER=<username>
+      - SHIFT_PASS=<password>
+      - SHIFT_GAMES=bl3 blps bl2 bl ttw
+      - SHIFT_ARGS=--schedule -v
 ```
 
 ## Variables
