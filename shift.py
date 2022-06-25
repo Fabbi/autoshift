@@ -228,7 +228,7 @@ class ShiftClient:
             return False, status_code, "Could not retrieve Token"
 
         r = self.client.get("{base_url}/entitlement_offer_codes?code={code}"
-                            .format(base_url=base_url, **locals()),
+                            .format(base_url=base_url, code=code),
                             headers=json_headers(token))
 
         _L.debug("{} {} {}".format(r.request.method, r.url, r.status_code))
@@ -236,11 +236,13 @@ class ShiftClient:
         if not soup.find("form", class_="new_archway_code_redemption"):
             return False, r.status_code, r.text.strip()
 
+        # TODO search all forms and get their inner inputs
         inp = soup.find_all("input", attrs=dict(name="authenticity_token"))
         form_code = soup.find_all(id="archway_code_redemption_code")
         check = soup.find_all(id="archway_code_redemption_check")
         service = soup.find_all(id="archway_code_redemption_service")
 
+        # TODO handle keys that are valid for multiple games... (<h2>{GAME}</h2>)
         ind = None
         for i, s in enumerate(service):
             if platform in s["value"]:

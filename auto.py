@@ -22,15 +22,16 @@
 #############################################################################
 from __future__ import print_function
 import sys
+from typing import Match, cast
 
 import query
-from query import games, platforms # noqa
 # from query import BL3
+from query import Key, known_games, known_platforms
 from shift import ShiftClient, Status
 from common import _L, INFO, DEBUG, DIRNAME
 
 
-client = None
+client: ShiftClient = None # type: ignore
 
 LICENSE_TEXT = """\
 ========================================================================
@@ -42,26 +43,26 @@ under certain conditions; see LICENSE for details.
 """
 
 
-def redeem(key, platform):
+def redeem(key: Key, platform):
     """Redeem key and set as redeemed if successfull"""
     messages = {
-        Status.SUCCESS: "Redeemed {key.description}",
-        Status.EXPIRED: "This code expired by now.. ({key.description})",
-        Status.REDEEMED: "Already redeemed {key.description}",
-        Status.INVALID: "The code `{key.key}` is invalid",
+        Status.SUCCESS: "Redeemed {key.reward}",
+        Status.EXPIRED: "This code expired by now.. ({key.reward})",
+        Status.REDEEMED: "Already redeemed {key.reward}",
+        Status.INVALID: "The code `{key.code}` is invalid",
         Status.TRYLATER: "Please launch a SHiFT-enabled title or wait 1 hour.",
         Status.UNKNOWN: "A unknown Error occured",
         Status.NONE: "Something unexpected happened.."
     }
 
-    _L.info("Trying to redeem {} ({})".format(key.description, key.key))
-    status = client.redeem(key.key, platform)
+    _L.info("Trying to redeem {} ({})".format(key.reward, key.code))
+    status = client.redeem(key.code, platform)
     _L.debug("Status: {}".format(Status(status)))
 
     # set redeemed status
     if status in (Status.SUCCESS, Status.REDEEMED,
                   Status.EXPIRED, Status.INVALID):
-        query.set_redeemed(key)
+        query.db.set_redeemed(key)
 
     # notify user
     _L.info(messages[status].format(**locals()))
@@ -73,33 +74,48 @@ def query_keys(games, platforms):
     """Query new keys for given games and platforms
 
     Returns dict of dicts of lists with [game][platform] as keys"""
+    from itertools import groupby
     all_keys = {}
-    # query new keys
-    for game in games:
-        all_keys[game] = {}
-        for platform in platforms:
-            print("Parsing {:4} keys...".format(game.upper()), end="")
-            sys.stdout.flush()
-            keys = query.get_keys(platform, game, True)
 
-            # parse all keys
-            query.parse_keys(game, platform)
+    keys = list(query.db.get_keys(None, None))
+    # parse all keys
+    query.update_keys()
+    new_keys = list(query.db.get_keys(None, None))
 
-            new_keys = query.get_keys(platform, game, True)
-            all_keys[game][platform] = new_keys
+    diff = len(new_keys) - len(keys)
+    print("done. ({} new Keys)".format(diff if diff else "no"))
 
+    _g = lambda key: key.game
+    _p = lambda key: key.platform
+    for g, g_keys in groupby(sorted(new_keys, key=_g), _g):
+        if g not in games:
+            continue
+        all_keys[g] = {}
+        for p, p_keys in groupby(sorted(g_keys, key=_p), _p):
+            if p not in platforms:
+                continue
+
+            all_keys[g][p] = p_keys
             # count the new keys
-            diff = len(new_keys) - len(keys)
-            print("done. ({} new Keys)".format(diff if diff else "no"))
-            n_golden, g_keys = query.get_golden_keys(platform, game)
-            print("You have {} golden {} keys to redeem for {}"
-                  .format(n_golden, game.upper(), platform.upper()))
+            n_golden = sum(int(cast(Match[str], m).group(1) or 1)
+                            for m in
+                            filter(lambda m:
+                                    m  and m.group(1) is not None,
+                                    map(lambda key: query.r_golden_keys.match(key.reward),
+                                        p_keys)))
+
+            _L.info("You have {} golden {} keys to redeem for {}"
+                    .format(n_golden, g.upper(), p.upper()))
+
     return all_keys
 
 
 def setup_argparser():
     import argparse
     import textwrap
+    games = list(known_games.keys())
+    platforms = list(known_platforms.keys())
+
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("-u", "--user",
@@ -144,13 +160,11 @@ def setup_argparser():
 def main(args):
     global client
     import re
+    from query import r_golden_keys
 
     if not client:
         client = ShiftClient(args.user, args.pw)
 
-    g_reg = re.compile(r"^(\d+).*gold.*", re.I)
-
-    query.open_db()
     # query all keys
     all_keys = query_keys(args.games, args.platforms)
 
@@ -169,14 +183,14 @@ def main(args):
                     # but we have them already so it doesn't matter
                     continue
                 num_g_keys = 0  # number of golden keys in this code
-                m = g_reg.match(key.description)
+                m = r_golden_keys.match(key.reward)
 
                 # skip keys we don't want
                 if ((args.golden and not m) or (args.non_golden and m)):
                     continue
 
                 if m:
-                    num_g_keys = int(m.group(1))
+                    num_g_keys = int(m.group(1) or 1)
                     # skip golden keys if we reached the limit
                     if args.limit <= 0:
                         continue
@@ -194,7 +208,7 @@ def main(args):
                     if client.last_status == Status.TRYLATER:
                         return
 
-    query.close_db()
+    query.db.close_db()
 
 
 if __name__ == "__main__":

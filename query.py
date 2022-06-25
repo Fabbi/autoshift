@@ -20,218 +20,355 @@
 #
 #############################################################################
 import sqlite3
+import re
+from typing import Callable, Dict, Generic, Iterable, Iterator, Optional, TypeVar, Union, cast, overload
 import requests
 from bs4 import BeautifulSoup as BSoup
 
 from common import _L, DIRNAME
+_KT = TypeVar("_KT")
+_VT = TypeVar("_VT")
 
-platforms = ["steam", "epic", "ps", "xbox"]
-# will be filled later
-games = []
-game_funcs = {}
+class SymmetricDict(Dict[_KT, _VT], Generic[_KT, _VT]):
+    inv: Dict[_VT, _KT]
+
+    def __init__(self, *args, **kwargs):
+        self.inv = {}
+        self.update(*args, **kwargs)
+
+    def __setitem__(self, k: _KT, v: _VT) -> None:
+        ret = dict.__setitem__(self, k, v)
+        self.inv[v] = k
+        return ret
+
+    def update(self, *args, **kwargs):
+        for k, v in dict(*args, **kwargs).items():
+            self[k] = v
+
+### games used to help find the correct shift redemption forms
+known_games = SymmetricDict({
+    "bl1":  "Borderlands: Game of the Year Edition",
+    "bl2":  "Borderlands 2",
+    "bl3":  "Borderlands 3",
+    "blps": "Borderlands: The Pre-Sequel",
+    "ttw":  "Tiny Tina's Wonderland",
+    "gdfll": "Godfall",
+})
+
+### platforms that are used to find the correct input values in the shift redemption forms
+known_platforms = SymmetricDict({
+    "steam":     "steam",
+    "epic":      "epic",
+    "psn":       "playstation",
+    "xboxlive":  "xbox",
+    "stadia":    "", # this one could be a substring
+    "universal": "universal"
+})
+
+platforms = list(known_platforms.keys())
+games = list(known_games.keys())
 
 
-conn = None
-c = None
+spaces = re.compile(r"\s")
+r_word_chars = re.compile(r"(the|[^a-z0-9])", re.IGNORECASE)
+lowercase_chars = re.compile(r"[a-z]")
+vowels = re.compile(r"[aeiou]", re.IGNORECASE)
+r_golden_keys = re.compile(r"^(\d+)?.*(gold|skelet).*", re.IGNORECASE)
+
+def print_banner(data):
+    lines = []
+    try:
+        lines.extend(data["meta"][attr] for attr in ("attribution", "permalink"))
+    except Exception:
+        lines.append("Codes provided by Orcicorn")
+        lines.append("@ https://shift.orcicorn.com/shift-code/")
+
+    longest_line = max(len(line) for line in lines) + 2
+    banner = "\n".join("{: ^{}}".format(line, longest_line)
+                       for line in lines)
+    banner = "{:=^{}}\n{}\n".format(" autoshift by @Fabbi ", longest_line, banner)
+    banner += "="*longest_line
+    _L.info("\r\033[1;5;31m{}\n".format(banner))
 
 
-def registerParser(*the_games):
-    """Register parser for specified games.
+def get_short_game_key(game: str) -> str:
+    if game in known_games.inv:
+        return known_games.inv[game]
 
-    e.g:
+    ret = game
+    if game.lower() == "wonderlands":
+        ret = "ttw"
+    elif not any(spaces.finditer(game)):
+        ret = vowels.sub("", game).lower()
+    else:
+        ret = ret.replace("Borderlands", "BL")
+        ret = r_word_chars.sub("", ret)
+        ret = lowercase_chars.sub("", ret).lower()
 
-        @registerParser("bl3")
-        def parse_bl3(game, platform):
-            description = "some key"
-            code = "AAAA-BBBBB-CCCCC-DDDDD"
-            yield description, code, platform, game
-    """
-    def decorator(f):
-        global game_funcs, games
-        for game in the_games:
-            game_funcs[game] = f
-            games.append(game)
-        return f
-    return decorator
+    if ret not in known_games:
+        known_games[ret] = game
+        _L.info(f"Found new game: {game}")
+        db.saw_game(ret, game)
+    return ret
 
 
 class Key:
-    """small class like `functools.namedtuple` but with settable attributes"""
-    __slots__ = ("id", "description", "key", "redeemed")
-    def __init__(self, *args, **kwargs): # noqa
-        for el in Key.__slots__:
-            setattr(self, el, None)
-        for i, el in enumerate(args):
-            setattr(self, Key.__slots__[i], el)
+    __slots__ = ("id", "reward", "code", "type", "game", "platform",
+                 "reward", "archived", "expires", "link", "redeemed")
+    def __init__(self, **kwargs):
+        self.redeemed = False
+        self.id = None
+        self.set(**kwargs)
+
+    def set(self, **kwargs):
         for k in kwargs:
             setattr(self, k, kwargs[k])
+        return self
+
+    def copy(self):
+        return Key(**{k: getattr(self, k)
+                      for k in self.__slots__})
+
     def __str__(self): # noqa
         return "Key({})".format(
             ", ".join([str(getattr(self, k))
-                       for k in Key.__slots__]))
+                       for k in ("id", "reward", "code", "game", "platform", "redeemed")]))
     def __repr__(self): # noqa
         return str(self)
 
+class Database:
+    __conn: sqlite3.Connection
+    __c: sqlite3.Cursor
+    version: int
 
-def open_db():
-    from os import path, makedirs
-    global conn, c
-    makedirs(path.join(DIRNAME, "data"), exist_ok=True)
-    conn = sqlite3.connect(path.join(DIRNAME, "data", "keys.db"),
-                           detect_types=sqlite3.PARSE_DECLTYPES)
-    c = conn.cursor()
+    def __init__(self):
+        self.__updated = False
+        self.__open = False
+        self.__open_db()
+        self.version = self.__c.execute("PRAGMA user_version").fetchone()[0]
 
-    c.execute("CREATE TABLE IF NOT EXISTS keys "
-              "(id INTEGER primary key, description TEXT, "
-              "key TEXT, platform TEXT, game TEXT, redeemed INTEGER)")
+        if self.version >= 1:
+            for _k in ("game", "platform"):
+                ex = self.__c.execute(f"SELECT * from seen_{_k}s;").fetchall()
+                for row in ex:
+                    globals()[f"known_{_k}s"][row["key"]] = row["name"]
+
+    def execute(self, sql, parameters=None):
+        if not self.__updated:
+            self.__update_db()
+        if parameters is not None:
+            return self.__c.execute(sql, parameters)
+        return self.__c.execute(sql)
+
+    def commit(self):
+        self.__conn.commit()
+
+    def __update_db(self):
+        import sys
+        from migrations import migrationFunctions
+        # self.close_db()
+        # self.__open_db()
+        while (self.version + 1) in migrationFunctions:
+            _L.info("Migrating database to version {}".format(self.version+1))
+            func = migrationFunctions[self.version + 1]
+
+            if not func(self.__conn):
+                sys.exit(1)
+            _L.info("migrating to version {} successful".format(self.version+1))
+            self.version += 1
+
+        self.__updated = True
+
+    def __open_db(self):
+        from os import path, makedirs
+        if self.__open:
+            return
+
+        makedirs(path.join(DIRNAME, "data"), exist_ok=True)
+        self.__conn = sqlite3.connect(path.join(DIRNAME, "data", "keys.db"),
+                            detect_types=sqlite3.PARSE_DECLTYPES)
+        self.__conn.row_factory = sqlite3.Row
+        self.__c = self.__conn.cursor()
+
+        self.__c.execute("CREATE TABLE IF NOT EXISTS keys "
+                "(id INTEGER primary key, desc TEXT, "
+                "code TEXT, platform TEXT, game TEXT, redeemed INTEGER)")
+        self.commit()
+        self.__open = True
 
 
-def close_db():
-    conn.commit()
-    conn.close()
+    def close_db(self):
+        self.__conn.commit()
+        self.__conn.close()
+        self.__open = False
 
 
-def insert(desc, code, platform, game):
-    """Insert Key"""
-    el = c.execute("""SELECT * FROM keys
-                   WHERE platform = ?
-                   AND key = ?
-                   AND game = ?""",
-                   (platform, code, game))
-    if el.fetchone():
-        return
-    _L.debug("== inserting {} Key '{}' for {} ==".format(game.upper(), code,
-                                                         platform.upper()))
-    c.execute("INSERT INTO keys(description, key, platform, game, redeemed) "
-              "VAlUES (?,?,?,?,0)", (desc, code, platform, game))
-    conn.commit()
+    def insert(self, key: Key):
+        """Insert key"""
+
+        el = self.execute("""SELECT * FROM keys
+                    WHERE platform = ?
+                    AND code = ?
+                    AND game = ?""",
+                    (key.platform, key.code, key.game))
+        if el.fetchone():
+            return None
+        _L.debug("== inserting {} Key '{}' for {} ==".format(key.game, key.code,
+                                                             key.platform))
+        self.execute("INSERT INTO keys(reward, code, platform, game, redeemed) "
+                     "VAlUES (?,?,?,?,0)",
+                     (key.reward, key.code, key.platform, key.game))
+        self.commit()
+        return key
 
 
-def get_keys(platform, game, all_keys=False):
-    """Get all (unredeemed) keys of given platform and game"""
-    if (platform not in ["xbox", "ps"]):
-        platform = "pc"
-    cmd = """
-        SELECT id, description, key, redeemed FROM keys
-        WHERE platform=?
-        AND game=?"""
-    if not all_keys:
-        cmd += " AND redeemed=0"
-    cmd += " ORDER BY id DESC"
-    ex = c.execute(cmd, (platform, game))
+    def get_keys(self, platform, game, all_keys=False):
+        """Get all (unredeemed) keys of given platform and game"""
+        cmd = """
+            SELECT * FROM keys"""
+        params = []
 
-    keys = []
-    for row in ex:
-        keys.append(Key(*row))
+        if platform:
+            cmd += " WHERE (platform=? OR platform='universal')"
+            params.append(platform)
+
+        if game:
+            params.append(game)
+            kw = " AND" if platform else " WHERE"
+            cmd += f"{kw} game=?"
+        if not all_keys:
+            kw = " AND" if (platform or game) else " WHERE"
+            cmd += f"{kw} redeemed=0"
+
+        cmd += " ORDER BY id DESC"
+        ex = self.execute(cmd, params)
+
+        # keys = []
+        row: sqlite3.Row
+        for row in ex.fetchall():
+            yield Key(**{k:row[k] for k in row.keys()})
+            # keys.append(Key(*row))
+
+        # return keys
+
+
+    def get_special_keys(self, platform, game):
+        keys = self.get_keys(platform, game)
+        num = 0
+        ret = []
+        for k in keys:
+            if not r_golden_keys.match(k.reward):
+                num += 1
+                ret.append(k)
+        return num, ret
+
+
+    def get_golden_keys(self, platform, game, all_keys=False):
+        keys = self.get_keys(platform, game, all_keys)
+        num = 0
+        ret = []
+        for k in keys:
+            m = r_golden_keys.match(k.reward)
+            if m is not None:
+                num += int(m.group(1) or 1)
+                ret.append(k)
+        return num, ret
+
+
+    def set_redeemed(self, key):
+        key.redeemed = 1
+        self.execute("UPDATE keys SET redeemed=1 WHERE id=(?)", (key.id, ))
+        self.commit()
+
+    def saw_game(self, short, name):
+        self.execute("INSERT into seen_games(key, name) VALUES (?, ?)", (short, name))
+        self.commit()
+    def saw_platform(self, short, name):
+        self.execute("INSERT into seen_platforms(key, name) VALUES (?, ?)", (short, name))
+        self.commit()
+
+
+db = Database()
+
+special_key_handler: dict[str, Callable[[Key], list[Key]]] = {
+    "Borderlands 2 and 3": lambda key: [key.copy().set(game="Borderlands 2"),
+                                   key.set(game="Borderlands 3")],
+    "Borderlands": lambda key: [key.set(game="Borderlands 1")]
+    # "Universal": lambda key: (key.copy().set(platform=plat) for plat in platforms)
+}
+
+def flatten(itr: Iterable[Iterable[_VT]]) -> Iterator[_VT]:
+    for el in itr:
+        yield from el
+
+
+def progn(*args: _VT) -> _VT:
+    *_, lastArg = args
+    return lastArg
+
+def parse_shift_orcicorn():
+    import json
+    key_url = "https://shift.orcicorn.com/shift-code/index.json"
+
+
+    resp = requests.get(key_url)
+    if not resp:
+        _L.error("Error querying for new keys: {}".format(resp.reason))
+        return None
+
+    data: dict = json.loads(resp.text)[0]
+
+    if "codes" not in data:
+        _L.error("Invalid response. Please contact the developer @ github.com/fabbi")
+        return None
+
+
+    if not db._Database__updated: # type: ignore
+        print_banner(data)
+
+    unknown_platforms = set()
+
+    for code_data in data["codes"]:
+        keys: Iterable[Key]= [Key(**code_data)]
+
+        # 1. special_key_handler
+        # 2. known platform
+        # 3. shorten game
+        keys = flatten(
+            map(lambda key: special_key_handler[key.game](key)
+                               if key.game in special_key_handler
+                               else [key]
+                , keys))
+        keys = map(lambda key: key.set(game=get_short_game_key(key.game))
+                   , keys)
+        keys = map(lambda key:
+                   key.set(platform=known_platforms.inv[key.platform.lower()]
+                           if key.platform.lower() in known_platforms.inv
+                           else progn(unknown_platforms.add(key.platform.lower()),
+                                      key.platform.lower()))
+                   , keys)
+
+        yield from keys
+
+    for platform in unknown_platforms:
+        _L.error(f"Didn't understand platform `{platform}`. "
+                 "Please contact the developer @ github.com/Fabbi")
+
+
+def update_keys():
+    from collections import Counter
+    if db._Database__updated: # type: ignore
+        _L.info("Checking for new keys!")
+
+    keys = list(parse_shift_orcicorn())
+    new_keys = [db.insert(key) for key in keys]
+
+    counts = Counter(key.game for key in new_keys if key)
+    for game, count in sorted(counts.items()):
+        _L.info(f"Got {count} new keys for {known_games[game]}")
 
     return keys
 
 
-def get_special_keys(platform, game):
-    keys = get_keys(platform, game)
-    num = 0
-    ret = []
-    for k in keys:
-        if "gold" not in k.description.lower():
-            num += 1
-            ret.append(k)
-    return num, ret
 
 
-def get_golden_keys(platform, game, all_keys=False):
-    import re
-    # quite general regex..
-    # you never know what they write in those tables..
-    g_reg = re.compile(r"^(\d+).*gold.*", re.I)
-    keys = get_keys(platform, game, all_keys)
-    num = 0
-    ret = []
-    for k in keys:
-        m = g_reg.match(k.description)
-        if m:
-            num += int(m.group(1))
-            ret.append(k)
-    return num, ret
-
-
-def set_redeemed(key):
-    key.redeemed = 1
-    c.execute("UPDATE keys SET redeemed=1 WHERE id=(?)", (key.id, ))
-    conn.commit()
-
-
-def parse_keys(game, platform):
-    if game not in games:
-        _L.error("No known method of retrieving new SHiFT codes "
-                 "for the game `{}`".format(game))
-        return
-
-    for code in game_funcs[game](game, platform):
-        insert(*code)
-
-
-# @registerParser("bl3")
-# def parse_bl3(game, platform):
-#     key_url = "http://orcz.com/Borderlands_3:_Golden_Key"
-#     r = requests.get(key_url)
-#     soup = BSoup(r.text, "lxml")
-#     table = soup.find("table")
-#     rows = table.find_all("tr")[1:]
-#     import ipdb; ipdb.set_trace()
-#     for row in rows:
-#         cols = row.find_all("td")
-#         desc = cols[1].text.strip()
-#         code = cols[4].text.strip()
-#         for i in range(5, len(platforms)):
-#             print(cols[i])
-
-@registerParser("bl", "bl2", "blps", "bl3", "ttw")
-def parse_bl2blps(game, platform):
-    """Get all Keys from orcz"""
-    key_urls = {"bl": "http://orcz.com/Borderlands:_Golden_Key",
-                "bl2": "http://orcz.com/Borderlands_2:_Golden_Key",
-                "blps": "http://orcz.com/Borderlands_Pre-Sequel:_Shift_Codes",
-                "bl3": "http://orcz.com/Borderlands_3:_Golden_Key",
-                "ttw": "http://orcz.com/Tiny_Tina%27s_Wonderlands:_Shift_Codes"
-                }
-
-    def check(key):
-        """Check if key is expired (return None if so)"""
-        ret = None
-        span = key.find("span")
-        if (not span) or (not span.get("style")) or ("black" in span["style"]):
-            ret = key.text.strip()
-
-            # must be of format ABCDE-FGHIJ-KLMNO-PQRST
-            if ret.count("-") != 4:
-                return None
-            spl = ret.split("-")
-            spl = [len(el) == 5 for el in spl]
-            if not all(spl):
-                return None
-
-        return ret
-
-    r = requests.get(key_urls[game])
-    soup = BSoup(r.text, "lxml")
-    table = soup.find("table")
-    rows = table.find_all("tr")[1:]
-    for row in rows:
-        cols = row.find_all("td")
-        desc = cols[1].text.strip()
-        codes = [None, None, None]
-        for i in range(4, 7):
-            try:
-                codes[i - 4] = check(cols[i])
-            except Exception as e: # noqa
-                _L.debug(e)
-                pass
-
-        codes.insert(1, None)
-
-        for i in range(len(codes)):
-            if codes[i]:
-                the_platform = platforms[i]
-                if platforms[i] in ["steam", "epic"]:
-                    the_platform = "pc"
-                yield desc, codes[i], the_platform, game

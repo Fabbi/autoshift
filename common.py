@@ -64,6 +64,7 @@ def initLogger():
     h.addFilter(rec_filter)
     logger.handlers = []
     logger.addHandler(h)
+    logger.setLevel(INFO)
     return logger
 
 
