@@ -30,6 +30,9 @@ _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
 
 class SymmetricDict(Dict[_KT, _VT], Generic[_KT, _VT]):
+    class ValueOverlapError(Exception):
+        pass
+
     inv: Dict[_VT, _KT]
 
     def __init__(self, *args, **kwargs):
@@ -38,12 +41,17 @@ class SymmetricDict(Dict[_KT, _VT], Generic[_KT, _VT]):
 
     def __setitem__(self, k: _KT, v: _VT) -> None:
         ret = dict.__setitem__(self, k, v)
+
+        if v in self.inv:
+            raise SymmetricDict.ValueOverlapError(f"Key `{v}` already exists in inverted dict!")
+
         self.inv[v] = k
         return ret
 
     def update(self, *args, **kwargs):
         for k, v in dict(*args, **kwargs).items():
             self[k] = v
+
     def without(self, *args):
         ret = SymmetricDict(self)
         for arg in args:

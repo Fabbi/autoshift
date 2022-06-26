@@ -23,12 +23,12 @@
 from __future__ import print_function
 import sys
 from typing import Match, cast
+from common import _L, INFO, DEBUG, DIRNAME
 
 import query
 # from query import BL3
 from query import Key, known_games, known_platforms
 from shift import ShiftClient, Status
-from common import _L, INFO, DEBUG, DIRNAME
 
 
 client: ShiftClient = None # type: ignore
@@ -159,7 +159,6 @@ def setup_argparser():
 
 def main(args):
     global client
-    import re
     from query import r_golden_keys
 
     if not client:
