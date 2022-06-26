@@ -116,6 +116,30 @@ def get_short_game_key(game: str) -> str:
         db.saw_game(ret, game)
     return ret
 
+def get_short_platform_key(platform: str) -> str:
+    if platform in known_platforms.inv:
+        return known_platforms.inv[platform]
+
+    # check if a known platform could match this one..
+    for shift_platform in known_platforms.keys():
+        if shift_platform in platform.lower():
+            _L.info(f"Handling platform `{platform}` as `{shift_platform}`")
+            platform = known_platforms[shift_platform]
+            if not platform:
+                # this one we don't know the "long" version of, yet.
+                platform = platform.lower()
+                known_platforms[shift_platform] = platform
+                db.saw_platform(shift_platform, platform)
+            break
+
+    if not platform:
+        # didn't find a possible replacement
+        platform = platform.lower()
+        _L.error(f"Didn't understand platform `{platform}`. "
+                 "Please contact the developer @ github.com/Fabbi")
+
+    return platform
+
 
 class Key:
     __slots__ = ("id", "reward", "code", "type", "game", "platform",
@@ -331,7 +355,6 @@ def parse_shift_orcicorn():
     if not db._Database__updated: # type: ignore
         print_banner(data)
 
-    unknown_platforms = set()
 
     for code_data in data["codes"]:
         keys: Iterable[Key]= [Key(**code_data)]
@@ -339,25 +362,18 @@ def parse_shift_orcicorn():
         # 1. special_key_handler
         # 2. known platform
         # 3. shorten game
-        keys = flatten(
-            map(lambda key: special_key_handler[key.game](key)
+        keys = list(
+            flatten(map(lambda key: special_key_handler[key.game](key)
                                if key.game in special_key_handler
                                else [key]
-                , keys))
-        keys = map(lambda key: key.set(game=get_short_game_key(key.game))
-                   , keys)
-        keys = map(lambda key:
-                   key.set(platform=known_platforms.inv[key.platform.lower()]
-                           if key.platform.lower() in known_platforms.inv
-                           else progn(unknown_platforms.add(key.platform.lower()),
-                                      key.platform.lower()))
-                   , keys)
+                        , keys)))
+
+        for key in keys:
+            key.set(game=get_short_game_key(key.game))
+            key.set(platform=get_short_platform_key(key.platform))
 
         yield from keys
 
-    for platform in unknown_platforms:
-        _L.error(f"Didn't understand platform `{platform}`. "
-                 "Please contact the developer @ github.com/Fabbi")
 
 
 def update_keys():
