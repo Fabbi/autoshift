@@ -44,6 +44,11 @@ class SymmetricDict(Dict[_KT, _VT], Generic[_KT, _VT]):
     def update(self, *args, **kwargs):
         for k, v in dict(*args, **kwargs).items():
             self[k] = v
+    def without(self, *args):
+        ret = SymmetricDict(self)
+        for arg in args:
+            del ret[arg]
+        return ret
 
 ### games used to help find the correct shift redemption forms
 known_games = SymmetricDict({

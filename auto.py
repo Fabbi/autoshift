@@ -114,7 +114,7 @@ def setup_argparser():
     import argparse
     import textwrap
     games = list(known_games.keys())
-    platforms = list(known_platforms.keys())
+    platforms = list(known_platforms.without("universal").keys())
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawTextHelpFormatter)
