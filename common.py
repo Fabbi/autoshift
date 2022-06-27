@@ -33,7 +33,7 @@ def initLogger():
         NOTSET: 36,
         DEBUG: 33,
         INFO: 34,
-        WARNING: .35,
+        WARNING: 35,
         ERROR: 31,
         CRITICAL: "5;31"
     }
