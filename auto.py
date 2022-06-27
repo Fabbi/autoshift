@@ -153,6 +153,8 @@ def setup_argparser():
 
 def main(args):
     global client
+    from time import sleep
+
     from query import r_golden_keys
 
     if not client:
@@ -171,12 +173,17 @@ def main(args):
     # now redeem
     for game in all_keys.keys():
         for platform in all_keys[game].keys():
-            t_keys = all_keys[game][platform]
-            for key in t_keys:
-                if key.redeemed:
-                    # we could query only unredeemed keys
-                    # but we have them already so it doesn't matter
-                    continue
+            t_keys = list(filter(lambda key: not key.redeemed, all_keys[game][platform]))
+            for num, key in enumerate(t_keys):
+
+                if (num and not (num % 15)) or client.last_status == Status.SLOWDOWN:
+                    if client.last_status == Status.SLOWDOWN:
+                        _L.info("Slowing down a bit..")
+                    else:
+                        _L.info("Trying to prevent a 'too many requests'-block.")
+                    sleep(60)
+
+                _L.info(f"Key #{num+1}/{len(t_keys)}")
                 num_g_keys = 0  # number of golden keys in this code
                 m = r_golden_keys.match(key.reward)
 
@@ -203,11 +210,13 @@ def main(args):
                     if client.last_status == Status.TRYLATER:
                         return
 
+    _L.info("No more keys left!")
     query.db.close_db()
 
 
 if __name__ == "__main__":
     import os
+
     # only print license text on first use
     if not os.path.exists(os.path.join(DIRNAME, "data", ".cookies.save")):
         print(LICENSE_TEXT)
