@@ -1,12 +1,24 @@
 # AutoSHiFt: Automatically redeem Gearbox SHiFT Codes
 
-- **Compatibility:** Python 2.7+/3.3+.
-- **Platform:** Crossplatform. Only tested on MacOs/Linux.
-- **Version:** 0.1
+- **Compatibility:** 3.9+.
+- **Platform:** Crossplatform.
+- **Version:** 1.0
 
-WIP
+# Overview
 
-### Installation
+Data provided by [Orcicorn's SHiFT and VIP Code archive](https://shift.orcicorn.com/shift-code/).<br>
+`autoshift` detects and memorizes new games and platforms added to the orcicorn shift key database.
+
+To see which games and platforms are supported use the `auto.py --help` command.
+
+*This tool doesn't save your login data anywhere on your machine!*
+After your first login your login-cookie (a string of seemingly random characters) is saved to the `data` folder and reused every time you use `autoshift` after that.
+
+`autoshift` tries to prevent being blocked when it redeems too many keys at once.
+
+You can choose to only redeem mods/skins etc, only golden keys or both. There is also a limit parameter so you don't waste your keys (there is a limit on how many bl2 keys your account can hold for example).
+
+## Installation
 
 ```sh
 git clone git@github.com:Fabbi/autoshift.git
@@ -17,16 +29,10 @@ or download it as zip
 you'll need to install a few dependencies
 
 ```sh
-pip install requests beautifulsoup4 lxml
+pip install -r requirements.txt
 ```
 
-or if you want to use the scheduling
-
-```sh
-pip install requests beautifulsoup4 lxml apscheduler
-```
-
-### Usage
+## Usage
 
 - for help
 ```sh
@@ -68,38 +74,42 @@ pip install requests beautifulsoup4 lxml apscheduler
 ./auto.py --game bl3 --platform steam --golden --limit 0
 ```
 
-### Overview
+## Code
 
 This tool consists of 3 parts:
 
-#### `shift.py`
+### `shift.py`
 
 This module handles the redemption of the SHiFT codes and could be used as standalone CLI tool to manually enter those codes.
 It queries login credentials on first use and saves the needed cookie to enable auto-login.
 
-#### `query.py`
+### `query.py`
 
-This module parses the codes from wherever they may come from ([orcz.com](https://orcz.com) at the moment) and creates/maintains the database.
+This module parses the codes from wherever they may come from and creates/maintains the database.
 If you'd want to add other sources for SHiFT codes or future games, you'd make that here.
 
-#### `auto.py`
+
+### `auto.py`
 
 This one is the commandline interface you call to use this tool.
 
 # Docker
-Available as a docker image based on `python3.8-alpine`
+
+Available as a docker image based on `python3.10-buster`
 
 ## Usage
 
 ```
-docker run zacharmstrong/autoshift:latest \
+docker run \
+  --restart=always \
   -e SHIFT_USER='<username>' \
   -e SHIFT_PASS='<password>' \
-  -e SHIFT_GAMES='bl3 blps bl2 bl ttw' \
-  -e SHIFT_PLATFORMS='epic xbox ps' \
+  -e SHIFT_GAMES='bl3 blps bl2 bl1 ttw' \
+  -e SHIFT_PLATFORMS='epic xboxlive psn' \
   -e SHIFT_ARGS='--schedule -v' \
   -e TZ='America/Chicago' \
-  -v /path/to/keysdb/dir:/autoshift/data
+  -v autoshift:/autoshift/data \
+  fabianschweinfurth/autoshift:latest
 ```
 
 Compose:
@@ -109,17 +119,17 @@ Compose:
 version: "3.0"
 services:
   autoshift:
-    image: zacharmstrong/autoshift:latest
+    image: fabianschweinfurth/autoshift:latest
     container_name: autoshift_all
     restart: always
     volumes:
-      - /path/to/keysdb/dir:/autoshift/data
+      - autoshift:/autoshift/data
     environment:
       - TZ=America/Denver
-      - SHIFT_PLATFORMS=epic xbox ps
+      - SHIFT_PLATFORMS=epic xboxlive psn
       - SHIFT_USER=<username>
       - SHIFT_PASS=<password>
-      - SHIFT_GAMES=bl3 blps bl2 bl ttw
+      - SHIFT_GAMES=bl3 blps bl2 bl1 ttw gdfll
       - SHIFT_ARGS=--schedule -v
 ```
 
@@ -146,11 +156,12 @@ Example: `blps` or `bl bl2 bl3`
 
 |Game|Code|
 |---|---|
-|Borderlands|`bl`|
+|Borderlands|`bl1`|
 |Borderlands 2|`bl2`|
 |Borderlands: The Pre-Sequel|`blps`|
 |Borderlands 3|`bl3`|
 |Tiny Tina's Wonderlands|`ttw`|
+|Godfall|`gdfll`|
 
 
 #### **SHIFT_PLATFORM** (recommended)
@@ -164,8 +175,9 @@ Example: `xbox` or `xbox ps`
 |---|---|
 |PC (Epic)|`epic`|
 |PC (Steam)|`steam`|
-|Xbox|`xbox`|
-|Playstation|`ps`|
+|Xbox|`xboxlive`|
+|Playstation|`psn`|
+|Stadia|`stadia`|
 
 
 #### **SHIFT_ARGS** (optional)
