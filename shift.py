@@ -49,7 +49,7 @@ class Status(Enum):
     REDEEMED = "Already redeemed {key.reward}"
     SUCCESS = "Redeemed {key.reward}"
     INVALID = "The code `{key.code}` is invalid"
-    UNKNOWN = "A unknown Error occured: {msg}"
+    UNKNOWN = "An unknown Error occured: {msg}"
 
     def __init__(self, s: str):
         self.msg = s
@@ -68,7 +68,8 @@ class Status(Enum):
         return self._name_ == other._name_
 
     def __call__(self, new_msg: str):
-        new_msg = new_msg.format(msg=new_msg)
+        if "{msg}" in new_msg:
+            new_msg = new_msg.format(msg=new_msg)
         obj = self.__class__(new_msg)
         for k, v in vars(self).items():
             if not hasattr(obj, k):
@@ -199,7 +200,6 @@ class ShiftClient:
             status = self.__redeem_form(cast(dict[str, str], form_data))
 
         self.last_status = status
-        _L.debug(f"{status}: {status.msg}")
         return status
 
     def __get_token(self, url_or_reply: Union[str, requests.Response]) -> tuple[int,
@@ -245,7 +245,7 @@ class ShiftClient:
 
         r = self.client.get(f"{base_url}/entitlement_offer_codes?code={code}",
                             headers=json_headers(token))
-        _L.debug(f"{r.request.method} {r.url} {r.status_code}")
+        _L.debug(f"{r.request.method} {r.url} {r.status_code} {r.reason}")
         soup = BSoup(r.text, "html.parser")
         if not soup.find("form", class_="new_archway_code_redemption"):
             return False, r.status_code, r.text.strip()

@@ -58,9 +58,9 @@ def redeem(key: Key):
     # notify user
     try:
         # this may fail if there are other `{<something>}` in the string..
-        _L.info(status.msg.format(**locals()))
+        _L.info("  " + status.msg.format(**locals()))
     except:
-        _L.info(status.msg)
+        _L.info("  " + status.msg)
 
     return status == Status.SUCCESS
 
@@ -78,7 +78,7 @@ def query_keys(games: list[str], platforms: list[str]):
     new_keys = list(query.db.get_keys(None, None))
 
     diff = len(new_keys) - len(keys)
-    print(f"done. ({diff if diff else 'no'} new Keys)")
+    _L.info(f"done. ({diff if diff else 'no'} new Keys)")
 
     _g = lambda key: key.game
     _p = lambda key: key.platform
@@ -240,3 +240,4 @@ if __name__ == "__main__":
             scheduler.start()
         except (KeyboardInterrupt, SystemExit):
             pass
+    _L.info("Goodbye.")

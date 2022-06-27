@@ -21,7 +21,7 @@
 #############################################################################
 import re
 import sqlite3
-from typing import (Callable, Dict, Generic, Iterable, Iterator, TypeVar)
+from typing import Callable, Dict, Generic, Iterable, Iterator, TypeVar
 
 import requests
 
@@ -361,7 +361,8 @@ def parse_shift_orcicorn():
         return None
 
 
-    if not db._Database__updated: # type: ignore
+    if parse_shift_orcicorn.first_parse:
+        parse_shift_orcicorn.first_parse = False
         print_banner(data)
 
 
@@ -383,11 +384,12 @@ def parse_shift_orcicorn():
 
         yield from keys
 
+parse_shift_orcicorn.first_parse = True
 
 
 def update_keys():
     from collections import Counter
-    if db._Database__updated: # type: ignore
+    if not parse_shift_orcicorn.first_parse:
         _L.info("Checking for new keys!")
 
     keys = list(parse_shift_orcicorn())
