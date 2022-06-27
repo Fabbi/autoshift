@@ -46,8 +46,11 @@ def register(version: int):
     return wrap
 
 @register(1)
-def update_1(conn: sqlite3.Connection):
+def update_1(conn: sqlite3.Connection, silent=False):
     c = conn.cursor()
+    if not silent:
+        _L.warn("Some games and platforms have been renamed! "
+                "Check `--help` or the README.md for further info.")
 
     steps: List[Union[str, tuple]] = [
         """

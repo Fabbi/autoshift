@@ -21,6 +21,7 @@
 #############################################################################
 import re
 import sqlite3
+from os import makedirs, path
 from typing import Callable, Dict, Generic, Iterable, Iterator, TypeVar
 
 import requests
@@ -181,6 +182,7 @@ class Database:
     def __init__(self):
         self.__updated = False
         self.__open = False
+        self.__create_db = not path.exists(path.join(DIRNAME, "data", "keys.db"))
         self.__open_db()
         self.version = self.__c.execute("PRAGMA user_version").fetchone()[0]
 
@@ -208,18 +210,19 @@ class Database:
         # self.close_db()
         # self.__open_db()
         while (self.version + 1) in migrationFunctions:
-            _L.info(f"Migrating database to version {self.version+1}")
+            if not self.__create_db:
+                _L.info(f"Migrating database to version {self.version+1}")
             func = migrationFunctions[self.version + 1]
 
-            if not func(self.__conn):
+            if not func(self.__conn, silent=self.__create_db):
                 sys.exit(1)
-            _L.info(f"migrating to version {self.version+1} successful")
+            if not self.__create_db:
+                _L.info(f"migration to version {self.version+1} successful")
             self.version += 1
 
         self.__updated = True
 
     def __open_db(self):
-        from os import makedirs, path
         if self.__open:
             return
 
@@ -230,8 +233,8 @@ class Database:
         self.__c = self.__conn.cursor()
 
         self.__c.execute("CREATE TABLE IF NOT EXISTS keys "
-                "(id INTEGER primary key, desc TEXT, "
-                "code TEXT, platform TEXT, game TEXT, redeemed INTEGER)")
+                "(id INTEGER primary key, description TEXT, "
+                "key TEXT, platform TEXT, game TEXT, redeemed INTEGER)")
         self.commit()
         self.__open = True
 
