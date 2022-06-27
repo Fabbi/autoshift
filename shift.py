@@ -49,6 +49,7 @@ class Status(Enum):
     REDEEMED = "Already redeemed {key.reward}"
     SUCCESS = "Redeemed {key.reward}"
     INVALID = "The code `{key.code}` is invalid"
+    SLOWDOWN = "Too many requests"
     UNKNOWN = "An unknown Error occured: {msg}"
 
     def __init__(self, s: str):
@@ -185,6 +186,8 @@ class ShiftClient:
             if status_code >= 500:
                 # entered key was invalid
                 status = Status.INVALID
+            elif status_code == 429:
+                status = Status.SLOWDOWN
             elif "expired" in form_data:
                 status = Status.EXPIRED
             elif "not available" in form_data:
@@ -246,6 +249,10 @@ class ShiftClient:
         r = self.client.get(f"{base_url}/entitlement_offer_codes?code={code}",
                             headers=json_headers(token))
         _L.debug(f"{r.request.method} {r.url} {r.status_code} {r.reason}")
+
+        if r.status_code != 200:
+            return False, r.status_code, r.reason
+
         soup = BSoup(r.text, "html.parser")
         if not soup.find("form", class_="new_archway_code_redemption"):
             return False, r.status_code, r.text.strip()
