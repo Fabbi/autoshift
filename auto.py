@@ -21,15 +21,15 @@
 #
 #############################################################################
 from __future__ import print_function
+
 import sys
 from typing import Match, cast
-from common import _L, INFO, DEBUG, DIRNAME
 
 import query
+from common import _L, DEBUG, DIRNAME, INFO
 # from query import BL3
 from query import Key, known_games, known_platforms
 from shift import ShiftClient, Status
-
 
 client: ShiftClient = None # type: ignore
 
@@ -43,21 +43,12 @@ under certain conditions; see LICENSE for details.
 """
 
 
-def redeem(key: Key, platform):
+def redeem(key: Key):
     """Redeem key and set as redeemed if successfull"""
-    messages = {
-        Status.SUCCESS: "Redeemed {key.reward}",
-        Status.EXPIRED: "This code expired by now.. ({key.reward})",
-        Status.REDEEMED: "Already redeemed {key.reward}",
-        Status.INVALID: "The code `{key.code}` is invalid",
-        Status.TRYLATER: "Please launch a SHiFT-enabled title or wait 1 hour.",
-        Status.UNKNOWN: "A unknown Error occured",
-        Status.NONE: "Something unexpected happened.."
-    }
 
-    _L.info("Trying to redeem {} ({})".format(key.reward, key.code))
-    status = client.redeem(key.code, platform)
-    _L.debug("Status: {}".format(Status(status)))
+    _L.info(f"Trying to redeem {key.reward} ({key.code})")
+    status = client.redeem(key.code, known_games[key.game], key.platform)
+    _L.debug(f"Status: {status}")
 
     # set redeemed status
     if status in (Status.SUCCESS, Status.REDEEMED,
@@ -65,17 +56,21 @@ def redeem(key: Key, platform):
         query.db.set_redeemed(key)
 
     # notify user
-    _L.info(messages[status].format(**locals()))
+    try:
+        # this may fail if there are other `{<something>}` in the string..
+        _L.info(status.msg.format(**locals()))
+    except:
+        _L.info(status.msg)
 
     return status == Status.SUCCESS
 
 
-def query_keys(games, platforms):
+def query_keys(games: list[str], platforms: list[str]):
     """Query new keys for given games and platforms
 
     Returns dict of dicts of lists with [game][platform] as keys"""
     from itertools import groupby
-    all_keys = {}
+    all_keys: dict[str, dict[str, list[Key]]] = {}
 
     keys = list(query.db.get_keys(None, None))
     # parse all keys
@@ -83,7 +78,7 @@ def query_keys(games, platforms):
     new_keys = list(query.db.get_keys(None, None))
 
     diff = len(new_keys) - len(keys)
-    print("done. ({} new Keys)".format(diff if diff else "no"))
+    print(f"done. ({diff if diff else 'no'} new Keys)")
 
     _g = lambda key: key.game
     _p = lambda key: key.platform
@@ -95,7 +90,7 @@ def query_keys(games, platforms):
             if p not in platforms:
                 continue
 
-            all_keys[g][p] = p_keys
+            all_keys[g][p] = list(p_keys)
             # count the new keys
             n_golden = sum(int(cast(Match[str], m).group(1) or 1)
                             for m in
@@ -104,8 +99,7 @@ def query_keys(games, platforms):
                                     map(lambda key: query.r_golden_keys.match(key.reward),
                                         p_keys)))
 
-            _L.info("You have {} golden {} keys to redeem for {}"
-                    .format(n_golden, g.upper(), p.upper()))
+            _L.info(f"You have {n_golden} golden {g.upper()} keys to redeem for {p.upper()}")
 
     return all_keys
 
@@ -172,6 +166,8 @@ def main(args):
         _L.info("Not redeeming anything ...")
         return
 
+    _L.info("Trying to redeem now.")
+
     # now redeem
     for game in all_keys.keys():
         for platform in all_keys[game].keys():
@@ -198,10 +194,10 @@ def main(args):
                     if (args.limit - num_g_keys) < 0:
                         continue
 
-                redeemed = redeem(key, platform)
+                redeemed = redeem(key)
                 if redeemed:
                     args.limit -= num_g_keys
-                    _L.info("Redeeming another {} Keys".format(args.limit))
+                    _L.info(f"Redeeming another {args.limit} Keys")
                 else:
                     # don't spam if we reached the hourly limit
                     if client.last_status == Status.TRYLATER:
@@ -235,11 +231,10 @@ if __name__ == "__main__":
         _L.info("Scheduling to run once an hour")
         from apscheduler.schedulers.blocking import BlockingScheduler
         scheduler = BlockingScheduler()
-        # fire every 1h5m
+        # fire every 1h5m (to prevent being blocked by the shift platform.)
         #  (5min safe margin because it somtimes fires a few seconds too early)
         scheduler.add_job(main, "interval", args=(args,), hours=1, minutes=5)
-        print('Press Ctrl+{} to exit'.format('Break' if os.name == 'nt'
-                                             else 'C'))
+        print(f"Press Ctrl+{'Break' if os.name == 'nt' else 'C'} to exit")
 
         try:
             scheduler.start()

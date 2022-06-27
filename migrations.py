@@ -1,5 +1,6 @@
 import sqlite3
 from typing import List, Union
+
 from common import _L
 
 migrationFunctions = {}
@@ -11,12 +12,12 @@ def register(version: int):
         def wrapper(conn):
             try:
                 if func(conn):
-                    conn.cursor().execute("PRAGMA user_version = {}".format(version))
+                    conn.cursor().execute(f"PRAGMA user_version = {version}")
                     conn.commit()
                     return True
             except sqlite3.OperationalError:
-                _L.error("There was an error while migrating database to version {}."
-                        "Please contact the developer @ github.com/fabbi".format(version))
+                _L.error(f"There was an error while migrating database to version {version}."
+                        "Please contact the developer @ github.com/fabbi")
                 return False
         migrationFunctions[version] = wrapper
         return wrapper
@@ -84,7 +85,7 @@ def update_1(conn: sqlite3.Connection):
         """, platform))
 
     for i, step in enumerate(steps):
-        _L.debug("executing step {} of update_1".format(i))
+        _L.debug(f"executing step {i} of update_1")
         try:
             if isinstance(step, tuple):
                 c.execute(*step)

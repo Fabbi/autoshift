@@ -19,13 +19,14 @@
 # along with autoshift.  If not, see <http://www.gnu.org/licenses/>.
 #
 #############################################################################
-import sqlite3
 import re
-from typing import Callable, Dict, Generic, Iterable, Iterator, Optional, TypeVar, Union, cast, overload
+import sqlite3
+from typing import (Callable, Dict, Generic, Iterable, Iterator, TypeVar)
+
 import requests
-from bs4 import BeautifulSoup as BSoup
 
 from common import _L, DIRNAME
+
 _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
 
@@ -42,7 +43,7 @@ class SymmetricDict(Dict[_KT, _VT], Generic[_KT, _VT]):
     def __setitem__(self, k: _KT, v: _VT) -> None:
         ret = dict.__setitem__(self, k, v)
 
-        if v in self.inv:
+        if v in self.inv and self.inv[v] != k:
             raise SymmetricDict.ValueOverlapError(f"Key `{v}` already exists in inverted dict!")
 
         self.inv[v] = k
@@ -78,8 +79,6 @@ known_platforms = SymmetricDict({
     "universal": "universal"
 })
 
-platforms = list(known_platforms.keys())
-games = list(known_games.keys())
 
 
 spaces = re.compile(r"\s")
@@ -97,11 +96,12 @@ def print_banner(data):
         lines.append("@ https://shift.orcicorn.com/shift-code/")
 
     longest_line = max(len(line) for line in lines) + 2
-    banner = "\n".join("{: ^{}}".format(line, longest_line)
+    banner = "\n".join(f"{line: ^{longest_line}}"
                        for line in lines)
-    banner = "{:=^{}}\n{}\n".format(" autoshift by @Fabbi ", longest_line, banner)
+    txt = " autoshift by @Fabbi "
+    banner = f"{txt:=^{longest_line}}\n{banner}\n"
     banner += "="*longest_line
-    _L.info("\r\033[1;5;31m{}\n".format(banner))
+    _L.info(f"\r\033[1;5;31m{banner}\n")
 
 
 def get_short_game_key(game: str) -> str:
@@ -125,8 +125,8 @@ def get_short_game_key(game: str) -> str:
     return ret
 
 def get_short_platform_key(platform: str) -> str:
-    if platform in known_platforms.inv:
-        return known_platforms.inv[platform]
+    if platform.lower() in known_platforms.inv:
+        return known_platforms.inv[platform.lower()]
 
     # check if a known platform could match this one..
     for shift_platform in known_platforms.keys():
@@ -202,22 +202,24 @@ class Database:
 
     def __update_db(self):
         import sys
+
         from migrations import migrationFunctions
+
         # self.close_db()
         # self.__open_db()
         while (self.version + 1) in migrationFunctions:
-            _L.info("Migrating database to version {}".format(self.version+1))
+            _L.info(f"Migrating database to version {self.version+1}")
             func = migrationFunctions[self.version + 1]
 
             if not func(self.__conn):
                 sys.exit(1)
-            _L.info("migrating to version {} successful".format(self.version+1))
+            _L.info(f"migrating to version {self.version+1} successful")
             self.version += 1
 
         self.__updated = True
 
     def __open_db(self):
-        from os import path, makedirs
+        from os import makedirs, path
         if self.__open:
             return
 
@@ -250,8 +252,7 @@ class Database:
                     (key.platform, key.code, key.game))
         if el.fetchone():
             return None
-        _L.debug("== inserting {} Key '{}' for {} ==".format(key.game, key.code,
-                                                             key.platform))
+        _L.debug(f"== inserting {key.game} Key '{key.code}' for {key.platform} ==")
         self.execute("INSERT INTO keys(reward, code, platform, game, redeemed) "
                      "VAlUES (?,?,?,?,0)",
                      (key.reward, key.code, key.platform, key.game))
@@ -350,7 +351,7 @@ def parse_shift_orcicorn():
 
     resp = requests.get(key_url)
     if not resp:
-        _L.error("Error querying for new keys: {}".format(resp.reason))
+        _L.error(f"Error querying for new keys: {resp.reason}")
         return None
 
     data: dict = json.loads(resp.text)[0]

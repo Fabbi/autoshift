@@ -13,6 +13,14 @@ lxml = "^4.9.0"
 requests = "^2.28.0"
 
 [tool.poetry.dev-dependencies]
+flake8 = "^4.0.1"
+ipdb = "^0.13.9"
+jedi = "^0.18.1"
+mypy = "^0.961"
+debugpy = "^1.6.0"
+pylint = "^2.14.3"
+Flask = "^2.1.2"
+autoflake = "^1.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
