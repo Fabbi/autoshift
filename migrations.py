@@ -37,7 +37,25 @@ def update_1(conn: sqlite3.Connection):
         ALTER TABLE keys
         RENAME COLUMN key TO code;
         """
-        ,
+        , # renamed "ps" to "psn"
+        """
+        UPDATE keys
+        SET platform="psn"
+        WHERE platform="ps";
+        """
+        , # renamed "xbox" to "xboxlive"
+        """
+        UPDATE keys
+        SET platform="xboxlive"
+        WHERE platform="xbox";
+        """
+        , # renamed "bl" to "bl1"
+        """
+        UPDATE keys
+        SET game="bl1"
+        WHERE game="bl";
+        """
+        , # "pc" is now "epic" and "steam"
         """
         CREATE VIEW tmp AS
         SELECT * FROM keys
@@ -53,12 +71,6 @@ def update_1(conn: sqlite3.Connection):
         WHERE id in (select id from tmp);
 
         DROP VIEW tmp;
-        """
-        ,
-        """
-        UPDATE keys
-        SET game="bl1"
-        WHERE game="bl";
         """
         ,
         """
