@@ -97,7 +97,7 @@ def query_keys(games: list[str], platforms: list[str]):
                             filter(lambda m:
                                     m  and m.group(1) is not None,
                                     map(lambda key: query.r_golden_keys.match(key.reward),
-                                        p_keys)))
+                                        all_keys[g][p])))
 
             _L.info(f"You have {n_golden} golden {g.upper()} keys to redeem for {p.upper()}")
 
