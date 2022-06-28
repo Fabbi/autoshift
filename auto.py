@@ -25,7 +25,6 @@ from __future__ import print_function
 import sys
 from typing import Match, cast
 
-import query
 from common import _L, DEBUG, DIRNAME, INFO
 # from query import BL3
 from query import Key, known_games, known_platforms
@@ -44,6 +43,7 @@ under certain conditions; see LICENSE for details.
 
 
 def redeem(key: Key):
+    import query
     """Redeem key and set as redeemed if successfull"""
 
     _L.info(f"Trying to redeem {key.reward} ({key.code})")
@@ -70,6 +70,8 @@ def query_keys(games: list[str], platforms: list[str]):
 
     Returns dict of dicts of lists with [game][platform] as keys"""
     from itertools import groupby
+
+    import query
     all_keys: dict[str, dict[str, list[Key]]] = {}
 
     keys = list(query.db.get_keys(None, None))
@@ -163,6 +165,7 @@ def main(args):
     global client
     from time import sleep
 
+    import query
     from query import r_golden_keys
 
     if not client:
