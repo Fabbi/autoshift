@@ -214,7 +214,7 @@ class Database:
                 _L.info(f"Migrating database to version {self.version+1}")
             func = migrationFunctions[self.version + 1]
 
-            if not func(self.__conn, silent=self.__create_db):
+            if not func(self.__conn, self.__create_db):
                 sys.exit(1)
             if not self.__create_db:
                 _L.info(f"migration to version {self.version+1} successful")

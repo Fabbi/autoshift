@@ -21,22 +21,24 @@
 #
 #############################################################################
 import sqlite3
-from typing import List, Union
+from typing import Callable, List, Union
 
 from common import _L
 
-migrationFunctions = {}
+MigrationFunc = Callable[[sqlite3.Connection, bool], bool]
+migrationFunctions: dict[int, MigrationFunc] = {}
 
 def register(version: int):
     from functools import wraps
-    def wrap(func):
+    def wrap(func: MigrationFunc):
         @wraps(func)
-        def wrapper(conn, silent):
+        def wrapper(conn: sqlite3.Connection, silent: bool):
             try:
                 if func(conn, silent):
                     conn.cursor().execute(f"PRAGMA user_version = {version}")
                     conn.commit()
                     return True
+                return False
             except sqlite3.OperationalError:
                 _L.error(f"There was an error while migrating database to version {version}."
                         "Please contact the developer @ github.com/fabbi")
