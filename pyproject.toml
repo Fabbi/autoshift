@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "autoshift"
-version = "1.0.1"
+version = "1.0.2"
 description = "AutoSHIFt: Automatically redeem Gearbox SHIFt Codes"
 authors = ["Fabian Schweinfurth <github@derfabbi.de>"]
 license = "GPLv3"
