@@ -31,9 +31,9 @@ def register(version: int):
     from functools import wraps
     def wrap(func):
         @wraps(func)
-        def wrapper(conn):
+        def wrapper(conn, silent):
             try:
-                if func(conn):
+                if func(conn, silent):
                     conn.cursor().execute(f"PRAGMA user_version = {version}")
                     conn.commit()
                     return True
