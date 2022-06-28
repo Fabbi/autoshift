@@ -87,7 +87,7 @@ def query_keys(games: list[str], platforms: list[str]):
     for g, g_keys in groupby(sorted(new_keys, key=_g), _g):
         if g not in games:
             continue
-        all_keys[g] = {}
+        all_keys[g] = {p: [] for p in platforms}
         for platform, p_keys in groupby(sorted(g_keys, key=_p), _p):
             if platform not in platforms and platform != "universal":
                 continue
@@ -97,7 +97,7 @@ def query_keys(games: list[str], platforms: list[str]):
                 _ps = platforms.copy()
 
             for p in _ps:
-                all_keys[g].setdefault(p, []).extend(p_keys)
+                all_keys[g][p].extend(p_keys)
                 # all_keys[g][p] = list(p_keys)
 
         for p in platforms:
