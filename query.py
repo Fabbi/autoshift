@@ -22,7 +22,8 @@
 import re
 import sqlite3
 from os import makedirs, path
-from typing import Callable, Dict, Generic, Iterable, Iterator, TypeVar
+from typing import (Callable, ContextManager, Dict, Generic, Iterable,
+                    Iterator, Optional, TypeVar)
 
 import requests
 
@@ -174,7 +175,7 @@ class Key:
     def __repr__(self): # noqa
         return str(self)
 
-class Database:
+class Database(ContextManager):
     __conn: sqlite3.Connection
     __c: sqlite3.Cursor
     version: int
@@ -191,6 +192,14 @@ class Database:
                 ex = self.__c.execute(f"SELECT * from seen_{_k}s;").fetchall()
                 for row in ex:
                     globals()[f"known_{_k}s"][row["key"]] = row["name"]
+
+    def __enter__(self):
+        self.__open_db()
+        return self
+
+    def __exit__(self, *_) -> Optional[bool]:
+        self.close_db()
+        return False
 
     def execute(self, sql, parameters=None):
         if not self.__updated:
@@ -240,9 +249,10 @@ class Database:
 
 
     def close_db(self):
-        self.__conn.commit()
-        self.__conn.close()
-        self.__open = False
+        if self.__open:
+            self.__conn.commit()
+            self.__conn.close()
+            self.__open = False
 
 
     def insert(self, key: Key):
@@ -329,7 +339,6 @@ class Database:
         self.commit()
 
 
-db = Database()
 
 special_key_handler: dict[str, Callable[[Key], list[Key]]] = {
     "Borderlands 2 and 3": lambda key: [key.copy().set(game="Borderlands 2"),
@@ -403,3 +412,6 @@ def update_keys():
         _L.info(f"Got {count} new keys for {known_games[game]}")
 
     return keys
+
+
+db = Database()

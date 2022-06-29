@@ -166,63 +166,63 @@ def main(args):
     from time import sleep
 
     import query
-    from query import r_golden_keys
+    from query import db, r_golden_keys
 
-    if not client:
-        client = ShiftClient(args.user, args.pw)
+    with db:
+        if not client:
+            client = ShiftClient(args.user, args.pw)
 
-    # query all keys
-    all_keys = query_keys(args.games, args.platforms)
+        # query all keys
+        all_keys = query_keys(args.games, args.platforms)
 
-    # redeem 0 golden keys but only golden??... duh
-    if not args.limit and args.golden:
-        _L.info("Not redeeming anything ...")
-        return
+        # redeem 0 golden keys but only golden??... duh
+        if not args.limit and args.golden:
+            _L.info("Not redeeming anything ...")
+            return
 
-    _L.info("Trying to redeem now.")
+        _L.info("Trying to redeem now.")
 
-    # now redeem
-    for game in all_keys.keys():
-        for platform in all_keys[game].keys():
-            t_keys = list(filter(lambda key: not key.redeemed, all_keys[game][platform]))
-            for num, key in enumerate(t_keys):
+        # now redeem
+        for game in all_keys.keys():
+            for platform in all_keys[game].keys():
+                t_keys = list(filter(lambda key: not key.redeemed, all_keys[game][platform]))
+                for num, key in enumerate(t_keys):
 
-                if (num and not (num % 15)) or client.last_status == Status.SLOWDOWN:
-                    if client.last_status == Status.SLOWDOWN:
-                        _L.info("Slowing down a bit..")
+                    if (num and not (num % 15)) or client.last_status == Status.SLOWDOWN:
+                        if client.last_status == Status.SLOWDOWN:
+                            _L.info("Slowing down a bit..")
+                        else:
+                            _L.info("Trying to prevent a 'too many requests'-block.")
+                        sleep(60)
+
+                    _L.info(f"Key #{num+1}/{len(t_keys)}")
+                    num_g_keys = 0  # number of golden keys in this code
+                    m = r_golden_keys.match(key.reward)
+
+                    # skip keys we don't want
+                    if ((args.golden and not m) or (args.non_golden and m)):
+                        continue
+
+                    if m:
+                        num_g_keys = int(m.group(1) or 1)
+                        # skip golden keys if we reached the limit
+                        if args.limit <= 0:
+                            continue
+
+                        # skip if this code has too many golden keys
+                        if (args.limit - num_g_keys) < 0:
+                            continue
+
+                    redeemed = redeem(key)
+                    if redeemed:
+                        args.limit -= num_g_keys
+                        _L.info(f"Redeeming another {args.limit} Keys")
                     else:
-                        _L.info("Trying to prevent a 'too many requests'-block.")
-                    sleep(60)
+                        # don't spam if we reached the hourly limit
+                        if client.last_status == Status.TRYLATER:
+                            return
 
-                _L.info(f"Key #{num+1}/{len(t_keys)}")
-                num_g_keys = 0  # number of golden keys in this code
-                m = r_golden_keys.match(key.reward)
-
-                # skip keys we don't want
-                if ((args.golden and not m) or (args.non_golden and m)):
-                    continue
-
-                if m:
-                    num_g_keys = int(m.group(1) or 1)
-                    # skip golden keys if we reached the limit
-                    if args.limit <= 0:
-                        continue
-
-                    # skip if this code has too many golden keys
-                    if (args.limit - num_g_keys) < 0:
-                        continue
-
-                redeemed = redeem(key)
-                if redeemed:
-                    args.limit -= num_g_keys
-                    _L.info(f"Redeeming another {args.limit} Keys")
-                else:
-                    # don't spam if we reached the hourly limit
-                    if client.last_status == Status.TRYLATER:
-                        return
-
-    _L.info("No more keys left!")
-    query.db.close_db()
+        _L.info("No more keys left!")
 
 
 if __name__ == "__main__":
