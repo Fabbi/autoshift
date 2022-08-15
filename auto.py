@@ -97,7 +97,7 @@ def query_keys(games: list[str], platforms: list[str]):
                 _ps = platforms.copy()
 
             for p in _ps:
-                all_keys[g][p].extend(p_keys)
+                all_keys[g][p].extend(key.copy().set(platform=p) for key in p_keys)
                 # all_keys[g][p] = list(p_keys)
 
         for p in platforms:

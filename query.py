@@ -152,8 +152,8 @@ def get_short_platform_key(platform: str) -> str:
 
 
 class Key:
-    __slots__ = ("id", "reward", "code", "type", "game", "platform",
-                 "reward", "archived", "expires", "link", "redeemed")
+    __slots__ = ("id", "reward", "code", "game", "platform", "redeemed",
+                 "type", "archived", "expires", "link")
     def __init__(self, **kwargs):
         self.redeemed = False
         self.id = None
@@ -166,7 +166,8 @@ class Key:
 
     def copy(self):
         return Key(**{k: getattr(self, k)
-                      for k in self.__slots__})
+                      for k in self.__slots__
+                      if hasattr(self, k)})
 
     def __str__(self): # noqa
         return "Key({})".format(
