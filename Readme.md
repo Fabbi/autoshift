@@ -2,7 +2,7 @@
 
 - **Compatibility:** 3.9+.
 - **Platform:** Crossplatform.
-- **Version:** 1.0
+- **Version:** 1.0.4
 - **Repo:** https://github.com/Fabbi/autoshift
 
 # Overview
