@@ -50,9 +50,14 @@ pip install -r requirements.txt
 ./auto.py --game bl3 --platform steam --user "my@user.edu" --pass "p4ssw0rd!123"
 ```
 
-- keep redeeming every hour (you need `apscheduler` for that)
+- keep redeeming every 2 hours
 ```sh
 ./auto.py --game bl3 --platform steam --schedule
+```
+
+- keep redeeming every `n` hours (values < 2 are not possible due to IP Bans)
+```sh
+./auto.py --game bl3 --platform steam --schedule 5 # redeem every 5 hours
 ```
 
 - only redeem golden keys

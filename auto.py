@@ -152,7 +152,7 @@ def setup_argparser():
                         (default 200)
                         NOTE: You can only have 255 keys at any given time!""")) # noqa
     parser.add_argument("--schedule",
-                        action="store_true",
+                        type=float, const=2, nargs="?",
                         help="Keep checking for keys and redeeming every hour")
     parser.add_argument("-v", dest="verbose",
                         action="store_true",
@@ -243,17 +243,24 @@ if __name__ == "__main__":
         _L.setLevel(DEBUG)
         _L.debug("Debug mode on")
 
+    if args.schedule and args.schedule < 2:
+        _L.warn(f"Running this tool every {args.schedule} hours would result in "
+                "too many requests.\n"
+                "Scheduling changed to run every 2 hours!")
+
     # always execute at least once
     main(args)
 
     # scheduling will start after first trigger (so in an hour..)
     if args.schedule:
-        _L.info("Scheduling to run once an hour")
+        hours = int(args.schedule)
+        minutes = int((args.schedule-hours)*60+1e-5)
+        _L.info(f"Scheduling to run every {hours:02}:{minutes:02} hours")
         from apscheduler.schedulers.blocking import BlockingScheduler
         scheduler = BlockingScheduler()
         # fire every 1h5m (to prevent being blocked by the shift platform.)
         #  (5min safe margin because it somtimes fires a few seconds too early)
-        scheduler.add_job(main, "interval", args=(args,), hours=1, minutes=5)
+        scheduler.add_job(main, "interval", args=(args,), hours=args.schedule)
         print(f"Press Ctrl+{'Break' if os.name == 'nt' else 'C'} to exit")
 
         try:
