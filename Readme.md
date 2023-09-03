@@ -30,7 +30,11 @@ or download it as zip
 you'll need to install a few dependencies
 
 ```sh
+cd ./autoshift
+python3 -m venv venv
+source ./venv/bin/activate
 pip install -r requirements.txt
+mkdir -p ./data
 ```
 
 ## Usage
@@ -208,3 +212,27 @@ Your timezone
 Default: `America/Chicago`
 
 Example: `Europe/London`
+
+## Building Docker Image
+
+``` bash
+docker build -t autoshift:latest .
+
+```
+
+## Pushing Docker Image to local Harbor
+
+``` bash
+
+#Login to harbor
+export HARBORURL=harbor.test.com
+podman login ${HARBORURL}:443
+
+#Get the image name, it will be something like 41d81c9c2d99: 
+podman image list
+
+#Tag the image in harbor
+podman tag 048e7f2564b2 ${HARBORURL}:443/autoshift/autoshift:latest
+podman push ${HARBORURL}:443/autoshift/autoshift:latest
+
+```
