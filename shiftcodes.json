@@ -1,6 +1,29 @@
 [
     {
         "meta": {
+            "version": "0.1",
+            "description": "GitHub Alternate Source for Shift Codes",
+            "attribution": "Data provided by manual lookups direct to this repo",
+            "permalink": "https://raw.githubusercontent.com/ugoogalizer/autoshift/master/shiftcodes.json",
+            "generated": {
+                "epoch": "1681516776",
+                "human": "Fri, 14 Apr 2023 19:59:36 -0400"
+            }
+        },
+        "codes": [
+            {
+                "code": "K9C3J-3TFBF-K9JFC-Z33T3-9HJH9",
+                "type": "shift",
+                "game": "Borderland 3",
+                "platform": "Universal",
+                "reward": "1 diamond key",
+                "archived": "03 Sep 2023 19:58:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400"
+            }
+        ]
+    },
+    {
+        "meta": {
             "version": "1.0",
             "description": "Active SHiFT Codes for any game on any platform",
             "attribution": "Data provided by Orcicorn's SHiFT and VIP Code archive",
