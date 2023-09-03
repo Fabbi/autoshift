@@ -2,12 +2,11 @@
     {
         "meta": {
             "version": "0.1",
-            "description": "GitHub Alternate Source for Shift Codes",
-            "attribution": "Data provided by manual lookups direct to this repo",
+            "description": "GitHub Alternate Source for Shift Codes + Orcicorn's SHiFT Archive",
+            "attribution": "Data provided by manual lookups direct to this repo + outdated Orcicorn's SHiFT Archive",
             "permalink": "https://raw.githubusercontent.com/ugoogalizer/autoshift/master/shiftcodes.json",
             "generated": {
-                "epoch": "1681516776",
-                "human": "Fri, 14 Apr 2023 19:59:36 -0400"
+                "human": "31 Oct 2023 01:00:00 -0400"
             }
         },
         "codes": [
@@ -22,43 +21,35 @@
             },
             {
                 "code": "XFXJB-3BBJT-B3BJB-3JJ3B-F5X96",
-                "game": "Borderlands 3",
+                "game": "Borderlands 1",
                 "platform": "Universal",
-                "reward": "3 Gold Keys"
-            }
-        ]
-    },
-    {
-        "meta": {
-            "version": "1.0",
-            "description": "Active SHiFT Codes for any game on any platform",
-            "attribution": "Data provided by Orcicorn's SHiFT and VIP Code archive",
-            "permalink": "https://shift.orcicorn.com/shift-code/",
-            "generated": {
-                "epoch": "1681516776",
-                "human": "Fri, 14 Apr 2023 19:59:36 -0400"
-            }
-        },
-        "codes": [
-            {
-                "code": "T3FJT-SBZZT-93BFC-3B3TB-3BTRB",
-                "type": "shift",
-                "game": "Tiny Tina's Wonderlands",
-                "platform": "Universal",
-                "reward": "Liquid Cooling Weapon",
-                "archived": "14 Apr 2023 19:58:00 -0400",
-                "expires": "28 Apr 2023 01:00:00 -0400",
-                "link": "https://shift.orcicorn.com/shift-code/t3fjt-sbzzt-93bfc-3b3tb-3btrb/?utm_source=json&utm_medium=shift&utm_campaign=automation"
+                "reward": "3 Gold Keys",
+                "archived": "03 Sep 2023 19:58:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400"
             },
             {
-                "code": "W5F33-W593K-KTB5K-TTB3J-R3F9F",
-                "type": "shift",
-                "game": "Tribes of Midgard",
+                "code": "XFXJB-3BBJT-B3BJB-3JJ3B-F5X96",
+                "game": "Borderlands 2",
                 "platform": "Universal",
-                "reward": "Valr Helm",
-                "archived": "12 Apr 2023 14:14:00 -0400",
-                "expires": "19 Apr 2023 23:59:00 -0400",
-                "link": "https://shift.orcicorn.com/shift-code/w5f33-w593k-ktb5k-ttb3j-r3f9f/?utm_source=json&utm_medium=shift&utm_campaign=automation"
+                "reward": "3 Gold Keys",
+                "archived": "03 Sep 2023 19:58:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400"
+            },
+            {
+                "code": "XFXJB-3BBJT-B3BJB-3JJ3B-F5X96",
+                "game": "Borderlands 3",
+                "platform": "Universal",
+                "reward": "3 Gold Keys",
+                "archived": "03 Sep 2023 19:58:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400"
+            },
+            {
+                "code": "XFXJB-3BBJT-B3BJB-3JJ3B-F5X96",
+                "game": "Borderlands The Pre-Sequel",
+                "platform": "Universal",
+                "reward": "3 Gold Keys",
+                "archived": "03 Sep 2023 19:58:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400"
             },
             {
                 "code": "TJRB3-CKZRB-F5JK5-B3BBB-3FZC9",
