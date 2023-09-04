@@ -46,7 +46,7 @@ def redeem(key: Key):
     import query
     """Redeem key and set as redeemed if successfull"""
 
-    _L.info(f"Trying to redeem {key.reward} ({key.code})")
+    _L.info(f"Trying to redeem {key.reward} ({key.code}) on {key.platform}")
     status = client.redeem(key.code, known_games[key.game], key.platform)
     _L.debug(f"Status: {status}")
 
