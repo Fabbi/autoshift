@@ -185,7 +185,9 @@ def main(args):
         # now redeem
         for game in all_keys.keys():
             for platform in all_keys[game].keys():
+                _L.info(f"Redeeming for {game} on {platform}")
                 t_keys = list(filter(lambda key: not key.redeemed, all_keys[game][platform]))
+                _L.info(f"Keys to be redeemed: {t_keys}")
                 for num, key in enumerate(t_keys):
 
                     if (num and not (num % 15)) or client.last_status == Status.SLOWDOWN:
