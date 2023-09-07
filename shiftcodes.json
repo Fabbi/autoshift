@@ -11,6 +11,46 @@
         },
         "codes": [
             {
+                "code": "KKK3J-T53K3-HZB6T-JBJJ3-JSFJH",
+                "type": "shift",
+                "game": "Borderlands The Pre-Sequel",
+                "platform": "steam",
+                "reward": "Heartbreaker",
+                "archived": "07 Sep 2023 20:26:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://twitter.com/Borderlands/status/1699467515200692446?s=20"
+            },
+            {
+                "code": "KKK3J-T53K3-HZB6T-JBJJ3-JSFJH",
+                "type": "shift",
+                "game": "Borderlands The Pre-Sequel",
+                "platform": "epic",
+                "reward": "Heartbreaker",
+                "archived": "07 Sep 2023 20:26:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://twitter.com/Borderlands/status/1699467515200692446?s=20"
+            },
+            {
+                "code": "KTC3J-TZH93-6TF3Z-T3TJB-TCFKH",
+                "type": "shift",
+                "game": "Borderlands 2",
+                "platform": "steam",
+                "reward": "Conference Call",
+                "archived": "07 Sep 2023 20:26:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://twitter.com/Borderlands/status/1699105150575730859?s=20"
+            },
+            {
+                "code": "KTC3J-TZH93-6TF3Z-T3TJB-TCFKH",
+                "type": "shift",
+                "game": "Borderlands 2",
+                "platform": "epic",
+                "reward": "Conference Call",
+                "archived": "07 Sep 2023 20:26:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://twitter.com/Borderlands/status/1699105150575730859?s=20"
+            },
+            {
                 "code": "TTRT3-BK5ZT-XCJW5-B3JJJ-JXXXJ",
                 "type": "shift",
                 "game": "Borderlands 2",
