@@ -14,7 +14,7 @@
                 "code": "TTRT3-BK5ZT-XCJW5-B3JJJ-JXXXJ",
                 "type": "shift",
                 "game": "Borderlands 2",
-                "platform": "Universal",
+                "platform": "steam",
                 "reward": "3 Gold Keys and 3 Skeleton Keys",
                 "archived": "04 Sep 2023 20:26:00 +1000",
                 "expires": "07 Oct 2023 01:00:00 -0400",
@@ -24,7 +24,7 @@
                 "code": "TTRT3-BK5ZT-XCJW5-B3JJJ-JXXXJ",
                 "type": "shift",
                 "game": "Borderlands 3",
-                "platform": "Universal",
+                "platform": "steam",
                 "reward": "3 Gold Keys and 3 Skeleton Keys",
                 "archived": "04 Sep 2023 20:26:00 +1000",
                 "expires": "07 Oct 2023 01:00:00 -0400",
@@ -34,7 +34,7 @@
                 "code": "TTRT3-BK5ZT-XCJW5-B3JJJ-JXXXJ",
                 "type": "shift",
                 "game": "Borderlands The Pre-Sequel",
-                "platform": "Universal",
+                "platform": "steam",
                 "reward": "3 Gold Keys and 3 Skeleton Keys",
                 "archived": "04 Sep 2023 20:26:00 +1000",
                 "expires": "07 Oct 2023 01:00:00 -0400",
@@ -44,7 +44,7 @@
                 "code": "TTRT3-BK5ZT-XCJW5-B3JJJ-JXXXJ",
                 "type": "shift",
                 "game": "Wonderlands",
-                "platform": "Universal",
+                "platform": "steam",
                 "reward": "3 Gold Keys and 3 Skeleton Keys",
                 "archived": "04 Sep 2023 20:26:00 +1000",
                 "expires": "07 Oct 2023 01:00:00 -0400",
@@ -54,7 +54,7 @@
                 "code": "K9C3J-3TFBF-K9JFC-Z33T3-9HJH9",
                 "type": "shift",
                 "game": "Borderlands 3",
-                "platform": "Universal",
+                "platform": "steam",
                 "reward": "1 diamond key",
                 "archived": "03 Sep 2023 19:58:00 +1000",
                 "expires": "31 Oct 2023 01:00:00 -0400"
@@ -62,7 +62,7 @@
             {
                 "code": "XFXJB-3BBJT-B3BJB-3JJ3B-F5X96",
                 "game": "Borderlands 1",
-                "platform": "Universal",
+                "platform": "steam",
                 "reward": "3 Gold Keys",
                 "archived": "03 Sep 2023 19:58:00 +1000",
                 "expires": "31 Oct 2023 01:00:00 -0400"
@@ -70,7 +70,7 @@
             {
                 "code": "XFXJB-3BBJT-B3BJB-3JJ3B-F5X96",
                 "game": "Borderlands 2",
-                "platform": "Universal",
+                "platform": "steam",
                 "reward": "3 Gold Keys",
                 "archived": "03 Sep 2023 19:58:00 +1000",
                 "expires": "31 Oct 2023 01:00:00 -0400"
@@ -78,7 +78,7 @@
             {
                 "code": "XFXJB-3BBJT-B3BJB-3JJ3B-F5X96",
                 "game": "Borderlands 3",
-                "platform": "Universal",
+                "platform": "steam",
                 "reward": "3 Gold Keys",
                 "archived": "03 Sep 2023 19:58:00 +1000",
                 "expires": "31 Oct 2023 01:00:00 -0400"
@@ -86,7 +86,88 @@
             {
                 "code": "XFXJB-3BBJT-B3BJB-3JJ3B-F5X96",
                 "game": "Borderlands The Pre-Sequel",
-                "platform": "Universal",
+                "platform": "steam",
+                "reward": "3 Gold Keys",
+                "archived": "03 Sep 2023 19:58:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400"
+            },            
+            {
+                "code": "TTRT3-BK5ZT-XCJW5-B3JJJ-JXXXJ",
+                "type": "shift",
+                "game": "Borderlands 2",
+                "platform": "epic",
+                "reward": "3 Gold Keys and 3 Skeleton Keys",
+                "archived": "04 Sep 2023 20:26:00 +1000",
+                "expires": "07 Oct 2023 01:00:00 -0400",
+                "link": "https://twitter.com/DuvalMagic/status/1698353934702711019?s=20"
+            },
+            {
+                "code": "TTRT3-BK5ZT-XCJW5-B3JJJ-JXXXJ",
+                "type": "shift",
+                "game": "Borderlands 3",
+                "platform": "epic",
+                "reward": "3 Gold Keys and 3 Skeleton Keys",
+                "archived": "04 Sep 2023 20:26:00 +1000",
+                "expires": "07 Oct 2023 01:00:00 -0400",
+                "link": "https://twitter.com/DuvalMagic/status/1698353934702711019?s=20"
+            },
+            {
+                "code": "TTRT3-BK5ZT-XCJW5-B3JJJ-JXXXJ",
+                "type": "shift",
+                "game": "Borderlands The Pre-Sequel",
+                "platform": "epic",
+                "reward": "3 Gold Keys and 3 Skeleton Keys",
+                "archived": "04 Sep 2023 20:26:00 +1000",
+                "expires": "07 Oct 2023 01:00:00 -0400",
+                "link": "https://twitter.com/DuvalMagic/status/1698353934702711019?s=20"
+            },
+            {
+                "code": "TTRT3-BK5ZT-XCJW5-B3JJJ-JXXXJ",
+                "type": "shift",
+                "game": "Wonderlands",
+                "platform": "epic",
+                "reward": "3 Gold Keys and 3 Skeleton Keys",
+                "archived": "04 Sep 2023 20:26:00 +1000",
+                "expires": "07 Oct 2023 01:00:00 -0400",
+                "link": "https://twitter.com/DuvalMagic/status/1698353934702711019?s=20"
+            },
+            {
+                "code": "K9C3J-3TFBF-K9JFC-Z33T3-9HJH9",
+                "type": "shift",
+                "game": "Borderlands 3",
+                "platform": "epic",
+                "reward": "1 diamond key",
+                "archived": "03 Sep 2023 19:58:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400"
+            },
+            {
+                "code": "XFXJB-3BBJT-B3BJB-3JJ3B-F5X96",
+                "game": "Borderlands 1",
+                "platform": "epic",
+                "reward": "3 Gold Keys",
+                "archived": "03 Sep 2023 19:58:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400"
+            },
+            {
+                "code": "XFXJB-3BBJT-B3BJB-3JJ3B-F5X96",
+                "game": "Borderlands 2",
+                "platform": "epic",
+                "reward": "3 Gold Keys",
+                "archived": "03 Sep 2023 19:58:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400"
+            },
+            {
+                "code": "XFXJB-3BBJT-B3BJB-3JJ3B-F5X96",
+                "game": "Borderlands 3",
+                "platform": "epic",
+                "reward": "3 Gold Keys",
+                "archived": "03 Sep 2023 19:58:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400"
+            },
+            {
+                "code": "XFXJB-3BBJT-B3BJB-3JJ3B-F5X96",
+                "game": "Borderlands The Pre-Sequel",
+                "platform": "epic",
                 "reward": "3 Gold Keys",
                 "archived": "03 Sep 2023 19:58:00 +1000",
                 "expires": "31 Oct 2023 01:00:00 -0400"
