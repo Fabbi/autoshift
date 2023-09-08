@@ -251,10 +251,12 @@ class ShiftClient:
         _L.debug(f"{r.request.method} {r.url} {r.status_code} {r.reason}")
 
         if r.status_code != 200:
+            _L.debug(f"Did not return code 200: {r.status_code}")
             return False, r.status_code, r.reason
 
         soup = BSoup(r.text, "html.parser")
         if not soup.find("form", class_="new_archway_code_redemption"):
+            _L.debug(f"Count not find new_archway_code_redemption: {r.text.strip()}")
             return False, r.status_code, r.text.strip()
 
         titles = soup.find_all("h2")
@@ -289,10 +291,16 @@ class ShiftClient:
 
     def __get_redemption_status(self, r: Response) -> tuple[str, str, str]:
         # return None
+        # _L.debug(f"Result Text: {r.text}")
         soup = BSoup(r.text, "lxml")
         div = soup.find("div", id="check_redemption_status")
         if div:
+            _L.debug(f"Result Div Text: {div.text.strip()}")
             return (div.text.strip(), div["data-url"], div["data-fallback-url"])
+        div = soup.find("div", class_="alert notice")
+        if div:
+            _L.debug(f"Result Div Text: {div.text.strip()}")
+            return (div.text.strip(),"", "")
         return ("", "", "")
 
     def __check_redemption_status(self, r: Response) -> Status:
@@ -303,7 +311,7 @@ class ShiftClient:
             return Status.REDIRECT(r.headers["location"])
 
         get_status, url, fallback = self.__get_redemption_status(r)
-        if get_status:
+        if get_status and url:
             _, token = self.__get_token(r)
             cnt = 0
             # follow all redirects
@@ -323,7 +331,9 @@ class ShiftClient:
                 # wait 500
                 sleep(0.5)
                 cnt += 1
-
+        if get_status:
+            return self.__get_status(get_status)
+            
         return Status.NONE
 
     def __query_rewards(self):
@@ -356,7 +366,9 @@ class ShiftClient:
                 redemption = True
             _L.debug(f"redirect to '{status.value}'")
             r2 = self.client.get(status.value)
+            _L.debug(f"redirect returned: {r2.request.method} {r2.url} {r2.status_code} {r2.reason}")
             status = self.__check_redemption_status(r2)
+
 
         # workaround for new SHiFT website.
         # it doesn't tell you to launch a "SHiFT-enabled title" anymore
