@@ -9,8 +9,37 @@
                 "human": "31 Oct 2023 01:00:00 -0400"
             }
         },
-        "codes": [
+        "codes": [           
             {
+                "code": "6RRBJ-C33BT-BJJ3T-J3TJ3-SHC5B",
+                "type": "shift",
+                "game": "Borderlands The Pre-Sequel",
+                "platform": "universal",
+                "reward": "3 Gold Keys and 3 Skeleton Keys",
+                "archived": "10 Sep 2023 08:00:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://twitter.com/Borderlands/status/1700282875025985648?s=20"
+            },
+            {
+                "code": "6RRBJ-C33BT-BJJ3T-J3TJ3-SHC5B",
+                "type": "shift",
+                "game": "Borderlands 3",
+                "platform": "universal",
+                "reward": "3 Gold Keys and 3 Skeleton Keys",
+                "archived": "10 Sep 2023 08:00:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://twitter.com/Borderlands/status/1700282875025985648?s=20"
+            },
+            {
+                "code": "6RRBJ-C33BT-BJJ3T-J3TJ3-SHC5B",
+                "type": "shift",
+                "game": "Borderlands 2",
+                "platform": "universal",
+                "reward": "3 Gold Keys and 3 Skeleton Keys",
+                "archived": "10 Sep 2023 08:00:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://twitter.com/Borderlands/status/1700282875025985648?s=20"
+            },{
                 "code": "TJX33-CWWST-XWJWW-TJJ3J-CK6HJ",
                 "type": "shift",
                 "game": "Borderlands The Pre-Sequel",
