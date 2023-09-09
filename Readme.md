@@ -232,7 +232,10 @@ podman login ${HARBORURL}:443
 podman image list
 
 #Tag the image in harbor
-podman tag 048e7f2564b2 ${HARBORURL}:443/autoshift/autoshift:latest
+podman tag 41d81c9c2d99 ${HARBORURL}:443/autoshift/autoshift:latest
+podman tag 41d81c9c2d99 ${HARBORURL}:443/autoshift/autoshift:1.3
 podman push ${HARBORURL}:443/autoshift/autoshift:latest
+podman push ${HARBORURL}:443/autoshift/autoshift:1.3
+
 
 ```
