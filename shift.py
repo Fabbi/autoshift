@@ -295,11 +295,11 @@ class ShiftClient:
         soup = BSoup(r.text, "lxml")
         div = soup.find("div", id="check_redemption_status")
         if div:
-            _L.debug(f"Result Div Text: {div.text.strip()}")
+            _L.debug(f"Result Check Redemption Status: {div.text.strip()}")
             return (div.text.strip(), div["data-url"], div["data-fallback-url"])
         div = soup.find("div", class_="alert notice")
         if div:
-            _L.debug(f"Result Div Text: {div.text.strip()}")
+            _L.debug(f"Result Alert Notice: {div.text.strip()}")
             return (div.text.strip(),"", "")
         return ("", "", "")
 
