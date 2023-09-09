@@ -9,7 +9,18 @@
                 "human": "31 Oct 2023 01:00:00 -0400"
             }
         },
-        "codes": [           
+        "codes": [      
+        {
+            "code": "C9WTT-6JXTR-WS3RW-H3TTJ-HFWS9",
+            "type": "shift",
+            "game": "Borderlands 3",
+            "platform": "universal",
+            "reward": "1 diamond key",
+            "archived": "10 Sep 2023 09:00:00 +1000",
+            "expires": "31 Oct 2023 01:00:00 -0400",
+            "link": "https://twitter.com/DuvalMagic/status/1700292741320622468?s=20"
+        },
+
             {
                 "code": "6RRBJ-C33BT-BJJ3T-J3TJ3-SHC5B",
                 "type": "shift",
