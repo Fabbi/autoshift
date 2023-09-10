@@ -125,3 +125,6 @@ keys.db
 
 # notebooks folder
 notebooks/
+
+# vscode
+*.code-workspace
