@@ -9,12 +9,32 @@
                 "human": "31 Oct 2023 01:00:00 -0400"
             }
         },
-        "codes": [        
+        "codes": [           
+            {
+                "code": "CTKJB-KHZS3-FJXJS-3TB3J-3ZCKF",
+                "type": "shift",
+                "game": "Borderlands 2",
+                "platform": "universal",
+                "reward": "Unkempt Harold",
+                "archived": "13 Sep 2023 21:00:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://x.com/Borderlands/status/1701656931075776862?s=20"
+            },          
+            {
+                "code": "CTKJB-KFTJ9-CJXJS-3TB3J-3ZC6C",
+                "type": "shift",
+                "game": "Borderlands: Game of the Year Edition",
+                "platform": "Steam",
+                "reward": "𝐋𝐚𝐝𝐲 𝐅𝐢𝐧𝐠𝐞𝐫",
+                "archived": "13 Sep 2023 21:00:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://x.com/Borderlands/status/1701656931075776862?s=20"
+            },   
             {
                 "code": "KTC3J-TXB39-5TF3Z-T3TJB-TCFBX",
                 "type": "shift",
                 "game": "Borderlands: Game of the Year Edition",
-                "platform": "universal",
+                "platform": "Steam",
                 "reward": "TK's Wave",
                 "archived": "10 Sep 2023 09:00:00 +1000",
                 "expires": "31 Oct 2023 01:00:00 -0400",
