@@ -9,7 +9,27 @@
                 "human": "31 Oct 2023 01:00:00 -0400"
             }
         },
-        "codes": [          
+        "codes": [   
+            {
+                "code": "W953J-FCFBF-C936K-9TTBJ-WFXWK",
+                "type": "shift",
+                "game": "Borderlands 3",
+                "platform": "universal",
+                "reward": "1 diamond key",
+                "archived": "16 Sep 2023 08:00:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://x.com/Borderlands/status/1702736537438306532?s=20"
+            },   
+            {
+                "code": "FRRJT-FJ3BB-BBJB3-TJTBT-B9B65",
+                "type": "shift",
+                "game": "Borderlands 3",
+                "platform": "universal",
+                "reward": "3 Gold Keys",
+                "archived": "16 Sep 2023 08:00:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://x.com/Borderlands/status/1702728989482323984?s=20"
+            },          
             {
                 "code": "CWK33-5K3C3-99BXJ-3TB3B-C5SWB",
                 "type": "shift",
