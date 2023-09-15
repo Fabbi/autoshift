@@ -9,7 +9,37 @@
                 "human": "31 Oct 2023 01:00:00 -0400"
             }
         },
-        "codes": [           
+        "codes": [          
+            {
+                "code": "CWK33-5K3C3-99BXJ-3TB3B-C5SWB",
+                "type": "shift",
+                "game": "Borderlands The Pre-Sequel",
+                "platform": "universal",
+                "reward": "Maggie",
+                "archived": "15 Sep 2023 17:00:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://x.com/Borderlands/status/1702367199925834028?s=20"
+            }, 
+            {
+                "code": "59CTB-CBXTF-59BF5-SBTBB-ZFFZS",
+                "type": "shift",
+                "game": "Borderlands 3",
+                "platform": "universal",
+                "reward": "𝐇𝐄𝐋𝐋𝐖𝐀𝐋𝐊𝐄𝐑",
+                "archived": "15 Sep 2023 17:00:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://x.com/Borderlands/status/1699831235571511730?s=20"
+            },   
+            {
+                "code": "CS5TJ-HJXB6-WSTRC-Z3T3J-W5TTZ",
+                "type": "shift",
+                "game": "Borderlands 3",
+                "platform": "universal",
+                "reward": "Four Golden Keys, 1 Diamond Key and Hellshock",
+                "archived": "15 Sep 2023 17:00:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://x.com/Borderlands/status/1702038184840827185?s=20"
+            },   
             {
                 "code": "CTKJB-KHZS3-FJXJS-3TB3J-3ZCKF",
                 "type": "shift",
