@@ -9,7 +9,77 @@
                 "human": "31 Oct 2023 01:00:00 -0400"
             }
         },
-        "codes": [    
+        "codes": [   
+            {
+                "code": "CTWTB-X6TBH-WBXT9-B3JTJ-3JKS5",
+                "type": "shift",
+                "game": "Borderlands: Game of the Year Edition",
+                "platform": "universal",
+                "reward": "Elephant Gun",
+                "archived": "22 Sep 2023 21:00:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://x.com/Borderlands/status/1704178545646522378?s=20"
+            }, 
+            {
+                "code": "KKK3B-X535J-9S363-BBJJ3-SH53T",
+                "type": "shift",
+                "game": "Borderlands The Pre-Sequel",
+                "platform": "universal",
+                "reward": "Skullsmasher",
+                "archived": "22 Sep 2023 21:00:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://x.com/Borderlands/status/1704540927455322200?s=20"
+            }, 
+            {
+                "code": "WS5BJ-H56BR-C9JFK-ZB3J3-XCXHR",
+                "type": "shift",
+                "game": "Borderlands 3",
+                "platform": "universal",
+                "reward": "Lyuda",
+                "archived": "22 Sep 2023 21:00:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://x.com/Borderlands/status/1704918417185165426?s=20"
+            },  
+            {
+                "code": "RR6TT-SBJ3T-BBJJJ-TBJ33-FTBFX",
+                "type": "shift",
+                "game": "Borderlands 1",
+                "platform": "universal",
+                "reward": "3 Gold Keys",
+                "archived": "22 Sep 2023 21:00:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://x.com/Borderlands/status/1705280804631232591?s=20"
+            },  
+            {
+                "code": "RR6TT-SBJ3T-BBJJJ-TBJ33-FTBFX",
+                "type": "shift",
+                "game": "Borderlands 2",
+                "platform": "universal",
+                "reward": "3 Gold Keys",
+                "archived": "22 Sep 2023 21:00:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://x.com/Borderlands/status/1705280804631232591?s=20"
+            },  
+            {
+                "code": "RR6TT-SBJ3T-BBJJJ-TBJ33-FTBFX",
+                "type": "shift",
+                "game": "Borderlands 3",
+                "platform": "universal",
+                "reward": "3 Gold Keys",
+                "archived": "22 Sep 2023 21:00:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://x.com/Borderlands/status/1705280804631232591?s=20"
+            },  
+            {
+                "code": "5H5JB-B6X3F-5SJRW-ZBBTB-9W5JX",
+                "type": "shift",
+                "game": "Borderlands 3",
+                "platform": "universal",
+                "reward": "1 diamond key",
+                "archived": "25 Sep 2023 21:00:00 +1000",
+                "expires": "31 Oct 2023 01:00:00 -0400",
+                "link": "https://x.com/Borderlands/status/1705288352495198508?s=20"
+            }, 
             {
                 "code": "3BXTB-Z5CSB-F5355-3BJ3J-C69TK",
                 "type": "shift",
