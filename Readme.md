@@ -233,13 +233,13 @@ export HARBORURL=harbor.test.com
 git pull
 
 #Set Build Parameters
-export VERSIONTAG=1.6
+export VERSIONTAG=1.7
 
 #Build the Image
 docker build -t autoshift:latest -t autoshift:${VERSIONTAG} . 
 
 #Get the image name, it will be something like 41d81c9c2d99: 
-export IMAGE=$(docker images -q autoshift-scraper:latest)
+export IMAGE=$(docker images -q autoshift:latest)
 echo ${IMAGE}
 
 #Login to harbor
