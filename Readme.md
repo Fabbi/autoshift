@@ -220,22 +220,36 @@ docker build -t autoshift:latest .
 
 ```
 
-## Pushing Docker Image to local Harbor
+## Building Docker Image and Pushing to local Harbor
 
 ``` bash
 
-#Login to harbor
+# Once off setup: 
+git clone TODO
+
+# Personal parameters
 export HARBORURL=harbor.test.com
-podman login ${HARBORURL}:443
+
+git pull
+
+#Set Build Parameters
+export VERSIONTAG=1.6
+
+#Build the Image
+docker build -t autoshift:latest -t autoshift:${VERSIONTAG} . 
 
 #Get the image name, it will be something like 41d81c9c2d99: 
-podman image list
+export IMAGE=$(docker images -q autoshift-scraper:latest)
+echo ${IMAGE}
 
-#Tag the image in harbor
-podman tag 41d81c9c2d99 ${HARBORURL}:443/autoshift/autoshift:latest
-podman tag 41d81c9c2d99 ${HARBORURL}:443/autoshift/autoshift:1.3
-podman push ${HARBORURL}:443/autoshift/autoshift:latest
-podman push ${HARBORURL}:443/autoshift/autoshift:1.3
+#Login to harbor
+docker login ${HARBORURL}:443
+
+#Tag and Push the image in harbor
+docker tag ${IMAGE} ${HARBORURL}:443/autoshift/autoshift:latest
+docker tag ${IMAGE} ${HARBORURL}:443/autoshift/autoshift:${VERSIONTAG}
+docker push ${HARBORURL}:443/autoshift/autoshift:latest
+docker push ${HARBORURL}:443/autoshift/autoshift:${VERSIONTAG}
 
 
 ```

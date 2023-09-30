@@ -104,22 +104,6 @@ def query_keys(games: list[str], platforms: list[str]):
                 for p in _ps:
                     _L.debug(f"Platform: {p}, {key}")
                     all_keys[g][p].append(temp_key.copy().set(platform=p))
-            
-            #for p in _ps:
-            #    
-            #    _L.debug(f"P_keys: {p_keys}")
-            #    _L.debug(f"Platform: {p} of Platforms: {_ps}")
-            #    for key in p_keys:
-            #        _L.debug(f"key: {key}")
-            #        temp_key=key
-            #        _L.debug(f"temp_key: {temp_key}")
-            #        all_keys[g][p].append(temp_key.set(platform=p))
-            #        # all_keys[g][p].extend(temp_key.copy().set(platform=p))
-
-            #    #all_keys[g][p].extend(key.copy().set(platform=p) for key in p_keys)
-            #    #all_keys[g][p].extend(key.copy() for key in p_keys)
-            #    #all_keys[g][p].extend(key.copy().set(platform=p) )
-            #    # all_keys[g][p] = list(p_keys)#
 
             #_L.debug(f"All Keys looks like: {all_keys}")
         for p in platforms:
