@@ -256,7 +256,7 @@ class ShiftClient:
 
         soup = BSoup(r.text, "html.parser")
         if not soup.find("form", class_="new_archway_code_redemption"):
-            _L.debug(f"Count not find new_archway_code_redemption: {r.text.strip()}")
+            _L.debug(f"Could not find the form with class 'new_archway_code_redemption': {r.text.strip()}")
             return False, r.status_code, r.text.strip()
 
         titles = soup.find_all("h2")
