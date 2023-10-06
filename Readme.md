@@ -242,14 +242,20 @@ docker build -t autoshift:latest -t autoshift:${VERSIONTAG} .
 export IMAGE=$(docker images -q autoshift:latest)
 echo ${IMAGE}
 
-#Login to harbor
+#Login to local harbor
 docker login ${HARBORURL}:443
 
-#Tag and Push the image in harbor
+#Tag and Push the image to local harbor
 docker tag ${IMAGE} ${HARBORURL}:443/autoshift/autoshift:latest
 docker tag ${IMAGE} ${HARBORURL}:443/autoshift/autoshift:${VERSIONTAG}
 docker push ${HARBORURL}:443/autoshift/autoshift:latest
 docker push ${HARBORURL}:443/autoshift/autoshift:${VERSIONTAG}
 
+#Tag and Push the image to public docker hub repo
+docker login -u ugoogalizer docker.io/ugoogalizer/autoshift
+docker tag ${IMAGE} docker.io/ugoogalizer/autoshift:latest
+docker tag ${IMAGE} docker.io/ugoogalizer/autoshift:${VERSIONTAG}
+docker push docker.io/ugoogalizer/autoshift:latest
+docker push docker.io/ugoogalizer/autoshift:${VERSIONTAG}
 
 ```
