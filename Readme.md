@@ -233,7 +233,7 @@ export HARBORURL=harbor.test.com
 git pull
 
 #Set Build Parameters
-export VERSIONTAG=1.7
+export VERSIONTAG=1.8
 
 #Build the Image
 docker build -t autoshift:latest -t autoshift:${VERSIONTAG} . 
