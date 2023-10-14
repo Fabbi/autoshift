@@ -8,7 +8,7 @@
 
 Data provided by Mental Mars' Websites via this [shiftcodes.json](https://raw.githubusercontent.com/ugoogalizer/autoshift-codes/main/shiftcodes.json) file that is updated reguarly by an instance of [this scraper](https://github.com/ugoogalizer/autoshift-scraper).  You don't need to run the scraper as well, only this `autoshift` script/container.  This is to reduce the burden on the Mental Mars website given the great work they're doing to make this possible.<br>
 
-This documentation intended to be temporary until PR[#53](https://github.com/Fabbi/autoshift/issues/53) in the the upstream [autoshift by Fabbi](https://github.com/Fabbi/autoshift/) is merged in.
+This documentation intended to be temporary until Issue [#53](https://github.com/Fabbi/autoshift/issues/53) and PR [#54](https://github.com/Fabbi/autoshift/pull/54) in the the upstream [autoshift by Fabbi](https://github.com/Fabbi/autoshift/) is merged in.
 
 `autoshift` detects and memorizes new games and platforms added to the orcicorn shift key database.
 
