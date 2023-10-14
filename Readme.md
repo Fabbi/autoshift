@@ -6,15 +6,15 @@
 
 # Overview
 
-Data provided by Mental Mars' Websites via this (shiftcodes.json)[https://raw.githubusercontent.com/ugoogalizer/autoshift-codes/main/shiftcodes.json] file that is updated reguarly by an instance of (this scraper)[https://github.com/ugoogalizer/autoshift-scraper].  You don't need to run the scraper as well, only this `autoshift` script/container.  This is to reduce the burden on the Mental Mars website given the great work they're doing to make this possible.<br>
+Data provided by Mental Mars' Websites via this [shiftcodes.json](https://raw.githubusercontent.com/ugoogalizer/autoshift-codes/main/shiftcodes.json) file that is updated reguarly by an instance of [this scraper](https://github.com/ugoogalizer/autoshift-scraper).  You don't need to run the scraper as well, only this `autoshift` script/container.  This is to reduce the burden on the Mental Mars website given the great work they're doing to make this possible.<br>
 `autoshift` detects and memorizes new games and platforms added to the orcicorn shift key database.
 
 Games currently maintained by mental mars that are scraped and made available to `autoshift` are: 
-- (Borderlands)[https://mentalmars.com/game-news/borderlands-golden-keys/]
-- (Borderlands 2)[https://mentalmars.com/game-news/borderlands-2-golden-keys/]
-- (Borderlands 3)[https://mentalmars.com/game-news/borderlands-3-golden-keys/]
-- (Borderlands The Pre-Sequel)[https://mentalmars.com/game-news/bltps-golden-keys/]
-- (Tiny Tina's Wonderlands)[https://mentalmars.com/game-news/tiny-tinas-wonderlands-shift-codes]
+- [Borderlands](https://mentalmars.com/game-news/borderlands-golden-keys/)
+- [Borderlands 2](https://mentalmars.com/game-news/borderlands-2-golden-keys/)
+- [Borderlands 3](https://mentalmars.com/game-news/borderlands-3-golden-keys/)
+- [Borderlands The Pre-Sequel](https://mentalmars.com/game-news/bltps-golden-keys/)
+- [Tiny Tina's Wonderlands](https://mentalmars.com/game-news/tiny-tinas-wonderlands-shift-codes)
 
 To see which games and platforms are supported use the `auto.py --help` command.
 
