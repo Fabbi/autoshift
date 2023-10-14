@@ -153,7 +153,7 @@ def get_short_platform_key(platform: str) -> str:
 
 class Key:
     __slots__ = ("id", "reward", "code", "game", "platform", "redeemed",
-                 "type", "archived", "expires", "link")
+                 "type", "archived", "expires", "link", "expired")
     def __init__(self, **kwargs):
         self.redeemed = False
         self.id = None
@@ -359,7 +359,7 @@ def progn(*args: _VT) -> _VT:
 
 def parse_shift_orcicorn():
     import json
-    key_url = "https://shift.orcicorn.com/shift-code/index.json"
+    key_url = "https://raw.githubusercontent.com/ugoogalizer/autoshift-codes/main/shiftcodes.json"
 
 
     resp = requests.get(key_url)
@@ -373,13 +373,19 @@ def parse_shift_orcicorn():
         _L.error("Invalid response. Please contact the developer @ github.com/fabbi")
         return None
 
+    # Remove expired keys by default (by creating a new dict without them)
+    valid_codes = []
+    for code_data in data["codes"]:
+        if code_data['expired'] == True:
+            continue
+        else:
+            valid_codes.append(code_data)
 
     if parse_shift_orcicorn.first_parse:
         parse_shift_orcicorn.first_parse = False
         print_banner(data)
 
-
-    for code_data in data["codes"]:
+    for code_data in valid_codes:
         keys: Iterable[Key]= [Key(**code_data)]
 
         # 1. special_key_handler

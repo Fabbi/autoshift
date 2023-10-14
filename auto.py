@@ -46,7 +46,7 @@ def redeem(key: Key):
     import query
     """Redeem key and set as redeemed if successfull"""
 
-    _L.info(f"Trying to redeem {key.reward} ({key.code})")
+    _L.info(f"Trying to redeem {key.reward} ({key.code}) on {key.platform}")
     status = client.redeem(key.code, known_games[key.game], key.platform)
     _L.debug(f"Status: {status}")
 
@@ -96,10 +96,16 @@ def query_keys(games: list[str], platforms: list[str]):
             if platform == "universal":
                 _ps = platforms.copy()
 
-            for p in _ps:
-                all_keys[g][p].extend(key.copy().set(platform=p) for key in p_keys)
-                # all_keys[g][p] = list(p_keys)
+            #_L.debug(f"First Keys looks like: {all_keys}")
+            # When universal, the key needs to be copied to each platform. temp_key is required to prevent iterator moving past the key before 
+            # it's been copied for each platform
+            for key in p_keys:
+                temp_key=key
+                for p in _ps:
+                    _L.debug(f"Platform: {p}, {key}")
+                    all_keys[g][p].append(temp_key.copy().set(platform=p))
 
+            #_L.debug(f"All Keys looks like: {all_keys}")
         for p in platforms:
             # count the new keys
             n_golden = sum(int(cast(Match[str], m).group(1) or 1)
@@ -185,7 +191,9 @@ def main(args):
         # now redeem
         for game in all_keys.keys():
             for platform in all_keys[game].keys():
+                _L.info(f"Redeeming for {game} on {platform}")
                 t_keys = list(filter(lambda key: not key.redeemed, all_keys[game][platform]))
+                _L.info(f"Keys to be redeemed: {t_keys}")
                 for num, key in enumerate(t_keys):
 
                     if (num and not (num % 15)) or client.last_status == Status.SLOWDOWN:
@@ -195,22 +203,25 @@ def main(args):
                             _L.info("Trying to prevent a 'too many requests'-block.")
                         sleep(60)
 
-                    _L.info(f"Key #{num+1}/{len(t_keys)}")
+                    _L.info(f"Key #{num+1}/{len(t_keys)} for {game} on {platform}")
                     num_g_keys = 0  # number of golden keys in this code
                     m = r_golden_keys.match(key.reward)
 
                     # skip keys we don't want
                     if ((args.golden and not m) or (args.non_golden and m)):
+                        _L.debug("Skipping key not wanted")
                         continue
 
                     if m:
                         num_g_keys = int(m.group(1) or 1)
                         # skip golden keys if we reached the limit
                         if args.limit <= 0:
+                            _L.debug("Skipping key as we've reached a limit")
                             continue
 
                         # skip if this code has too many golden keys
                         if (args.limit - num_g_keys) < 0:
+                            _L.debug("Skipping key that has too many golden keys")
                             continue
 
                     redeemed = redeem(key)

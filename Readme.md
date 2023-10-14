@@ -30,7 +30,11 @@ or download it as zip
 you'll need to install a few dependencies
 
 ```sh
+cd ./autoshift
+python3 -m venv venv
+source ./venv/bin/activate
 pip install -r requirements.txt
+mkdir -p ./data
 ```
 
 ## Usage
@@ -208,3 +212,50 @@ Your timezone
 Default: `America/Chicago`
 
 Example: `Europe/London`
+
+## Building Docker Image
+
+``` bash
+docker build -t autoshift:latest .
+
+```
+
+## Building Docker Image and Pushing to local Harbor
+
+``` bash
+
+# Once off setup: 
+git clone TODO
+
+# Personal parameters
+export HARBORURL=harbor.test.com
+
+git pull
+
+#Set Build Parameters
+export VERSIONTAG=1.8
+
+#Build the Image
+docker build -t autoshift:latest -t autoshift:${VERSIONTAG} . 
+
+#Get the image name, it will be something like 41d81c9c2d99: 
+export IMAGE=$(docker images -q autoshift:latest)
+echo ${IMAGE}
+
+#Login to local harbor
+docker login ${HARBORURL}:443
+
+#Tag and Push the image to local harbor
+docker tag ${IMAGE} ${HARBORURL}:443/autoshift/autoshift:latest
+docker tag ${IMAGE} ${HARBORURL}:443/autoshift/autoshift:${VERSIONTAG}
+docker push ${HARBORURL}:443/autoshift/autoshift:latest
+docker push ${HARBORURL}:443/autoshift/autoshift:${VERSIONTAG}
+
+#Tag and Push the image to public docker hub repo
+docker login -u ugoogalizer docker.io/ugoogalizer/autoshift
+docker tag ${IMAGE} docker.io/ugoogalizer/autoshift:latest
+docker tag ${IMAGE} docker.io/ugoogalizer/autoshift:${VERSIONTAG}
+docker push docker.io/ugoogalizer/autoshift:latest
+docker push docker.io/ugoogalizer/autoshift:${VERSIONTAG}
+
+```
