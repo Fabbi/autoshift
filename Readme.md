@@ -124,7 +124,7 @@ docker run \
   -e SHIFT_USER='<username>' \
   -e SHIFT_PASS='<password>' \
   -e SHIFT_GAMES='bl3 blps bl2 bl1 ttw' \
-  -e SHIFT_PLATFORMS='epic xboxlive psn' \
+  -e SHIFT_PLATFORMS='epic xboxlive psn nintendo' \
   -e SHIFT_ARGS='--schedule -v' \
   -e TZ='America/Chicago' \
   -v autoshift:/autoshift/data \

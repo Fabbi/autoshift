@@ -77,6 +77,7 @@ known_platforms = SymmetricDict({
     "epic":      "epic",
     "psn":       "playstation",
     "xboxlive":  "xbox",
+    "nintendo":  "nintendo",
     "stadia":    "", # this one could be a substring
     "universal": "universal"
 })
