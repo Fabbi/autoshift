@@ -286,6 +286,7 @@ Example: `xbox` or `xbox ps`
 |Xbox|`xboxlive`|
 |Playstation|`psn`|
 |Stadia|`stadia`|
+|Nintendo|`nintendo`|
 
 
 #### **SHIFT_ARGS** (optional)
