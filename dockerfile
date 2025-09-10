@@ -1,11 +1,37 @@
-FROM python:3.10-slim
+FROM python:3.12-alpine AS base
 
-ENV SHIFT_GAMES='bl3 blps bl2 bl1' \
-    SHIFT_PLATFORMS='epic steam' \
-    SHIFT_ARGS='--schedule' \
-    TZ='America/Chicago'
+# copy UV from original distroless image
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+ENV UV_LINK_MODE=copy
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_PYTHON_DOWNLOADS=never
+# tell UV where to put the virtual env
+ENV UV_PROJECT_ENVIRONMENT=/autoshift/.venv
+# should be default but better safe then sorry..
+ENV UV_CACHE_DIR=/root/.cache
+
+WORKDIR /autoshift
+
+RUN --mount=type=cache,dst=/root/.cache/uv \
+    --mount=type=bind,src=uv.lock,dst=uv.lock \
+    --mount=type=bind,src=pyproject.toml,dst=pyproject.toml \
+    uv sync --frozen --no-install-project --no-group dev
+
+FROM base
+
+
+ENV VIRTUAL_ENV=/autoshift/.venv
+ENV PATH="${VIRTUAL_ENV}/bin:$PATH"
+ENV PYTHONPATH=/autoshift
+
+WORKDIR /autoshift
 
 COPY . /autoshift/
-RUN pip install -r ./autoshift/requirements.txt && \
-    mkdir -p ./autoshift/data
-CMD python ./autoshift/auto.py --user ${SHIFT_USER} --pass ${SHIFT_PASS} --games ${SHIFT_GAMES} --platforms ${SHIFT_PLATFORMS} ${SHIFT_ARGS}
+
+ENTRYPOINT ["uv", "run", "/autoshift/auto.py"]
+CMD [
+    "--games", "bl3 blps bl2 bl1",
+    "--platforms", "epic steam",
+    "--schedule"
+    ]

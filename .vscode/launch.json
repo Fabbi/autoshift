@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Autoshift",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "auto.py",
+            "args": [
+                "--game",
+                "bl3",
+                "--debug"
+            ],
+        }
+    ]
+}
