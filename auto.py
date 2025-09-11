@@ -23,13 +23,34 @@
 from __future__ import print_function
 
 import sys
-from typing import Match, cast
+from enum import Enum
+from typing import Annotated, Match, cast
+
+import typer
+from typer import Typer
 
 from common import _L, DEBUG, DIRNAME, INFO
 # from query import BL3
 from query import Key, known_games, known_platforms
 from shift import ShiftClient, Status
 
+# Create Enums for valid choices
+class GameChoice(str, Enum):
+    bl1 = "bl1"
+    bl2 = "bl2" 
+    bl3 = "bl3"
+    blps = "blps"
+    ttw = "ttw"
+    gdfll = "gdfll"
+
+class PlatformChoice(str, Enum):
+    steam = "steam"
+    epic = "epic"
+    psn = "psn"
+    xboxlive = "xboxlive"
+    stadia = "stadia"
+
+app = Typer(help="AutoSHiFt: Automatically redeem Gearbox SHiFT Codes")
 client: ShiftClient = None # type: ignore
 
 LICENSE_TEXT = """\
@@ -114,54 +135,92 @@ def query_keys(games: list[str], platforms: list[str]):
     return all_keys
 
 
-def setup_argparser():
-    import argparse
-    import textwrap
-    games = list(known_games.keys())
-    platforms = list(known_platforms.without("universal").keys())
+@app.command("redeem")
+def redeem_codes(
+    games: Annotated[list[GameChoice], typer.Option(
+        help="Games you want to query SHiFT keys for"
+    )],
+    platforms: Annotated[list[PlatformChoice], typer.Option(
+        help="Platforms you want to query SHiFT keys for"
+    )],
+    user: Annotated[str | None, typer.Option(
+        "--user", "-u",
+        help="User login (optional, will prompt if not provided)"
+    )] = None,
+    password: Annotated[str | None, typer.Option(
+        "--pass", "--password",
+        help="Password for your login (optional, will prompt if not provided)"
+    )] = None,
+    golden: Annotated[bool, typer.Option(
+        "--golden",
+        help="Only redeem golden keys"
+    )] = False,
+    non_golden: Annotated[bool, typer.Option(
+        "--non-golden",
+        help="Only redeem non-golden keys"
+    )] = False,
+    limit: Annotated[int, typer.Option(
+        "--limit",
+        help="Max number of golden keys to redeem (default 200, max 255)"
+    )] = 200,
+    schedule: Annotated[float | None, typer.Option(
+        "--schedule", "-s",
+        help="Keep checking for keys every N hours (minimum 2)"
+    )] = None,
+    verbose: Annotated[bool, typer.Option(
+        "--verbose", "-v",
+        help="Enable verbose mode"
+    )] = False,
+):
+    """Redeem SHiFT codes for specified games and platforms."""
+    # Convert enums to strings for compatibility with existing code
+    games_str = [game.value for game in games]
+    platforms_str = [platform.value for platform in platforms]
+    
+    # Set up logging
+    _L.setLevel(INFO)
+    if verbose:
+        _L.setLevel(DEBUG)
+        _L.debug("Debug mode on")
+    
+    if schedule and schedule < 2:
+        _L.warning(f"Running this tool every {schedule} hours would result in "
+                  "too many requests.\n"
+                  "Scheduling changed to run every 2 hours!")
+        schedule = 2
+    
+    # Check for first-time usage
+    import os
+    if not os.path.exists(os.path.join(DIRNAME, "data", ".cookies.save")):
+        typer.echo(LICENSE_TEXT)
+    
+    # Execute main logic
+    main(games_str, platforms_str, user, password, golden, non_golden, limit, verbose)
+    
+    # Handle scheduling
+    if schedule:
+        hours = int(schedule)
+        minutes = int((schedule-hours)*60+1e-5)
+        _L.info(f"Scheduling to run every {hours:02}:{minutes:02} hours")
+        from apscheduler.schedulers.blocking import BlockingScheduler
+        scheduler = BlockingScheduler()
+        scheduler.add_job(
+            main, "interval", 
+            args=(games_str, platforms_str, user, password, golden, non_golden, limit, verbose),
+            hours=schedule
+        )
+        typer.echo(f"Press Ctrl+{'Break' if os.name == 'nt' else 'C'} to exit")
+        
+        try:
+            scheduler.start()
+        except (KeyboardInterrupt, SystemExit):
+            pass
+    
+    _L.info("Goodbye.")
 
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("-u", "--user",
-                        default=None,
-                        help=("User login you want to use "
-                              "(optional. You will be prompted to enter your "
-                              " credentials if you didn't specify them here)"))
-    parser.add_argument("-p", "--pass",
-                        help=("Password for your login. "
-                              "(optional. You will be prompted to enter your "
-                              " credentials if you didn't specify them here)"))
-    parser.add_argument("--golden",
-                        action="store_true",
-                        help="Only redeem golden keys")
-    parser.add_argument("--non-golden", dest="non_golden",
-                        action="store_true",
-                        help="Only redeem non-golden keys")
-    parser.add_argument("--games",
-                        type=str, required=True,
-                        choices=games, nargs="+",
-                        help=("Games you want to query SHiFT keys for"))
-    parser.add_argument("--platforms",
-                        type=str, required=True,
-                        choices=platforms, nargs="+",
-                        help=("Platforms you want to query SHiFT keys for"))
-    parser.add_argument("--limit",
-                        type=int, default=200,
-                        help=textwrap.dedent("""\
-                        Max number of golden Keys you want to redeem.
-                        (default 200)
-                        NOTE: You can only have 255 keys at any given time!""")) # noqa
-    parser.add_argument("--schedule",
-                        type=float, const=2, nargs="?",
-                        help="Keep checking for keys and redeeming every hour")
-    parser.add_argument("-v", dest="verbose",
-                        action="store_true",
-                        help="Verbose mode")
 
-    return parser
-
-
-def main(args):
+def main(games: list[str], platforms: list[str], user: str | None, password: str | None, 
+         golden: bool, non_golden: bool, limit: int, verbose: bool):
     global client
     from time import sleep
 
@@ -170,13 +229,13 @@ def main(args):
 
     with db:
         if not client:
-            client = ShiftClient(args.user, args.pw)
+            client = ShiftClient(user, password)
 
         # query all keys
-        all_keys = query_keys(args.games, args.platforms)
+        all_keys = query_keys(games, platforms)
 
         # redeem 0 golden keys but only golden??... duh
-        if not args.limit and args.golden:
+        if not limit and golden:
             _L.info("Not redeeming anything ...")
             return
 
@@ -200,23 +259,23 @@ def main(args):
                     m = r_golden_keys.match(key.reward)
 
                     # skip keys we don't want
-                    if ((args.golden and not m) or (args.non_golden and m)):
+                    if ((golden and not m) or (non_golden and m)):
                         continue
 
                     if m:
                         num_g_keys = int(m.group(1) or 1)
                         # skip golden keys if we reached the limit
-                        if args.limit <= 0:
+                        if limit <= 0:
                             continue
 
                         # skip if this code has too many golden keys
-                        if (args.limit - num_g_keys) < 0:
+                        if (limit - num_g_keys) < 0:
                             continue
 
                     redeemed = redeem(key)
                     if redeemed:
-                        args.limit -= num_g_keys
-                        _L.info(f"Redeeming another {args.limit} Keys")
+                        limit -= num_g_keys
+                        _L.info(f"Redeeming another {limit} Keys")
                     else:
                         # don't spam if we reached the hourly limit
                         if client.last_status == Status.TRYLATER:
@@ -226,45 +285,4 @@ def main(args):
 
 
 if __name__ == "__main__":
-    import os
-
-    # only print license text on first use
-    if not os.path.exists(os.path.join(DIRNAME, "data", ".cookies.save")):
-        print(LICENSE_TEXT)
-
-    # build argument parser
-    parser = setup_argparser()
-    args = parser.parse_args()
-
-    args.pw = getattr(args, "pass")
-
-    _L.setLevel(INFO)
-    if args.verbose:
-        _L.setLevel(DEBUG)
-        _L.debug("Debug mode on")
-
-    if args.schedule and args.schedule < 2:
-        _L.warn(f"Running this tool every {args.schedule} hours would result in "
-                "too many requests.\n"
-                "Scheduling changed to run every 2 hours!")
-
-    # always execute at least once
-    main(args)
-
-    # scheduling will start after first trigger (so in an hour..)
-    if args.schedule:
-        hours = int(args.schedule)
-        minutes = int((args.schedule-hours)*60+1e-5)
-        _L.info(f"Scheduling to run every {hours:02}:{minutes:02} hours")
-        from apscheduler.schedulers.blocking import BlockingScheduler
-        scheduler = BlockingScheduler()
-        # fire every 1h5m (to prevent being blocked by the shift platform.)
-        #  (5min safe margin because it somtimes fires a few seconds too early)
-        scheduler.add_job(main, "interval", args=(args,), hours=args.schedule)
-        print(f"Press Ctrl+{'Break' if os.name == 'nt' else 'C'} to exit")
-
-        try:
-            scheduler.start()
-        except (KeyboardInterrupt, SystemExit):
-            pass
-    _L.info("Goodbye.")
+    app()
