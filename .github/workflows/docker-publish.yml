@@ -29,5 +29,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/myimage:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/myimage:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/autoshift:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/autoshift:${{ github.sha }}
