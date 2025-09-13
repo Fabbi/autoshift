@@ -2,11 +2,11 @@
 
 - **Compatibility:** 3.9+.
 - **Platform:** Crossplatform.
-- **Repo:** https://github.com/ugoogalizer/autoshift forked from https://github.com/Fabbi/autoshift
+- **Repo:** https://github.com/zarmstrong/autoshift forked from https://github.com/ugoogalizer/autoshift forked from https://github.com/Fabbi/autoshift
 
 # Overview
 
-Data provided by Mental Mars' Websites via this [shiftcodes.json](https://raw.githubusercontent.com/zarmstrong/autoshift-codes/main/shiftcodes.json) file that is updated reguarly by an instance of [this scraper](https://github.com/ugoogalizer/autoshift-scraper).  You don't need to run the scraper as well, only this `autoshift` script/container.  This is to reduce the burden on the Mental Mars website given the great work they're doing to make this possible.<br>
+Data provided by Mental Mars' Websites via this [shiftcodes.json](https://raw.githubusercontent.com/zarmstrong/autoshift-codes/main/shiftcodes.json) file that is updated reguarly by an instance of [this scraper](https://github.com/zarmstrong/autoshift-scraper).  You don't need to run the scraper as well, only this `autoshift` script/container.  This is to reduce the burden on the Mental Mars website given the great work they're doing to make this possible.<br>
 
 This documentation intended to be temporary until Issue [#53](https://github.com/Fabbi/autoshift/issues/53) and PR [#54](https://github.com/Fabbi/autoshift/pull/54) in the the upstream [autoshift by Fabbi](https://github.com/Fabbi/autoshift/) is merged in.
 
@@ -16,6 +16,7 @@ Games currently maintained by mental mars that are scraped and made available to
 - [Borderlands](https://mentalmars.com/game-news/borderlands-golden-keys/)
 - [Borderlands 2](https://mentalmars.com/game-news/borderlands-2-golden-keys/)
 - [Borderlands 3](https://mentalmars.com/game-news/borderlands-3-golden-keys/)
+- [Borderlands 4](https://mentalmars.com/game-news/borderlands-4-shift-codes/)
 - [Borderlands The Pre-Sequel](https://mentalmars.com/game-news/bltps-golden-keys/)
 - [Tiny Tina's Wonderlands](https://mentalmars.com/game-news/tiny-tinas-wonderlands-shift-codes)
 
@@ -31,7 +32,7 @@ You can choose to only redeem mods/skins etc, only golden keys or both. There is
 ## Installation
 
 ```sh
-git clone git@github.com:ugoogalizer/autoshift.git
+git clone git@github.com:zarmstrong/autoshift.git
 ```
 
 or download it as zip
@@ -128,7 +129,7 @@ docker run \
   -e SHIFT_ARGS='--schedule -v' \
   -e TZ='America/Chicago' \
   -v autoshift:/autoshift/data \
-  ugoogalizer/autoshift:latest
+  zarmstrong/autoshift:latest
 ```
 
 ## Docker Compose Usage:
@@ -138,7 +139,7 @@ docker run \
 version: "3.0"
 services:
   autoshift:
-    image: ugoogalizer/autoshift:latest
+    image: zarmstrong/autoshift:latest
     container_name: autoshift_all
     restart: always
     volumes:
@@ -186,9 +187,7 @@ spec:
     spec:
       containers:
         - name: autoshift
-          # Fix version so it doesn't auto-update
-          #image: fabianschweinfurth/autoshift@sha256:4cc0232e371f574c992fa7df3290f3fd037f4c36e4cc00c79f8228634bb08550
-          image: ugoogalizer/autoshift/autoshift:1.8
+          image: zarmstrong/autoshift/autoshift:latest
           imagePullPolicy: IfNotPresent
           env:
             - name: SHIFT_USER
@@ -352,10 +351,10 @@ docker push ${HARBORURL}:443/autoshift/autoshift:latest
 docker push ${HARBORURL}:443/autoshift/autoshift:${VERSIONTAG}
 
 #Tag and Push the image to public docker hub repo
-docker login -u ugoogalizer docker.io/ugoogalizer/autoshift
-docker tag ${IMAGE} docker.io/ugoogalizer/autoshift:latest
-docker tag ${IMAGE} docker.io/ugoogalizer/autoshift:${VERSIONTAG}
-docker push docker.io/ugoogalizer/autoshift:latest
-docker push docker.io/ugoogalizer/autoshift:${VERSIONTAG}
+docker login -u zarmstrong docker.io/zarmstrong/autoshift
+docker tag ${IMAGE} docker.io/zarmstrong/autoshift:latest
+docker tag ${IMAGE} docker.io/zarmstrong/autoshift:${VERSIONTAG}
+docker push docker.io/zarmstrong/autoshift:latest
+docker push docker.io/zarmstrong/autoshift:${VERSIONTAG}
 
 ```
