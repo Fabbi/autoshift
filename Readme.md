@@ -129,7 +129,7 @@ docker run \
   -e SHIFT_ARGS='--schedule -v' \
   -e TZ='America/Chicago' \
   -v autoshift:/autoshift/data \
-  zarmstrong/autoshift:latest
+  zacharmstrong/autoshift:latest
 ```
 
 ## Docker Compose Usage:
@@ -139,7 +139,7 @@ docker run \
 version: "3.0"
 services:
   autoshift:
-    image: zarmstrong/autoshift:latest
+    image: zacharmstrong/autoshift:latest
     container_name: autoshift_all
     restart: always
     volumes:
@@ -187,7 +187,7 @@ spec:
     spec:
       containers:
         - name: autoshift
-          image: zarmstrong/autoshift/autoshift:latest
+          image: zacharmstrong/autoshift:latest
           imagePullPolicy: IfNotPresent
           env:
             - name: SHIFT_USER
@@ -351,10 +351,10 @@ docker push ${HARBORURL}:443/autoshift/autoshift:latest
 docker push ${HARBORURL}:443/autoshift/autoshift:${VERSIONTAG}
 
 #Tag and Push the image to public docker hub repo
-docker login -u zarmstrong docker.io/zarmstrong/autoshift
-docker tag ${IMAGE} docker.io/zarmstrong/autoshift:latest
-docker tag ${IMAGE} docker.io/zarmstrong/autoshift:${VERSIONTAG}
-docker push docker.io/zarmstrong/autoshift:latest
-docker push docker.io/zarmstrong/autoshift:${VERSIONTAG}
+docker login -u zacharmstrong docker.io/zacharmstrong/autoshift
+docker tag ${IMAGE} docker.io/zacharmstrong/autoshift:latest
+docker tag ${IMAGE} docker.io/zacharmstrong/autoshift:${VERSIONTAG}
+docker push docker.io/zacharmstrong/autoshift:latest
+docker push docker.io/zacharmstrong/autoshift:${VERSIONTAG}
 
 ```
