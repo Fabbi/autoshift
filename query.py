@@ -66,6 +66,7 @@ known_games = SymmetricDict({
     "bl1":  "Borderlands: Game of the Year Edition",
     "bl2":  "Borderlands 2",
     "bl3":  "Borderlands 3",
+    "bl4":  "Borderlands 4",
     "blps": "Borderlands: The Pre-Sequel",
     "ttw":  "Tiny Tina's Wonderland",
     "gdfll": "Godfall",
@@ -360,7 +361,7 @@ def progn(*args: _VT) -> _VT:
 
 def parse_shift_orcicorn():
     import json
-    key_url = "https://raw.githubusercontent.com/ugoogalizer/autoshift-codes/main/shiftcodes.json"
+    key_url = "https://raw.githubusercontent.com/zarmstrong/autoshift-codes/main/shiftcodes.json"
 
 
     resp = requests.get(key_url)
