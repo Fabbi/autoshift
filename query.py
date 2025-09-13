@@ -361,7 +361,7 @@ def progn(*args: _VT) -> _VT:
 
 def parse_shift_orcicorn():
     import json
-    key_url = "https://raw.githubusercontent.com/ugoogalizer/autoshift-codes/main/shiftcodes.json"
+    key_url = "https://raw.githubusercontent.com/zarmstrong/autoshift-codes/main/shiftcodes.json"
 
 
     resp = requests.get(key_url)
