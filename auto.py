@@ -26,11 +26,12 @@ import sys
 from typing import Match, cast
 
 from common import _L, DEBUG, DIRNAME, INFO
+
 # from query import BL3
 from query import Key, known_games, known_platforms
 from shift import ShiftClient, Status
 
-client: ShiftClient = None # type: ignore
+client: ShiftClient = None  # type: ignore
 
 LICENSE_TEXT = """\
 ========================================================================
@@ -44,6 +45,7 @@ under certain conditions; see LICENSE for details.
 
 def redeem(key: Key):
     import query
+
     """Redeem key and set as redeemed if successfull"""
 
     _L.info(f"Trying to redeem {key.reward} ({key.code}) on {key.platform}")
@@ -51,8 +53,7 @@ def redeem(key: Key):
     _L.debug(f"Status: {status}")
 
     # set redeemed status
-    if status in (Status.SUCCESS, Status.REDEEMED,
-                  Status.EXPIRED, Status.INVALID):
+    if status in (Status.SUCCESS, Status.REDEEMED, Status.EXPIRED, Status.INVALID):
         query.db.set_redeemed(key)
 
     # notify user
@@ -65,104 +66,159 @@ def redeem(key: Key):
     return status == Status.SUCCESS
 
 
-def query_keys(games: list[str], platforms: list[str]):
-    """Query new keys for given games and platforms
+def parse_redeem_mapping(args):
+    """
+    Returns a dict mapping game -> list of platforms.
+    If --redeem is not used, returns None.
+    """
+    if hasattr(args, "redeem") and args.redeem:
+        mapping = {}
+        for entry in args.redeem:
+            if ":" not in entry:
+                _L.error(
+                    f"Invalid --redeem entry: {entry}. Use format game:platform[,platform...]"
+                )
+                continue
+            game, plats = entry.split(":", 1)
+            mapping[game] = [p.strip() for p in plats.split(",") if p.strip()]
+        return mapping
+    return None
 
-    Returns dict of dicts of lists with [game][platform] as keys"""
+
+def query_keys_with_mapping(redeem_mapping, games, platforms):
+    """
+    Returns dict of dicts of lists with [game][platform] as keys,
+    using the redeem_mapping if provided.
+    """
     from itertools import groupby
-
     import query
+
     all_keys: dict[str, dict[str, list[Key]]] = {}
 
     keys = list(query.db.get_keys(None, None))
-    # parse all keys
     query.update_keys()
     new_keys = list(query.db.get_keys(None, None))
-
     diff = len(new_keys) - len(keys)
     _L.info(f"done. ({diff if diff else 'no'} new Keys)")
 
     _g = lambda key: key.game
     _p = lambda key: key.platform
     for g, g_keys in groupby(sorted(new_keys, key=_g), _g):
-        if g not in games:
-            continue
-        all_keys[g] = {p: [] for p in platforms}
+        if redeem_mapping:
+            if g not in redeem_mapping:
+                continue
+            plats = redeem_mapping[g]
+        else:
+            if g not in games:
+                continue
+            plats = platforms
+
+        all_keys[g] = {p: [] for p in plats}
         for platform, p_keys in groupby(sorted(g_keys, key=_p), _p):
-            if platform not in platforms and platform != "universal":
+            if platform not in plats and platform != "universal":
                 continue
 
             _ps = [platform]
             if platform == "universal":
-                _ps = platforms.copy()
+                _ps = plats.copy()
 
-            #_L.debug(f"First Keys looks like: {all_keys}")
-            # When universal, the key needs to be copied to each platform. temp_key is required to prevent iterator moving past the key before 
-            # it's been copied for each platform
             for key in p_keys:
-                temp_key=key
+                temp_key = key
                 for p in _ps:
                     _L.debug(f"Platform: {p}, {key}")
                     all_keys[g][p].append(temp_key.copy().set(platform=p))
-
-            #_L.debug(f"All Keys looks like: {all_keys}")
-        for p in platforms:
-            # count the new keys
-            n_golden = sum(int(cast(Match[str], m).group(1) or 1)
-                            for m in
-                            filter(lambda m:
-                                    m  and m.group(1) is not None,
-                                    map(lambda key: query.r_golden_keys.match(key.reward),
-                                        all_keys[g][p])))
-
-            _L.info(f"You have {n_golden} golden {g.upper()} keys to redeem for {p.upper()}")
-
+        for p in plats:
+            n_golden = sum(
+                int(cast(Match[str], m).group(1) or 1)
+                for m in filter(
+                    lambda m: m and m.group(1) is not None,
+                    map(
+                        lambda key: query.r_golden_keys.match(key.reward),
+                        all_keys[g][p],
+                    ),
+                )
+            )
+            _L.info(
+                f"You have {n_golden} golden {g.upper()} keys to redeem for {p.upper()}"
+            )
     return all_keys
 
 
 def setup_argparser():
     import argparse
     import textwrap
+
     games = list(known_games.keys())
     platforms = list(known_platforms.without("universal").keys())
 
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("-u", "--user",
-                        default=None,
-                        help=("User login you want to use "
-                              "(optional. You will be prompted to enter your "
-                              " credentials if you didn't specify them here)"))
-    parser.add_argument("-p", "--pass",
-                        help=("Password for your login. "
-                              "(optional. You will be prompted to enter your "
-                              " credentials if you didn't specify them here)"))
-    parser.add_argument("--golden",
-                        action="store_true",
-                        help="Only redeem golden keys")
-    parser.add_argument("--non-golden", dest="non_golden",
-                        action="store_true",
-                        help="Only redeem non-golden keys")
-    parser.add_argument("--games",
-                        type=str, required=True,
-                        choices=games, nargs="+",
-                        help=("Games you want to query SHiFT keys for"))
-    parser.add_argument("--platforms",
-                        type=str, required=True,
-                        choices=platforms, nargs="+",
-                        help=("Platforms you want to query SHiFT keys for"))
-    parser.add_argument("--limit",
-                        type=int, default=200,
-                        help=textwrap.dedent("""\
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument(
+        "-u",
+        "--user",
+        default=None,
+        help=(
+            "User login you want to use "
+            "(optional. You will be prompted to enter your "
+            " credentials if you didn't specify them here)"
+        ),
+    )
+    parser.add_argument(
+        "-p",
+        "--pass",
+        help=(
+            "Password for your login. "
+            "(optional. You will be prompted to enter your "
+            " credentials if you didn't specify them here)"
+        ),
+    )
+    parser.add_argument("--golden", action="store_true", help="Only redeem golden keys")
+    parser.add_argument(
+        "--non-golden",
+        dest="non_golden",
+        action="store_true",
+        help="Only redeem non-golden keys",
+    )
+    parser.add_argument(
+        "--games",
+        type=str,
+        required=False,
+        choices=games,
+        nargs="+",
+        help=("Games you want to query SHiFT keys for"),
+    )
+    parser.add_argument(
+        "--platforms",
+        type=str,
+        required=False,
+        choices=platforms,
+        nargs="+",
+        help=("Platforms you want to query SHiFT keys for"),
+    )
+    parser.add_argument(
+        "--redeem",
+        type=str,
+        nargs="+",
+        help="Specify which platforms to redeem which games for. Format: bl3:steam,epic bl2:epic",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=200,
+        help=textwrap.dedent(
+            """\
                         Max number of golden Keys you want to redeem.
                         (default 200)
-                        NOTE: You can only have 255 keys at any given time!""")) # noqa
-    parser.add_argument("--schedule",
-                        type=float, const=2, nargs="?",
-                        help="Keep checking for keys and redeeming every hour")
-    parser.add_argument("-v", dest="verbose",
-                        action="store_true",
-                        help="Verbose mode")
+                        NOTE: You can only have 255 keys at any given time!"""
+        ),
+    )  # noqa
+    parser.add_argument(
+        "--schedule",
+        type=float,
+        const=2,
+        nargs="?",
+        help="Keep checking for keys and redeeming every hour",
+    )
+    parser.add_argument("-v", dest="verbose", action="store_true", help="Verbose mode")
 
     return parser
 
@@ -174,12 +230,25 @@ def main(args):
     import query
     from query import db, r_golden_keys
 
+    redeem_mapping = parse_redeem_mapping(args)
+    if redeem_mapping:
+        # New mapping mode
+        games = list(redeem_mapping.keys())
+        platforms = sorted(set(p for plats in redeem_mapping.values() for p in plats))
+    else:
+        # Legacy mode
+        games = args.games
+        platforms = args.platforms
+        _L.warning(
+            "You are using the legacy --games/--platforms format. "
+            "In the future, use --redeem bl3:steam,epic bl2:epic for more control."
+        )
+
     with db:
         if not client:
             client = ShiftClient(args.user, args.pw)
 
-        # query all keys
-        all_keys = query_keys(args.games, args.platforms)
+        all_keys = query_keys_with_mapping(redeem_mapping, games, platforms)
 
         # redeem 0 golden keys but only golden??... duh
         if not args.limit and args.golden:
@@ -192,11 +261,15 @@ def main(args):
         for game in all_keys.keys():
             for platform in all_keys[game].keys():
                 _L.info(f"Redeeming for {game} on {platform}")
-                t_keys = list(filter(lambda key: not key.redeemed, all_keys[game][platform]))
+                t_keys = list(
+                    filter(lambda key: not key.redeemed, all_keys[game][platform])
+                )
                 _L.info(f"Keys to be redeemed: {t_keys}")
                 for num, key in enumerate(t_keys):
 
-                    if (num and not (num % 15)) or client.last_status == Status.SLOWDOWN:
+                    if (
+                        num and not (num % 15)
+                    ) or client.last_status == Status.SLOWDOWN:
                         if client.last_status == Status.SLOWDOWN:
                             _L.info("Slowing down a bit..")
                         else:
@@ -208,7 +281,7 @@ def main(args):
                     m = r_golden_keys.match(key.reward)
 
                     # skip keys we don't want
-                    if ((args.golden and not m) or (args.non_golden and m)):
+                    if (args.golden and not m) or (args.non_golden and m):
                         _L.debug("Skipping key not wanted")
                         continue
 
@@ -255,9 +328,11 @@ if __name__ == "__main__":
         _L.debug("Debug mode on")
 
     if args.schedule and args.schedule < 2:
-        _L.warn(f"Running this tool every {args.schedule} hours would result in "
-                "too many requests.\n"
-                "Scheduling changed to run every 2 hours!")
+        _L.warn(
+            f"Running this tool every {args.schedule} hours would result in "
+            "too many requests.\n"
+            "Scheduling changed to run every 2 hours!"
+        )
 
     # always execute at least once
     main(args)
@@ -265,9 +340,10 @@ if __name__ == "__main__":
     # scheduling will start after first trigger (so in an hour..)
     if args.schedule:
         hours = int(args.schedule)
-        minutes = int((args.schedule-hours)*60+1e-5)
+        minutes = int((args.schedule - hours) * 60 + 1e-5)
         _L.info(f"Scheduling to run every {hours:02}:{minutes:02} hours")
         from apscheduler.schedulers.blocking import BlockingScheduler
+
         scheduler = BlockingScheduler()
         # fire every 1h5m (to prevent being blocked by the shift platform.)
         #  (5min safe margin because it somtimes fires a few seconds too early)

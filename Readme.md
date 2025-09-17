@@ -49,49 +49,32 @@ mkdir -p ./data
 
 ## Usage
 
-- for help
+You can now specify exactly which platforms should redeem which games' SHiFT codes using the `--redeem` argument.  
+**Recommended:** Use `--redeem` for fine-grained control.  
+**Legacy:** You can still use `--games` and `--platforms` together, but a warning will be printed and all games will be redeemed on all platforms.
+
+### New (Recommended) Usage
+
+- Redeem codes for Borderlands 3 on Steam and Epic, and Borderlands 2 on Epic only:
 ```sh
-./auto.py --help
+./auto.py --redeem bl3:steam,epic bl2:epic
 ```
 
-- redeem codes for Borderlands 3 on Steam
+- Redeem codes for Borderlands 3 on Steam only:
 ```sh
-./auto.py --game bl3 --platform steam
+./auto.py --redeem bl3:steam
 ```
 
-- redeem codes for Borderlands 3 on Steam using Username and Password (Use quotes for User and Password)
+- You can still use other options, e.g.:
 ```sh
-./auto.py --game bl3 --platform steam --user "my@user.edu" --pass "p4ssw0rd!123"
+./auto.py --redeem bl3:steam,epic --golden --limit 10
 ```
 
-- keep redeeming every 2 hours
-```sh
-./auto.py --game bl3 --platform steam --schedule
-```
+### Legacy Usage (still supported, but prints a warning)
 
-- keep redeeming every `n` hours (values < 2 are not possible due to IP Bans)
+- Redeem codes for Borderlands 3 and Borderlands 2 on Steam and Epic (all combinations):
 ```sh
-./auto.py --game bl3 --platform steam --schedule 5 # redeem every 5 hours
-```
-
-- only redeem golden keys
-```sh
-./auto.py --game bl3 --platform steam --schedule --golden
-```
-
-- only redeem non-golden keys
-```sh
-./auto.py --game bl3 --platform steam --schedule --non-golden
-```
-
-- only redeem up to 30 keys
-```sh
-./auto.py --game bl3 --platform steam --schedule --golden --limit 30
-```
-
-- only query new keys (why though..)
-```sh
-./auto.py --game bl3 --platform steam --golden --limit 0
+./auto.py --games bl3 bl2 --platforms steam epic
 ```
 
 ## Code
@@ -124,9 +107,7 @@ docker run \
   --restart=always \
   -e SHIFT_USER='<username>' \
   -e SHIFT_PASS='<password>' \
-  -e SHIFT_GAMES='bl4 bl3 blps bl2 bl1 ttw' \
-  -e SHIFT_PLATFORMS='epic xboxlive psn nintendo' \
-  -e SHIFT_ARGS='--schedule -v' \
+  -e SHIFT_ARGS='--redeem bl3:steam,epic bl2:epic --schedule -v' \
   -e TZ='America/Chicago' \
   -v autoshift:/autoshift/data \
   zacharmstrong/autoshift:latest
@@ -146,12 +127,15 @@ services:
       - autoshift:/autoshift/data
     environment:
       - TZ=America/Denver
-      - SHIFT_PLATFORMS=epic xboxlive psn
       - SHIFT_USER=<username>
       - SHIFT_PASS=<password>
-      - SHIFT_GAMES=bl4 bl3 blps bl2 bl1 ttw gdfll
-      - SHIFT_ARGS=--schedule -v
+      - SHIFT_ARGS=--redeem bl3:steam,epic bl2:epic --schedule -v
 ```
+
+> **Note:**  
+> When using Docker, set the `SHIFT_ARGS` environment variable to include your `--redeem ...` options.  
+> If you use both `SHIFT_GAMES`/`SHIFT_PLATFORMS` and `--redeem`, the `--redeem` mapping will take precedence and a warning will be printed if legacy options are also present.
+
 ## Kubernetes Usage:
 
 After setting up the secrets in K8s first: 
@@ -166,7 +150,6 @@ kubectl get secret autoshift-secret -o jsonpath="{.data.password}" | base64 -d
 ```
 Then deploy with something similar to: 
 ``` yaml
-
 --- # deployment
 apiVersion: apps/v1
 kind: Deployment
@@ -200,12 +183,8 @@ spec:
                 secretKeyRef:
                   name: autoshift-secret
                   key: password
-            - name: SHIFT_PLATFORMS
-              value: "epic steam"
             - name: SHIFT_ARGS
-              value: "--schedule 6 -v"
-            - name: SHIFT_GAMES
-              value: "bl4 bl3 blps bl2 bl1 ttw"
+              value: "--redeem bl3:steam,epic bl2:epic --schedule 6 -v"
             - name: TZ
               value: "Australia/Sydney"
           resources:
@@ -239,6 +218,10 @@ spec:
       storage: 1Gi
 
 ```
+
+> **Note:**  
+> When using Kubernetes, set the `SHIFT_ARGS` environment variable in your deployment manifest to include your `--redeem ...` options.  
+> If you use both `SHIFT_GAMES`/`SHIFT_PLATFORMS` and `--redeem`, the `--redeem` mapping will take precedence and a warning will be printed if legacy options are also present.
 
 ## Variables
 
