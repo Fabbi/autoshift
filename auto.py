@@ -155,6 +155,29 @@ def query_keys_with_mapping(redeem_mapping, games, platforms):
     return all_keys
 
 
+def dump_db_to_csv(filename):
+    import csv
+    import sqlite3
+    from query import db, Key
+
+    with db:
+        # Query all rows from the keys table
+        conn = db._Database__conn  # Access the underlying sqlite3.Connection
+        c = conn.cursor()
+        c.execute("SELECT * FROM keys")
+        rows = c.fetchall()
+        if not rows:
+            _L.info("No data to dump.")
+            return
+        headers = [desc[0] for desc in c.description]
+        with open(filename, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(headers)
+            for row in rows:
+                writer.writerow([row[h] for h in headers])
+        _L.info(f"Dumped {len(rows)} rows to {filename}")
+
+
 def setup_argparser():
     import argparse
     import textwrap
@@ -230,6 +253,11 @@ def setup_argparser():
         help="Keep checking for keys and redeeming every hour",
     )
     parser.add_argument("-v", dest="verbose", action="store_true", help="Verbose mode")
+    parser.add_argument(
+        "--dump-csv",
+        type=str,
+        help="Dump all key data in the database to the specified CSV file and exit.",
+    )
 
     return parser
 
@@ -246,6 +274,9 @@ def main(args):
         # New mapping mode
         games = list(redeem_mapping.keys())
         platforms = sorted(set(p for plats in redeem_mapping.values() for p in plats))
+        _L.info("Redeem mapping (game: platforms):")
+        for game, plats in redeem_mapping.items():
+            _L.info(f"  {game}: {', '.join(plats)}")
     else:
         # Legacy mode
         games = args.games
@@ -254,6 +285,9 @@ def main(args):
             "You are using the legacy --games/--platforms format. "
             "In the future, use --redeem bl3:steam,epic bl2:epic for more control."
         )
+        _L.info("Redeeming all of these games/platforms combinations:")
+        _L.info(f"  Games: {', '.join(games) if games else '(none)'}")
+        _L.info(f"  Platforms: {', '.join(platforms) if platforms else '(none)'}")
 
     with db:
         if not client:
@@ -337,6 +371,10 @@ if __name__ == "__main__":
     if args.verbose:
         _L.setLevel(DEBUG)
         _L.debug("Debug mode on")
+
+    if getattr(args, "dump_csv", None):
+        dump_db_to_csv(args.dump_csv)
+        sys.exit(0)
 
     if args.schedule and args.schedule < 2:
         _L.warn(
