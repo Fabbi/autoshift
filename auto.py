@@ -163,6 +163,7 @@ def dump_db_to_csv(filename):
 
     # Always write to /autoshift/data/filename (handle absolute/relative)
     from common import DIRNAME
+
     data_dir = os.path.join(DIRNAME, "data")
     os.makedirs(data_dir, exist_ok=True)
     base = os.path.basename(filename)
