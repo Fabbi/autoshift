@@ -1,136 +1,27 @@
-#!/usr/bin/env python
-#############################################################################
-#
-# Copyright (C) 2018 Fabian Schweinfurth
-# Contact: autoshift <at> derfabbi.de
-#
-# This file is part of autoshift
-#
-# autoshift is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# autoshift is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with autoshift.  If not, see <http://www.gnu.org/licenses/>.
-#
-#############################################################################
+import os
+import re
 import sqlite3
-from typing import Callable, List, Union
+from common import DIRNAME, _L
 
-from common import _L
+DB_PATH = os.path.join(DIRNAME, "data", "keys.db")
+CODE_PATTERN = re.compile(r"^[A-Za-z0-9]{5}(?:-[A-Za-z0-9]{5}){4}$")
 
-MigrationFunc = Callable[[sqlite3.Connection, bool], bool]
-migrationFunctions: dict[int, MigrationFunc] = {}
 
-def register(version: int):
-    from functools import wraps
-    def wrap(func: MigrationFunc):
-        @wraps(func)
-        def wrapper(conn: sqlite3.Connection, silent: bool):
-            try:
-                if func(conn, silent):
-                    conn.cursor().execute(f"PRAGMA user_version = {version}")
-                    conn.commit()
-                    return True
-                return False
-            except sqlite3.OperationalError:
-                _L.error(f"There was an error while migrating database to version {version}."
-                        "Please contact the developer @ github.com/fabbi")
-                return False
-        migrationFunctions[version] = wrapper
-        return wrapper
-    return wrap
-
-@register(1)
-def update_1(conn: sqlite3.Connection, silent=False):
-    c = conn.cursor()
-    if not silent:
-        _L.warn("Some games and platforms have been renamed! "
-                "Check `--help` or the README.md for further info.")
-
-    steps: List[Union[str, tuple]] = [
-        """
-        ALTER TABLE keys
-        RENAME COLUMN description TO reward;
-        """
-        ,
-        """
-        ALTER TABLE keys
-        RENAME COLUMN key TO code;
-        """
-        , # renamed "ps" to "psn"
-        """
-        UPDATE keys
-        SET platform="psn"
-        WHERE platform="ps";
-        """
-        , # renamed "xbox" to "xboxlive"
-        """
-        UPDATE keys
-        SET platform="xboxlive"
-        WHERE platform="xbox";
-        """
-        , # renamed "bl" to "bl1"
-        """
-        UPDATE keys
-        SET game="bl1"
-        WHERE game="bl";
-        """
-        , # "pc" is now "epic" and "steam"
-        """
-        CREATE VIEW tmp AS
-        SELECT * FROM keys
-        WHERE platform="pc";
-        -- AND redeemed=0;
-
-        INSERT INTO keys(reward, code, platform, game, redeemed)
-        SELECT reward, code, "epic", game, redeemed
-        FROM tmp;
-
-        UPDATE keys
-        SET platform="steam"
-        WHERE id in (select id from tmp);
-
-        DROP VIEW tmp;
-        """
-        ,
-        """
-        CREATE TABLE IF NOT EXISTS seen_platforms
-        (key TEXT primary key, name TEXT)
-        """
-        ,
-        """
-        CREATE TABLE IF NOT EXISTS seen_games
-        (key TEXT primary key, name TEXT)
-        """
-    ]
-
-    from query import known_games, known_platforms
-    for game in known_games.items():
-        steps.append(("""
-        INSERT INTO seen_games(key, name)
-        VALUES(?, ?)
-        """, game))
-    for platform in known_platforms.items():
-        steps.append(("""
-        INSERT INTO seen_platforms(key, name)
-        VALUES(?, ?)
-        """, platform))
-
-    for i, step in enumerate(steps):
-        _L.debug(f"executing step {i} of update_1")
-        try:
-            if isinstance(step, tuple):
-                c.execute(*step)
-            else:
-                c.executescript(step)
-        except sqlite3.OperationalError as e:
-            _L.error(f"'{e}' in\n{step}")
-            return False
-    return True
+def migrate_shift_codes():
+    if not os.path.exists(DB_PATH):
+        return
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        c = conn.cursor()
+        # Remove codes not matching the pattern
+        c.execute("SELECT id, code FROM keys")
+        rows = c.fetchall()
+        to_remove = [row[0] for row in rows if not CODE_PATTERN.match(str(row[1]))]
+        if to_remove:
+            c.executemany("DELETE FROM keys WHERE id = ?", [(i,) for i in to_remove])
+            conn.commit()
+            _L.info(
+                f"Migration: Removed {len(to_remove)} invalid shift codes from database."
+            )
+    finally:
+        conn.close()
