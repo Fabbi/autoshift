@@ -16,12 +16,17 @@ def migrate_shift_codes():
         # Remove codes not matching the pattern
         c.execute("SELECT id, code FROM keys")
         rows = c.fetchall()
-        to_remove = [row[0] for row in rows if not CODE_PATTERN.match(str(row[1]))]
+        to_remove = [
+            (row[0], row[1]) for row in rows if not CODE_PATTERN.match(str(row[1]))
+        ]
         if to_remove:
-            c.executemany("DELETE FROM keys WHERE id = ?", [(i,) for i in to_remove])
+            c.executemany("DELETE FROM keys WHERE id = ?", [(i,) for i, _ in to_remove])
             conn.commit()
+            removed_codes = [code for _, code in to_remove]
             _L.info(
-                f"Migration: Removed {len(to_remove)} invalid shift codes from database."
+                f"Migration: Removed {len(removed_codes)} invalid shift codes from database."
             )
+            for code in removed_codes:
+                _L.info(f"Removed code: {code}")
     finally:
         conn.close()
