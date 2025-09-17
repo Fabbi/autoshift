@@ -17,9 +17,12 @@ def migrate_shift_codes():
         c = conn.cursor()
         c.execute("SELECT id, code FROM keys")
         rows = c.fetchall()
-        to_remove = [
-            (row[0], row[1]) for row in rows if not CODE_PATTERN.match(str(row[1]))
-        ]
+        to_remove = []
+        for row in rows:
+            code_raw = str(row[1])
+            code_stripped = code_raw.strip()
+            if not CODE_PATTERN.match(code_stripped):
+                to_remove.append((row[0], code_raw))
         if to_remove:
             c.executemany("DELETE FROM keys WHERE id = ?", [(i,) for i, _ in to_remove])
             conn.commit()
@@ -28,7 +31,7 @@ def migrate_shift_codes():
                 f"Migration: Removed {len(removed_codes)} invalid shift codes from database."
             )
             for code in removed_codes:
-                _L.info(f"Removed code: {code}")
+                _L.info(f"Removed code: {code!r}")
     finally:
         conn.close()
 
