@@ -103,6 +103,15 @@ def query_keys_with_mapping(redeem_mapping, games, platforms):
 
     _g = lambda key: key.game
     _p = lambda key: key.platform
+
+    # Ensure all requested games and platforms are present, even if no keys exist yet
+    if redeem_mapping:
+        for g, plats in redeem_mapping.items():
+            all_keys[g] = {p: [] for p in plats}
+    else:
+        for g in games:
+            all_keys[g] = {p: [] for p in platforms}
+
     for g, g_keys in groupby(sorted(new_keys, key=_g), _g):
         if redeem_mapping:
             if g not in redeem_mapping:
@@ -113,9 +122,7 @@ def query_keys_with_mapping(redeem_mapping, games, platforms):
                 continue
             plats = platforms
 
-        all_keys[g] = {p: [] for p in plats}
         for platform, p_keys in groupby(sorted(g_keys, key=_p), _p):
-            # Fix: always include all platforms in mapping, even if no keys exist for that platform
             if platform not in plats and platform != "universal":
                 continue
 
@@ -128,10 +135,10 @@ def query_keys_with_mapping(redeem_mapping, games, platforms):
                 for p in _ps:
                     _L.debug(f"Platform: {p}, {key}")
                     all_keys[g][p].append(temp_key.copy().set(platform=p))
-        # Ensure all requested platforms are present in all_keys[g], even if empty
-        for p in plats:
-            if p not in all_keys[g]:
-                all_keys[g][p] = []
+
+    # Always print info for all requested game/platform pairs
+    for g in all_keys:
+        for p in all_keys[g]:
             n_golden = sum(
                 int(cast(Match[str], m).group(1) or 1)
                 for m in filter(
