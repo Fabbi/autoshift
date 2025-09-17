@@ -157,11 +157,18 @@ def query_keys_with_mapping(redeem_mapping, games, platforms):
 
 def dump_db_to_csv(filename):
     import csv
+    import os
     import sqlite3
     from query import db, Key
 
+    # Always write to /autoshift/data/filename (handle absolute/relative)
+    from common import DIRNAME
+    data_dir = os.path.join(DIRNAME, "data")
+    os.makedirs(data_dir, exist_ok=True)
+    base = os.path.basename(filename)
+    out_path = os.path.join(data_dir, base)
+
     with db:
-        # Query all rows from the keys table
         conn = db._Database__conn  # Access the underlying sqlite3.Connection
         c = conn.cursor()
         c.execute("SELECT * FROM keys")
@@ -170,12 +177,12 @@ def dump_db_to_csv(filename):
             _L.info("No data to dump.")
             return
         headers = [desc[0] for desc in c.description]
-        with open(filename, "w", newline="", encoding="utf-8") as f:
+        with open(out_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(headers)
             for row in rows:
                 writer.writerow([row[h] for h in headers])
-        _L.info(f"Dumped {len(rows)} rows to {filename}")
+        _L.info(f"Dumped {len(rows)} rows to {out_path}")
 
 
 def setup_argparser():
