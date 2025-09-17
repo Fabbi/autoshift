@@ -115,6 +115,7 @@ def query_keys_with_mapping(redeem_mapping, games, platforms):
 
         all_keys[g] = {p: [] for p in plats}
         for platform, p_keys in groupby(sorted(g_keys, key=_p), _p):
+            # Fix: always include all platforms in mapping, even if no keys exist for that platform
             if platform not in plats and platform != "universal":
                 continue
 
@@ -127,7 +128,10 @@ def query_keys_with_mapping(redeem_mapping, games, platforms):
                 for p in _ps:
                     _L.debug(f"Platform: {p}, {key}")
                     all_keys[g][p].append(temp_key.copy().set(platform=p))
+        # Ensure all requested platforms are present in all_keys[g], even if empty
         for p in plats:
+            if p not in all_keys[g]:
+                all_keys[g][p] = []
             n_golden = sum(
                 int(cast(Match[str], m).group(1) or 1)
                 for m in filter(
