@@ -472,3 +472,6 @@ def update_keys():
         _L.info(f"Got {count} new keys for {known_games[game]}")
 
     return keys
+
+
+db = Database()
