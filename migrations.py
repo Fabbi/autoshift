@@ -129,3 +129,74 @@ def update_1(conn: sqlite3.Connection):
             _L.error(f"'{e}' in\n{step}")
             return False
     return True
+
+
+@register(2)
+def migrate_redeemed_per_platform(conn):
+    """
+    Ensure that each (code, game, platform) has its own redeemed status.
+    If there are any rows with the same code/game but different platforms,
+    ensure each has its own redeemed field.
+    """
+    c = conn.cursor()
+    # Check for duplicate codes across platforms
+    c.execute(
+        """
+        SELECT code, game, COUNT(DISTINCT platform) as platform_count
+        FROM keys
+        GROUP BY code, game
+        HAVING platform_count > 1
+    """
+    )
+    duplicates = c.fetchall()
+    # If there are duplicates, ensure each has its own redeemed field (already true in schema)
+    # This migration is a no-op unless you want to do data cleanup.
+    # Optionally, you could log or clean up here.
+    return True
+
+
+@register(3)
+def migrate_redeemed_table(conn):
+    """
+    Move redeemed status to a new redeemed_keys table and remove the redeemed column from keys.
+    """
+    c = conn.cursor()
+    # 1. Create new table if not exists
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS redeemed_keys (
+            key_id INTEGER,
+            platform TEXT,
+            PRIMARY KEY (key_id, platform),
+            FOREIGN KEY (key_id) REFERENCES keys(id)
+        )
+    """
+    )
+    # 2. Copy redeemed=1 rows to redeemed_keys
+    c.execute("SELECT id, platform FROM keys WHERE redeemed=1")
+    for row in c.fetchall():
+        c.execute(
+            "INSERT OR IGNORE INTO redeemed_keys (key_id, platform) VALUES (?, ?)",
+            (row[0], row[1]),
+        )
+    # 3. Remove redeemed column from keys (SQLite doesn't support DROP COLUMN directly)
+    #    So we need to recreate the table without the column
+    c.execute("PRAGMA table_info(keys)")
+    columns = [col[1] for col in c.fetchall() if col[1] != "redeemed"]
+    columns_str = ", ".join(columns)
+    c.execute(f"ALTER TABLE keys RENAME TO keys_old")
+    c.execute(
+        f"""
+        CREATE TABLE keys (
+            id INTEGER primary key,
+            reward TEXT,
+            code TEXT,
+            platform TEXT,
+            game TEXT
+        )
+    """
+    )
+    c.execute(f"INSERT INTO keys ({columns_str}) SELECT {columns_str} FROM keys_old")
+    c.execute("DROP TABLE keys_old")
+    conn.commit()
+    return True
