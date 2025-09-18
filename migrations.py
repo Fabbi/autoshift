@@ -46,7 +46,7 @@ def register(version: int):
 
     def wrap(func):
         @wraps(func)
-        def wrapper(conn):
+        def wrapper(conn, *args, **kwargs):  # Accept extra arguments for compatibility
             try:
                 if func(conn):
                     conn.cursor().execute("PRAGMA user_version = {}".format(version))
