@@ -307,8 +307,7 @@ class Database(ContextManager):
             return None
         _L.debug(f"== inserting {key.game} Key '{key.code}' for {key.platform} ==")
         self.execute(
-            "INSERT INTO keys(reward, code, platform, game) "
-            "VALUES (?,?,?,?)",
+            "INSERT INTO keys(reward, code, platform, game) " "VALUES (?,?,?,?)",
             (key.reward, key.code, key.platform, key.game),
         )
         self.commit()
@@ -367,7 +366,7 @@ class Database(ContextManager):
         # Mark as redeemed for this key id and platform
         self.execute(
             "INSERT OR IGNORE INTO redeemed_keys (key_id, platform) VALUES (?, ?)",
-            (key.id, key.platform)
+            (key.id, key.platform),
         )
         self.commit()
 
@@ -473,13 +472,3 @@ def update_keys():
         _L.info(f"Got {count} new keys for {known_games[game]}")
 
     return keys
-
-db = Database()
-db = Database()
-    for game, count in sorted(counts.items()):
-        _L.info(f"Got {count} new keys for {known_games[game]}")
-
-    return keys
-
-
-db = Database()
