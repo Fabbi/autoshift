@@ -53,8 +53,11 @@ mkdir -p ./data
 
 **As of the 9/18/2025 version, the way redeemed keys are tracked has changed.**  
 Redemption status is now tracked in a separate table for each key and platform combination.  
+
 **On first run after upgrade, all keys will be retried to ensure the database is properly marked. This may take a long time if you have a large key database.**  
 This is expected and only happens once; subsequent runs will be fast.
+
+## Usage Instructions
 
 You can now specify exactly which platforms should redeem which games' SHiFT codes using the `--redeem` argument.  
 **Recommended:** Use `--redeem` for fine-grained control.  
