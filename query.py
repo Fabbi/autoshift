@@ -474,7 +474,7 @@ def update_keys():
 
     return keys
 
-
+db = Database()
 db = Database()
     for game, count in sorted(counts.items()):
         _L.info(f"Got {count} new keys for {known_games[game]}")

@@ -159,6 +159,7 @@ def migrate_redeemed_per_platform(conn):
 def migrate_redeemed_table(conn):
     """
     Move redeemed status to a new redeemed_keys table and remove the redeemed column from keys.
+    Do NOT migrate redeemed=1 rows, as we cannot know for which platforms they were redeemed.
     """
     c = conn.cursor()
     # 1. Create new table if not exists
@@ -172,15 +173,7 @@ def migrate_redeemed_table(conn):
         )
     """
     )
-    # 2. Copy redeemed=1 rows to redeemed_keys
-    c.execute("SELECT id, platform FROM keys WHERE redeemed=1")
-    for row in c.fetchall():
-        c.execute(
-            "INSERT OR IGNORE INTO redeemed_keys (key_id, platform) VALUES (?, ?)",
-            (row[0], row[1]),
-        )
-    # 3. Remove redeemed column from keys (SQLite doesn't support DROP COLUMN directly)
-    #    So we need to recreate the table without the column
+    # 2. Remove redeemed column from keys (SQLite doesn't support DROP COLUMN directly)
     c.execute("PRAGMA table_info(keys)")
     columns = [col[1] for col in c.fetchall() if col[1] != "redeemed"]
     columns_str = ", ".join(columns)
