@@ -15,6 +15,12 @@ def migrate_shift_codes():
     conn = sqlite3.connect(DB_PATH)
     try:
         c = conn.cursor()
+        # Check if the 'code' column exists before querying it
+        c.execute("PRAGMA table_info(keys)")
+        columns = [row[1] for row in c.fetchall()]
+        if "code" not in columns:
+            _L.info("Skipping code format migration: 'code' column does not exist yet.")
+            return
         c.execute("SELECT id, code FROM keys")
         rows = c.fetchall()
         to_remove = []
