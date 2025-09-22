@@ -2,8 +2,10 @@
 name = "autoshift"
 version = "1.1.0"
 description = "AutoSHIFt: Automatically redeem Gearbox SHIFt Codes"
-authors = ["Fabian Schweinfurth <github@derfabbi.de>"]
-license = "GPLv3"
+authors = [
+    { name = "Fabian Schweinfurth", email = "fabbi@users.noreply.github.com"}
+]
+license = "MIT"
 
 requires-python = ">=3.12"
 dependencies = [
@@ -12,20 +14,39 @@ dependencies = [
     "httpx>=0.28.1",
     "lxml>=6.0.1",
     "peewee>=3.18.2",
+    "pydantic-settings>=2.10.1",
+    "rich>=14.1.0",
     "typer-slim>=0.17.4",
 ]
+
+[project.scripts]
+auto = "src:auto.app"
 
 [dependency-groups]
 dev = [
     "debugpy>=1.8.16",
     "ipdb>=0.13.13",
     "ruff>=0.13.0",
+    "types-peewee>=3.18.2.20250710",
 ]
 
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.uv.sources]
+src = { path = "./src" }
 
 [tool.pyright]
 typeCheckingMode = "standard"
 ignore = ["typings/**", "**/**.pyi"]
+include = ["src"]
 reportUnusedImport = "warning"
 reportMissingTypeStubs = false                                              #"information"
 reportUnknownMemberType = false

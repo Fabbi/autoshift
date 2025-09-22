@@ -5,12 +5,14 @@
             "name": "Debug Autoshift",
             "type": "debugpy",
             "request": "launch",
-            "module": "auto.py",
+            "program": "auto",
             "args": [
-                "--game",
-                "bl3",
-                "--debug"
-            ],
+                "-v",
+                "--platforms",
+                "steam",
+                "redeem",
+                "JS63J-JSCWJ-CFTBW-3TJ3J-WJS5R"
+            ]
         }
     ]
 }

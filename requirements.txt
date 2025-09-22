@@ -1,4 +1,0 @@
-APScheduler>=3.9.1,<4
-beautifulsoup4>=4.11.1,<5
-lxml~=4.9
-requests~=2.28

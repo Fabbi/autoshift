@@ -21,15 +21,17 @@
 #
 #############################################################################
 import sqlite3
-from typing import Callable, List, Union
+from collections.abc import Callable
 
-from common import _L
+from src.common import _L
 
 MigrationFunc = Callable[[sqlite3.Connection, bool], bool]
 migrationFunctions: dict[int, MigrationFunc] = {}
 
+
 def register(version: int):
     from functools import wraps
+
     def wrap(func: MigrationFunc):
         @wraps(func)
         def wrapper(conn: sqlite3.Connection, silent: bool):
@@ -40,49 +42,51 @@ def register(version: int):
                     return True
                 return False
             except sqlite3.OperationalError:
-                _L.error(f"There was an error while migrating database to version {version}."
-                        "Please contact the developer @ github.com/fabbi")
+                _L.error(
+                    f"There was an error while migrating database to version {version}."
+                    "Please contact the developer @ github.com/fabbi"
+                )
                 return False
+
         migrationFunctions[version] = wrapper
         return wrapper
+
     return wrap
+
 
 @register(1)
 def update_1(conn: sqlite3.Connection, silent=False):
     c = conn.cursor()
     if not silent:
-        _L.warn("Some games and platforms have been renamed! "
-                "Check `--help` or the README.md for further info.")
+        _L.warn(
+            "Some games and platforms have been renamed! "
+            "Check `--help` or the README.md for further info."
+        )
 
-    steps: List[Union[str, tuple]] = [
+    steps: list[str | tuple] = [
         """
         ALTER TABLE keys
         RENAME COLUMN description TO reward;
-        """
-        ,
+        """,
         """
         ALTER TABLE keys
         RENAME COLUMN key TO code;
-        """
-        , # renamed "ps" to "psn"
+        """,  # renamed "ps" to "psn"
         """
         UPDATE keys
         SET platform="psn"
         WHERE platform="ps";
-        """
-        , # renamed "xbox" to "xboxlive"
+        """,  # renamed "xbox" to "xboxlive"
         """
         UPDATE keys
         SET platform="xboxlive"
         WHERE platform="xbox";
-        """
-        , # renamed "bl" to "bl1"
+        """,  # renamed "bl" to "bl1"
         """
         UPDATE keys
         SET game="bl1"
         WHERE game="bl";
-        """
-        , # "pc" is now "epic" and "steam"
+        """,  # "pc" is now "epic" and "steam"
         """
         CREATE VIEW tmp AS
         SELECT * FROM keys
@@ -98,30 +102,39 @@ def update_1(conn: sqlite3.Connection, silent=False):
         WHERE id in (select id from tmp);
 
         DROP VIEW tmp;
-        """
-        ,
+        """,
         """
         CREATE TABLE IF NOT EXISTS seen_platforms
         (key TEXT primary key, name TEXT)
-        """
-        ,
+        """,
         """
         CREATE TABLE IF NOT EXISTS seen_games
         (key TEXT primary key, name TEXT)
-        """
+        """,
     ]
 
     from query import known_games, known_platforms
+
     for game in known_games.items():
-        steps.append(("""
+        steps.append(
+            (
+                """
         INSERT INTO seen_games(key, name)
         VALUES(?, ?)
-        """, game))
+        """,
+                game,
+            )
+        )
     for platform in known_platforms.items():
-        steps.append(("""
+        steps.append(
+            (
+                """
         INSERT INTO seen_platforms(key, name)
         VALUES(?, ?)
-        """, platform))
+        """,
+                platform,
+            )
+        )
 
     for i, step in enumerate(steps):
         _L.debug(f"executing step {i} of update_1")
