@@ -401,17 +401,47 @@ def progn(*args: _VT) -> _VT:
     return lastArg
 
 
+# Add configurable source for the shift JSON
+SHIFT_SOURCE = "https://raw.githubusercontent.com/zarmstrong/autoshift-codes/main/shiftcodes.json"
+
+
+def set_shift_source(source: str):
+    """Override the default shift codes source (URL or local path)."""
+    global SHIFT_SOURCE
+    if not source:
+        return
+    SHIFT_SOURCE = source
+    _L.info(f"Using SHiFT source: {SHIFT_SOURCE}")
+
+
 def parse_shift_orcicorn():
     import json
 
-    key_url = "https://raw.githubusercontent.com/zarmstrong/autoshift-codes/main/shiftcodes.json"
+    # use configurable source
+    key_url = SHIFT_SOURCE
 
-    resp = requests.get(key_url)
-    if not resp:
-        _L.error(f"Error querying for new keys: {resp.reason}")
+    # fetch from URL or local file
+    try:
+        if key_url.startswith("http://") or key_url.startswith("https://"):
+            resp = requests.get(key_url)
+            if not resp:
+                _L.error(f"Error querying for new keys: {resp.reason}")
+                return None
+            data: dict = json.loads(resp.text)[0]
+        else:
+            # support file:// prefix
+            if key_url.startswith("file://"):
+                local_path = key_url[len("file://") :]
+            else:
+                local_path = key_url
+            with open(local_path, "r", encoding="utf-8") as fh:
+                data = json.load(fh)[0]
+    except FileNotFoundError:
+        _L.error(f"Shift source file not found: {key_url}")
         return None
-
-    data: dict = json.loads(resp.text)[0]
+    except Exception as e:
+        _L.error(f"Error reading shift source '{key_url}': {e}")
+        return None
 
     if "codes" not in data:
         _L.error("Invalid response. Please contact the developer @ github.com/fabbi")

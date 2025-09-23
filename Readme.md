@@ -87,6 +87,53 @@ You can now specify exactly which platforms should redeem which games' SHiFT cod
 ./auto.py --games bl3 bl2 --platforms steam epic
 ```
 
+## Override SHiFT source
+
+You can override the default SHiFT codes source (the JSON that is normally fetched from mentalmars/autoshift-codes) with either a URL or a local file path.
+
+- CLI: use the --shift-source argument. Example:
+```sh
+./auto.py --shift-source "https://example.com/my-shift-codes.json" --redeem bl3:steam
+```
+
+- Environment variable: set SHIFT_SOURCE. The CLI flag takes precedence over the environment variable.
+```sh
+export SHIFT_SOURCE="file:///path/to/shiftcodes.json"
+# or
+export SHIFT_SOURCE="/absolute/path/to/shiftcodes.json"
+```
+
+Supported formats:
+- HTTP(s) URLs (e.g. https://...)
+- Local absolute or relative paths (e.g. ./data/shiftcodes.json)
+- file:// URLs (e.g. file:///autoshift/data/shiftcodes.json)
+
+Docker / Kubernetes examples
+- Docker run (override source via env):
+```sh
+docker run \
+  -e SHIFT_USER='<username>' \
+  -e SHIFT_PASS='<password>' \
+  -e SHIFT_SOURCE='https://example.com/shiftcodes.json' \
+  -e SHIFT_ARGS='--redeem bl3:steam --schedule -v' \
+  -v autoshift:/autoshift/data \
+  zacharmstrong/autoshift:latest
+```
+
+- Kubernetes (set SHIFT_SOURCE in the manifest):
+```yaml
+env:
+  - name: SHIFT_SOURCE
+    value: "https://example.com/shiftcodes.json"
+  - name: SHIFT_ARGS
+    value: "--redeem bl3:steam --schedule 6 -v"
+```
+
+Notes
+- CLI --shift-source overrides the SHIFT_SOURCE environment variable.
+- If the source is a local path inside the container, ensure the file is present in the container filesystem (mounted volume, image, etc.).
+- The tool validates and logs the selected source at startup so you can confirm which file/URL is being used.
+
 ## Code
 
 This tool consists of 3 parts:

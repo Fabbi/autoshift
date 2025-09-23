@@ -266,6 +266,11 @@ def setup_argparser():
         type=str,
         help="Dump all key data in the database to the specified CSV file and exit.",
     )
+    parser.add_argument(
+        "--shift-source",
+        type=str,
+        help="Override the SHiFT codes source (URL or local path). Can also be set via SHIFT_SOURCE env var.",
+    )
 
     return parser
 
@@ -273,9 +278,15 @@ def setup_argparser():
 def main(args):
     global client
     from time import sleep
+    import os
 
     import query
     from query import db, r_golden_keys
+
+    # apply shift source override (CLI takes precedence over env)
+    shift_src = args.shift_source if hasattr(args, "shift_source") and args.shift_source else os.getenv("SHIFT_SOURCE")
+    if shift_src:
+        query.set_shift_source(shift_src)
 
     redeem_mapping = parse_redeem_mapping(args)
     if redeem_mapping:
