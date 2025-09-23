@@ -284,7 +284,11 @@ def main(args):
     from query import db, r_golden_keys
 
     # apply shift source override (CLI takes precedence over env)
-    shift_src = args.shift_source if hasattr(args, "shift_source") and args.shift_source else os.getenv("SHIFT_SOURCE")
+    shift_src = (
+        args.shift_source
+        if hasattr(args, "shift_source") and args.shift_source
+        else os.getenv("SHIFT_SOURCE")
+    )
     if shift_src:
         query.set_shift_source(shift_src)
 
