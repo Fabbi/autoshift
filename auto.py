@@ -22,9 +22,13 @@
 #############################################################################
 from __future__ import print_function, annotations
 
-from common import _L, DEBUG, DIRNAME, INFO
+from common import _L, DEBUG, DIRNAME, INFO, data_path, DATA_DIR
 import os
 from typing import Match, cast, TYPE_CHECKING
+
+# Static choices so CLI parsing doesn't need to import query/db
+STATIC_GAMES = ["bl4", "bl3", "blps", "bl2", "bl1", "ttw", "gdfll"]
+STATIC_PLATFORMS = ["epic", "steam", "xboxlive", "psn", "nintendo", "stadia"]
 
 if TYPE_CHECKING:
     from query import Key
@@ -41,13 +45,14 @@ under certain conditions; see LICENSE for details.
 """
 
 
-def redeem(key: Key):
+def redeem(key: "Key"):
     import query
 
     """Redeem key and set as redeemed if successfull"""
 
     _L.info(f"Trying to redeem {key.reward} ({key.code}) on {key.platform}")
-    status = client.redeem(key.code, known_games[key.game], key.platform)
+    # use query.known_games (query imported above) instead of relying on a global name
+    status = client.redeem(key.code, query.known_games[key.game], key.platform)
     _L.debug(f"Status: {status}")
 
     # set redeemed status
@@ -159,13 +164,10 @@ def dump_db_to_csv(filename):
     import sqlite3
     from query import db, Key
 
-    # Always write to /autoshift/data/filename (handle absolute/relative)
-    from common import DIRNAME
-
-    data_dir = os.path.join(DIRNAME, "data")
-    os.makedirs(data_dir, exist_ok=True)
+    # Always write into the profile-aware data directory
+    os.makedirs(DATA_DIR, exist_ok=True)
     base = os.path.basename(filename)
-    out_path = os.path.join(data_dir, base)
+    out_path = data_path(base)
 
     with db:
         conn = db._Database__conn  # Access the underlying sqlite3.Connection
@@ -189,6 +191,10 @@ def setup_argparser():
     import textwrap
 
     # NOTE: we avoid importing query here so we can parse --profile early.
+    # Use the static lists for argparse choices
+    games = STATIC_GAMES
+    platforms = STATIC_PLATFORMS
+
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
         "-u",
@@ -216,6 +222,7 @@ def setup_argparser():
         action="store_true",
         help="Only redeem non-golden keys",
     )
+    # Provide static choices so argparse can validate without importing query/db
     parser.add_argument(
         "--games",
         type=str,
@@ -386,8 +393,8 @@ def main(args):
 if __name__ == "__main__":
     import os
 
-    # only print license text on first use
-    if not os.path.exists(os.path.join(DIRNAME, "data", ".cookies.save")):
+    # only print license text on first use (profile-aware path)
+    if not os.path.exists(data_path(".cookies.save")):
         print(LICENSE_TEXT)
 
     # build argument parser

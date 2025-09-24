@@ -40,11 +40,11 @@ from common import _L, DIRNAME
 try:
     from common import DATA_DIR, data_path
 except Exception:
-    DATA_DIR = os.path.join(DIRNAME, "data")
+    DATA_DIR = path.join(DIRNAME, "data")
 
     def data_path(*parts):
-        os.makedirs(DATA_DIR, exist_ok=True)
-        return os.path.join(DATA_DIR, *parts)
+        makedirs(DATA_DIR, exist_ok=True)
+        return path.join(DATA_DIR, *parts)
 
 
 _KT = TypeVar("_KT")
@@ -517,4 +517,5 @@ def update_keys():
     return keys
 
 
+db = Database()
 db = Database()

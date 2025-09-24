@@ -31,6 +31,7 @@ from bs4 import BeautifulSoup as BSoup
 from requests.models import Response
 
 from common import _L, DIRNAME
+import os  # required for fallback data_path and cookie path handling
 
 try:
     from common import DATA_DIR, data_path
