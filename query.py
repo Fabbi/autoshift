@@ -19,6 +19,7 @@
 # along with autoshift.  If not, see <http://www.gnu.org/licenses/>.
 #
 #############################################################################
+import os
 import re
 import sqlite3
 from os import makedirs, path
@@ -47,6 +48,7 @@ except Exception:
         return path.join(DATA_DIR, *parts)
 
 
+_BANNER_SHOWN = False
 _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
 
@@ -118,19 +120,33 @@ r_golden_keys = re.compile(r"^(\d+)?.*(gold|skelet).*", re.IGNORECASE)
 
 
 def print_banner(data):
-    lines = []
-    try:
-        lines.extend(data["meta"][attr] for attr in ("attribution", "permalink"))
-    except Exception:
-        lines.append("Codes provided by Orcicorn")
-        lines.append("@ https://shift.orcicorn.com/shift-code/")
+    global _BANNER_SHOWN
+    if _BANNER_SHOWN:
+        return
+    _BANNER_SHOWN = True
+
+    # 1) Attribution from JSON meta (fallback to Orcicorn text)
+    meta = data.get("meta", {}) if isinstance(data, dict) else {}
+    attribution = meta.get("attribution") or "Codes provided by Orcicorn"
+
+    # 2) Always show the actual source being used (URL or local path)
+    source_line = SHIFT_SOURCE
+
+    lines = [attribution, source_line]
+
+    # NEW: show profile if provided via --profile or env
+    profile = os.getenv("AUTOSHIFT_PROFILE")
+    if profile:
+        lines.append(f"Profile: {profile}")
 
     longest_line = max(len(line) for line in lines) + 2
     banner = "\n".join(f"{line: ^{longest_line}}" for line in lines)
     txt = " autoshift by @Fabbi "
     banner = f"{txt:=^{longest_line}}\n{banner}\n"
     banner += "=" * longest_line
-    _L.info(f"\r\033[1;5;31m{banner}\n")
+
+    # No ANSI blink/color to avoid flashing
+    _L.info(f"\n{banner}\n")
 
 
 def get_short_game_key(game: str) -> str:

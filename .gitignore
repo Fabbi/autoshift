@@ -128,3 +128,8 @@ notebooks/
 
 # vscode
 *.code-workspace
+
+
+# Ignore data folder
+/data
+data*

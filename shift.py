@@ -33,6 +33,10 @@ from requests.models import Response
 from common import _L, DIRNAME
 import os  # required for fallback data_path and cookie path handling
 
+# Opt-in: only print password in cleartext when this env var is truthy
+SHOW_PW = os.getenv("AUTOSHIFT_DEBUG_SHOW_PW", "0").lower() in ("1", "true", "yes")
+
+
 try:
     from common import DATA_DIR, data_path
 except Exception:
@@ -255,15 +259,35 @@ class ShiftClient:
         the_url = f"{base_url}/home"
         _, token = self.__get_token(the_url)
         if not token:
+            _L.debug("No CSRF token received during login flow.")
             return None
+
+        # Debug: token present
+        _L.debug(f"Login token received: {'yes' if token else 'no'}")
+
         login_data = {
             "authenticity_token": token,
             "user[email]": user,
             "user[password]": pw,
         }
         headers = {"Referer": the_url}
+
+        # Log attempt (password only if explicitly enabled)
+        if SHOW_PW:
+            _L.debug(f"Attempting login with payload: user={user!r}, password={pw!r}")
+        else:
+            _L.debug(f"Attempting login with payload: user={user!r}, password=<hidden>")
+
+        # Send request and log response summary for debugging
         r = self.client.post(f"{base_url}/sessions", data=login_data, headers=headers)
-        _L.debug(f"{r.request.method} {r.url} {r.status_code}")
+        _L.debug(f"POST {r.request.url} -> {r.status_code}")
+        # Log a short snippet of the response body for debugging (not the full body)
+        try:
+            snippet = r.text[:1000].replace("\n", " ")
+            _L.debug(f"Response snippet: {snippet}")
+        except Exception:
+            _L.debug("Could not read response text for debug output.")
+
         return r
 
     def __get_redemption_form(
