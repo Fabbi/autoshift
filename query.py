@@ -19,6 +19,7 @@
 # along with autoshift.  If not, see <http://www.gnu.org/licenses/>.
 #
 #############################################################################
+import os
 import re
 import sqlite3
 from os import makedirs, path
@@ -132,6 +133,12 @@ def print_banner(data):
     source_line = SHIFT_SOURCE
 
     lines = [attribution, source_line]
+
+    # NEW: show profile if provided via --profile or env
+    profile = os.getenv("AUTOSHIFT_PROFILE")
+    if profile:
+        lines.append(f"Profile: {profile}")
+
     longest_line = max(len(line) for line in lines) + 2
     banner = "\n".join(f"{line: ^{longest_line}}" for line in lines)
     txt = " autoshift by @Fabbi "
