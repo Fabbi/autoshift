@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #############################################################################
 #
 # Copyright (C) 2018 Fabian Schweinfurth
@@ -335,7 +335,25 @@ def main(args):
 
     with db:
         if not client:
-            client = ShiftClient(args.user, args.pw)
+            # Decide which password to use. CLI may have been affected by shell history
+            # expansion (e.g. '!' truncation). Prefer environment SHIFT_PASS (or
+            # AUTOSHIFT_PASS_RAW) if it appears more complete.
+            env_pw = os.getenv("SHIFT_PASS") or os.getenv("AUTOSHIFT_PASS_RAW")
+            chosen_pw = args.pw
+            pw_source = "cli"
+            if args.pw:
+                # heuristic: if CLI pw contains '!' and env_pw looks longer, prefer env
+                if "!" in args.pw and env_pw and len(env_pw) > len(args.pw):
+                    chosen_pw = env_pw
+                    pw_source = "env(SHIFT_PASS/AUTOSHIFT_PASS_RAW)"
+            else:
+                # no CLI pw, use env if present
+                if env_pw:
+                    chosen_pw = env_pw
+                    pw_source = "env(SHIFT_PASS/AUTOSHIFT_PASS_RAW)"
+
+            _L.debug(f"Using password from: {pw_source}")
+            client = ShiftClient(args.user, chosen_pw)
 
         all_keys = query_keys_with_mapping(redeem_mapping, games, platforms)
 

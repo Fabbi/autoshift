@@ -349,6 +349,34 @@ The password for your SHiFT account
 
 Example: `p@ssw0rd`
 
+Important: shells (especially interactive bash) may perform history expansion on the exclamation mark `!`. If you pass a password directly on the command line and it contains `!` the shell may replace/truncate it before autoshift sees it.
+
+Troubleshooting / recommended ways to provide the password:
+- Preferred (safe): set the password via environment variable (avoids shell history issues).
+  - Bash:
+    ```sh
+    export SHIFT_PASS='p@ss!word'    # use single quotes to prevent history expansion
+    ./auto.py --user you --pass "${SHIFT_PASS}" --redeem bl3:steam
+    ```
+  - Docker:
+    ```sh
+    docker run -e SHIFT_PASS='p@ss!word' ...
+    ```
+  - Kubernetes: store the password in a Secret and set SHIFT_PASS from the secret (recommended).
+- If you must pass the password on the CLI, wrap it in single quotes to avoid history expansion:
+  ```sh
+  ./auto.py -u you -p 'p@ss!word' --redeem bl3:steam
+  ```
+- Alternative: escape the `!` character (less recommended than quoting).
+- Debugging: to temporarily print the password in logs for debugging, set:
+  ```sh
+  export AUTOSHIFT_DEBUG_SHOW_PW=1
+  ```
+  Security warning: this will print your password in cleartext to the logs — use only for short-lived debugging and remove the env var afterwards.
+
+Notes about autoshift behavior:
+- The tool contains a heuristic: if the CLI-provided password contains `!` and an environment password (SHIFT_PASS or AUTOSHIFT_PASS_RAW) appears longer, the environment value will be preferred. Still, supplying the full password via SHIFT_PASS (or via a container secret) is the most reliable method.
+- Do not commit passwords to command history or scripts. Use environment variables, container secrets, or mounted files / K8s Secrets.
 
 #### **SHIFT_GAMES** (recommended)
 The game(s) you want to redeem codes for
