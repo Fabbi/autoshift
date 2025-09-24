@@ -22,9 +22,15 @@
 #############################################################################
 from __future__ import print_function, annotations
 
+import os, sys  # must run before importing common/query
+
+# Early profile bootstrap: set AUTOSHIFT_PROFILE before common.py is imported
+if "--profile" in sys.argv:
+    i = sys.argv.index("--profile")
+    if i + 1 < len(sys.argv):
+        os.environ["AUTOSHIFT_PROFILE"] = sys.argv[i + 1]
+
 from common import _L, DEBUG, DIRNAME, INFO, data_path, DATA_DIR
-import os
-import sys
 from typing import Match, cast, TYPE_CHECKING
 
 # Static choices so CLI parsing doesn't need to import query/db
