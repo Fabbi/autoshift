@@ -24,6 +24,7 @@ from __future__ import print_function, annotations
 
 from common import _L, DEBUG, DIRNAME, INFO, data_path, DATA_DIR
 import os
+import sys
 from typing import Match, cast, TYPE_CHECKING
 
 # Static choices so CLI parsing doesn't need to import query/db
@@ -47,6 +48,7 @@ under certain conditions; see LICENSE for details.
 
 def redeem(key: "Key"):
     import query
+    from shift import Status
 
     """Redeem key and set as redeemed if successfull"""
 
