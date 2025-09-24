@@ -20,10 +20,14 @@
 # along with autoshift.  If not, see <http://www.gnu.org/licenses/>.
 #
 #############################################################################
-from __future__ import print_function
+from __future__ import print_function, annotations
 
 from common import _L, DEBUG, DIRNAME, INFO
 import os
+from typing import Match, cast, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from query import Key
 
 client: "ShiftClient" = None  # type: ignore
 
