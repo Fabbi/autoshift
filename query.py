@@ -123,19 +123,22 @@ def print_banner(data):
     if _BANNER_SHOWN:
         return
     _BANNER_SHOWN = True
-    lines = []
-    try:
-        lines.extend(data["meta"][attr] for attr in ("attribution", "permalink"))
-    except Exception:
-        lines.append("Codes provided by Orcicorn")
-        lines.append("@ https://shift.orcicorn.com/shift-code/")
 
+    # 1) Attribution from JSON meta (fallback to Orcicorn text)
+    meta = data.get("meta", {}) if isinstance(data, dict) else {}
+    attribution = meta.get("attribution") or "Codes provided by Orcicorn"
+
+    # 2) Always show the actual source being used (URL or local path)
+    source_line = SHIFT_SOURCE
+
+    lines = [attribution, source_line]
     longest_line = max(len(line) for line in lines) + 2
     banner = "\n".join(f"{line: ^{longest_line}}" for line in lines)
     txt = " autoshift by @Fabbi "
     banner = f"{txt:=^{longest_line}}\n{banner}\n"
     banner += "=" * longest_line
-    # remove ANSI blink (5). Keep it simple (no color) to avoid flashing:
+
+    # No ANSI blink/color to avoid flashing
     _L.info(f"\n{banner}\n")
 
 
