@@ -47,6 +47,7 @@ except Exception:
         return path.join(DATA_DIR, *parts)
 
 
+_BANNER_SHOWN = False
 _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
 
@@ -118,6 +119,10 @@ r_golden_keys = re.compile(r"^(\d+)?.*(gold|skelet).*", re.IGNORECASE)
 
 
 def print_banner(data):
+    global _BANNER_SHOWN
+    if _BANNER_SHOWN:
+        return
+    _BANNER_SHOWN = True
     lines = []
     try:
         lines.extend(data["meta"][attr] for attr in ("attribution", "permalink"))
@@ -130,7 +135,8 @@ def print_banner(data):
     txt = " autoshift by @Fabbi "
     banner = f"{txt:=^{longest_line}}\n{banner}\n"
     banner += "=" * longest_line
-    _L.info(f"\r\033[1;5;31m{banner}\n")
+    # remove ANSI blink (5). Keep it simple (no color) to avoid flashing:
+    _L.info(f"\n{banner}\n")
 
 
 def get_short_game_key(game: str) -> str:
