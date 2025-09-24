@@ -37,6 +37,16 @@ import requests
 
 from common import _L, DIRNAME
 
+try:
+    from common import DATA_DIR, data_path
+except Exception:
+    DATA_DIR = os.path.join(DIRNAME, "data")
+
+    def data_path(*parts):
+        os.makedirs(DATA_DIR, exist_ok=True)
+        return os.path.join(DATA_DIR, *parts)
+
+
 _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
 
@@ -273,13 +283,14 @@ class Database(ContextManager):
         if self.__open:
             return
 
-        makedirs(path.join(DIRNAME, "data"), exist_ok=True)
+        makedirs(DATA_DIR, exist_ok=True)
         self.__conn = sqlite3.connect(
-            path.join(DIRNAME, "data", "keys.db"), detect_types=sqlite3.PARSE_DECLTYPES
+            data_path("keys.db"), detect_types=sqlite3.PARSE_DECLTYPES
         )
         self.__conn.row_factory = sqlite3.Row
         self.__c = self.__conn.cursor()
 
+        # ensure seen tables / keys table exist (keep original columns for migration)
         self.__c.execute(
             "CREATE TABLE IF NOT EXISTS keys "
             "(id INTEGER primary key, description TEXT, "

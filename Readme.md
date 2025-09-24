@@ -134,6 +134,62 @@ Notes
 - If the source is a local path inside the container, ensure the file is present in the container filesystem (mounted volume, image, etc.).
 - The tool validates and logs the selected source at startup so you can confirm which file/URL is being used.
 
+## Profiles (per-user data)
+
+You can run autoshift with named profiles so separate runs (or different users) keep their own DB, cookies and other state.
+
+- Default: when no profile is specified autoshift uses the normal data directory:
+  c:\Users\slate\Dropbox\code\autoshift\data
+
+- Profile mode: when a profile is specified, autoshift will use a profile-specific data path:
+  c:\Users\slate\Dropbox\code\autoshift\data/<profile>/
+  That directory holds the profile's keys.db, cookie file and any other state.
+
+How to select a profile:
+- CLI (takes precedence):
+  ./auto.py --profile myprofile --redeem bl3:steam
+- Environment variable:
+  export AUTOSHIFT_PROFILE=myprofile
+  ./auto.py --redeem bl3:steam
+
+Notes:
+- The CLI --profile overrides AUTOSHIFT_PROFILE for that run.
+- Each profile has its own DB and cookie file; migrations and initial key processing run per-profile.
+- First run for a profile may take longer because keys are re-processed and the DB is initialized/migrated for that profile.
+- Use profiles when you want isolated state (e.g. different accounts, test vs production, or per-container environments).
+
+Docker / Kubernetes examples
+- Docker (profile via env):
+```sh
+docker run \
+  --restart=always \
+  -e AUTOSHIFT_PROFILE='myprofile' \
+  -e SHIFT_USER='<username>' \
+  -e SHIFT_PASS='<password>' \
+  -e SHIFT_ARGS='--redeem bl3:steam --schedule -v' \
+  -v autoshift:/autoshift/data \
+  zacharmstrong/autoshift:latest
+```
+
+- Docker (profile via SHIFT_ARGS):
+```sh
+docker run \
+  -e SHIFT_USER='<username>' \
+  -e SHIFT_PASS='<password>' \
+  -e SHIFT_ARGS='--profile myprofile --redeem bl3:steam --schedule -v' \
+  -v autoshift:/autoshift/data \
+  zacharmstrong/autoshift:latest
+```
+
+- Kubernetes (set AUTOSHIFT_PROFILE in the manifest):
+```yaml
+env:
+  - name: AUTOSHIFT_PROFILE
+    value: "myprofile"
+  - name: SHIFT_ARGS
+    value: "--redeem bl3:steam --schedule 6 -v"
+```
+
 ## Code
 
 This tool consists of 3 parts:

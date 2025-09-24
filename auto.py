@@ -22,16 +22,10 @@
 #############################################################################
 from __future__ import print_function
 
-import sys
-from typing import Match, cast
-
 from common import _L, DEBUG, DIRNAME, INFO
+import os
 
-# from query import BL3
-from query import Key, known_games, known_platforms
-from shift import ShiftClient, Status
-
-client: ShiftClient = None  # type: ignore
+client: "ShiftClient" = None  # type: ignore
 
 LICENSE_TEXT = """\
 ========================================================================
@@ -190,9 +184,7 @@ def setup_argparser():
     import argparse
     import textwrap
 
-    games = list(known_games.keys())
-    platforms = list(known_platforms.without("universal").keys())
-
+    # NOTE: we avoid importing query here so we can parse --profile early.
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
         "-u",
@@ -271,6 +263,11 @@ def setup_argparser():
         type=str,
         help="Override the SHiFT codes source (URL or local path). Can also be set via SHIFT_SOURCE env var.",
     )
+    parser.add_argument(
+        "--profile",
+        type=str,
+        help="Use a named profile (affects files stored under data/<profile>). Can also be set via AUTOSHIFT_PROFILE env var.",
+    )
 
     return parser
 
@@ -278,15 +275,20 @@ def setup_argparser():
 def main(args):
     global client
     from time import sleep
-    import os
 
+    # apply profile override (CLI takes precedence over env)
+    if getattr(args, "profile", None):
+        os.environ["AUTOSHIFT_PROFILE"] = args.profile
+
+    # Now import modules that rely on data paths / migrations
     import query
-    from query import db, r_golden_keys
+    from query import db, r_golden_keys, known_games, known_platforms, Key
+    from shift import ShiftClient, Status
 
     # apply shift source override (CLI takes precedence over env)
     shift_src = (
         args.shift_source
-        if hasattr(args, "shift_source") and args.shift_source
+        if getattr(args, "shift_source", None)
         else os.getenv("SHIFT_SOURCE")
     )
     if shift_src:

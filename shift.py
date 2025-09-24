@@ -32,6 +32,16 @@ from requests.models import Response
 
 from common import _L, DIRNAME
 
+try:
+    from common import DATA_DIR, data_path
+except Exception:
+    DATA_DIR = os.path.join(DIRNAME, "data")
+
+    def data_path(*parts):
+        os.makedirs(DATA_DIR, exist_ok=True)
+        return os.path.join(DATA_DIR, *parts)
+
+
 # Run code format migration at startup
 try:
     from migrations import migrate_shift_codes
@@ -152,7 +162,8 @@ class ShiftClient:
 
         self.client = requests.session()
         self.last_status = Status.NONE
-        self.cookie_file = path.join(DIRNAME, "data", ".cookies.save")
+        # profile-aware cookie path
+        self.cookie_file = data_path(".cookies.save")
         # try to load cookies. Query for login data if not present
         if not self.__load_cookie():
             print("First time usage: Login to your SHiFT account...")

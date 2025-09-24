@@ -4,7 +4,17 @@ import sqlite3
 from typing import List, Union
 from common import DIRNAME, _L
 
-DB_PATH = os.path.join(DIRNAME, "data", "keys.db")
+try:
+    from common import DATA_DIR, data_path
+except Exception:
+    DATA_DIR = os.path.join(DIRNAME, "data")
+
+    def data_path(*parts):
+        os.makedirs(DATA_DIR, exist_ok=True)
+        return os.path.join(DATA_DIR, *parts)
+
+
+DB_PATH = data_path("keys.db")
 CODE_PATTERN = re.compile(r"^[A-Za-z0-9]{5}(?:-[A-Za-z0-9]{5}){4}$")
 
 
