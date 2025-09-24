@@ -128,3 +128,6 @@ notebooks/
 
 # vscode
 *.code-workspace
+
+/data       # ignores a symlink or file named 'data' at repo root
+/data/      # ignores a real directory named 'data' at repo root
