@@ -31,20 +31,44 @@ from bs4 import BeautifulSoup as BSoup
 from requests.models import Response
 
 from common import _L, DIRNAME
+import os  # required for fallback data_path and cookie path handling
+
+# Opt-in: only print password in cleartext when this env var is truthy
+SHOW_PW = os.getenv("AUTOSHIFT_DEBUG_SHOW_PW", "0").lower() in ("1", "true", "yes")
+
+
+try:
+    from common import DATA_DIR, data_path
+except Exception:
+    DATA_DIR = os.path.join(DIRNAME, "data")
+
+    def data_path(*parts):
+        os.makedirs(DATA_DIR, exist_ok=True)
+        return os.path.join(DATA_DIR, *parts)
+
+
+# Run code format migration at startup
+try:
+    from migrations import migrate_shift_codes
+
+    migrate_shift_codes()
+except ImportError:
+    _L.warning("Migrations module not found. Skipping code format migration.")
 
 base_url = "https://shift.gearboxsoftware.com"
 
 
 def json_headers(token):
-    return {'x-csrf-token': token,
-            'x-requested-with': 'XMLHttpRequest'}
+    return {"x-csrf-token": token, "x-requested-with": "XMLHttpRequest"}
 
 
 # filthy enum hack with auto convert
 class Status(Enum):
     NONE = "Something unexpected happened.."
     REDIRECT = "<target location>"
-    TRYLATER = "To continue to redeem SHiFT codes, please launch a SHiFT-enabled title first!"
+    TRYLATER = (
+        "To continue to redeem SHiFT codes, please launch a SHiFT-enabled title first!"
+    )
     EXPIRED = "This code expired by now.. ({key.reward})"
     REDEEMED = "Already redeemed {key.reward}"
     SUCCESS = "Redeemed {key.reward}"
@@ -60,7 +84,7 @@ class Status(Enum):
         obj = object.__new__(cls)
         obj._value_ = value
         obj.__init__(value)
-        cls._value2member_map_[value] = obj # type: ignore # these bindings are wrong..
+        cls._value2member_map_[value] = obj  # type: ignore # these bindings are wrong..
         return obj
 
     def __eq__(self, other: Any) -> bool:
@@ -77,21 +101,24 @@ class Status(Enum):
                 setattr(obj, k, v)
         return obj
 
+
 # windows / unix `getch`
 try:
     import msvcrt
 
-    def getch(): # type:ignore
-        return str(msvcrt.getch(), "utf8") # type:ignore
+    def getch():  # type:ignore
+        return str(msvcrt.getch(), "utf8")  # type:ignore
 
     BACKSPACE = 8
 
 except ImportError:
+
     def getch():
         """Get keypress without echoing"""
         import sys
         import termios  # noqa
         import tty
+
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
         try:
@@ -107,6 +134,7 @@ except ImportError:
 def input_pw(qry):
     """Input Password with * replacing chars"""
     import sys
+
     print(qry, end="")
     sys.stdout.flush()
     pw = ""
@@ -117,7 +145,7 @@ def input_pw(qry):
             sys.exit(0)
 
         # on return
-        if c == '\r':
+        if c == "\r":
             break
 
         # backspace
@@ -132,12 +160,15 @@ def input_pw(qry):
         sys.stdout.flush()
     return pw
 
+
 class ShiftClient:
     def __init__(self, user: str = None, pw: str = None):
         from os import path
+
         self.client = requests.session()
         self.last_status = Status.NONE
-        self.cookie_file = path.join(DIRNAME, "data", ".cookies.save")
+        # profile-aware cookie path
+        self.cookie_file = data_path(".cookies.save")
         # try to load cookies. Query for login data if not present
         if not self.__load_cookie():
             print("First time usage: Login to your SHiFT account...")
@@ -156,6 +187,7 @@ class ShiftClient:
     def __save_cookie(self) -> bool:
         """Make ./data folder if not present"""
         from os import mkdir, path
+
         if not path.exists(path.dirname(self.cookie_file)):
             mkdir(path.dirname(self.cookie_file))
 
@@ -170,11 +202,12 @@ class ShiftClient:
     def __load_cookie(self) -> bool:
         """Check if there is a saved cookie and load it."""
         from os import path
-        if (not path.exists(self.cookie_file)):
+
+        if not path.exists(self.cookie_file):
             return False
         with open(self.cookie_file, "rb") as f:
             content = f.read()
-            if (not content):
+            if not content:
                 return False
             self.client.cookies.update(pickle.loads(content))
         return True
@@ -205,8 +238,9 @@ class ShiftClient:
         self.last_status = status
         return status
 
-    def __get_token(self, url_or_reply: Union[str, requests.Response]) -> tuple[int,
-                                                                                Optional[str]]:
+    def __get_token(
+        self, url_or_reply: Union[str, requests.Response]
+    ) -> tuple[int, Optional[str]]:
         """Get CSRF-Token from given URL"""
         if isinstance(url_or_reply, str):
             r = self.client.get(url_or_reply)
@@ -225,19 +259,42 @@ class ShiftClient:
         the_url = f"{base_url}/home"
         _, token = self.__get_token(the_url)
         if not token:
+            _L.debug("No CSRF token received during login flow.")
             return None
-        login_data = {"authenticity_token": token,
-                      "user[email]": user,
-                      "user[password]": pw}
+
+        # Debug: token present
+        _L.debug(f"Login token received: {'yes' if token else 'no'}")
+
+        login_data = {
+            "authenticity_token": token,
+            "user[email]": user,
+            "user[password]": pw,
+        }
         headers = {"Referer": the_url}
-        r = self.client.post(f"{base_url}/sessions",
-                             data=login_data,
-                             headers=headers)
-        _L.debug(f"{r.request.method} {r.url} {r.status_code}")
+
+        # Log attempt (password only if explicitly enabled)
+        if SHOW_PW:
+            _L.debug(f"Attempting login with payload: user={user!r}, password={pw!r}")
+        else:
+            _L.debug(f"Attempting login with payload: user={user!r}, password=<hidden>")
+
+        # Send request and log response summary for debugging
+        r = self.client.post(f"{base_url}/sessions", data=login_data, headers=headers)
+        _L.debug(f"POST {r.request.url} -> {r.status_code}")
+        # Log a short snippet of the response body for debugging (not the full body)
+        try:
+            snippet = r.text[:1000].replace("\n", " ")
+            _L.debug(f"Response snippet: {snippet}")
+        except Exception:
+            _L.debug("Could not read response text for debug output.")
+
         return r
 
-    def __get_redemption_form(self, code: str, game: str, platform: str) -> Union[
-            tuple[Literal[False], int, str], tuple[Literal[True], int, dict[str, str]]]:
+    def __get_redemption_form(
+        self, code: str, game: str, platform: str
+    ) -> Union[
+        tuple[Literal[False], int, str], tuple[Literal[True], int, dict[str, str]]
+    ]:
         """Get Form data for code redemption"""
 
         the_url = f"{base_url}/code_redemptions/new"
@@ -246,21 +303,27 @@ class ShiftClient:
             _L.debug("no token")
             return False, status_code, "Could not retrieve Token"
 
-        r = self.client.get(f"{base_url}/entitlement_offer_codes?code={code}",
-                            headers=json_headers(token))
+        r = self.client.get(
+            f"{base_url}/entitlement_offer_codes?code={code}",
+            headers=json_headers(token),
+        )
         _L.debug(f"{r.request.method} {r.url} {r.status_code} {r.reason}")
 
         if r.status_code != 200:
+            _L.debug(f"Did not return code 200: {r.status_code}")
             return False, r.status_code, r.reason
 
         soup = BSoup(r.text, "html.parser")
         if not soup.find("form", class_="new_archway_code_redemption"):
+            _L.debug(
+                f"Could not find the form with class 'new_archway_code_redemption': {r.text.strip()}"
+            )
             return False, r.status_code, r.text.strip()
 
         titles = soup.find_all("h2")
         title: bs4.element.Tag = titles[0]
         # some codes work for multiple games and yield multiple buttons for the same platform..
-        if (len(titles) > 1):
+        if len(titles) > 1:
             for _t in titles:
                 if cast(bs4.element.Tag, _t).text == game:
                     title = _t
@@ -271,12 +334,10 @@ class ShiftClient:
             service: bs4.element.Tag = form.find(id="archway_code_redemption_service")
             if platform not in service["value"]:
                 continue
-            form_data = {inp["name"]: inp["value"]
-                         for inp in form.find_all("input")}
+            form_data = {inp["name"]: inp["value"] for inp in form.find_all("input")}
             return True, r.status_code, form_data
 
-        return (False, r.status_code,
-                "This code is not available for your platform")
+        return (False, r.status_code, "This code is not available for your platform")
 
     def __get_status(self, alert) -> Status:
         status = Status.NONE
@@ -289,21 +350,28 @@ class ShiftClient:
 
     def __get_redemption_status(self, r: Response) -> tuple[str, str, str]:
         # return None
+        # _L.debug(f"Result Text: {r.text}")
         soup = BSoup(r.text, "lxml")
         div = soup.find("div", id="check_redemption_status")
         if div:
+            _L.debug(f"Result Check Redemption Status: {div.text.strip()}")
             return (div.text.strip(), div["data-url"], div["data-fallback-url"])
+        div = soup.find("div", class_="alert notice")
+        if div:
+            _L.debug(f"Result Alert Notice: {div.text.strip()}")
+            return (div.text.strip(), "", "")
         return ("", "", "")
 
     def __check_redemption_status(self, r: Response) -> Status:
         """Check redemption"""
         import json
         from time import sleep
-        if (r.status_code == 302):
+
+        if r.status_code == 302:
             return Status.REDIRECT(r.headers["location"])
 
         get_status, url, fallback = self.__get_redemption_status(r)
-        if get_status:
+        if get_status and url:
             _, token = self.__get_token(r)
             cnt = 0
             # follow all redirects
@@ -312,9 +380,11 @@ class ShiftClient:
                     return Status.REDIRECT(fallback)
                 _L.info(get_status)
                 _L.debug(f"get {base_url}/{url}")
-                raw_json = self.client.get(f"{base_url}/{url}",
-                                           allow_redirects=False,
-                                           headers=json_headers(token))
+                raw_json = self.client.get(
+                    f"{base_url}/{url}",
+                    allow_redirects=False,
+                    headers=json_headers(token),
+                )
                 _L.debug(f"Raw json text: {raw_json.text}")
                 data = json.loads(raw_json.text)
 
@@ -323,6 +393,8 @@ class ShiftClient:
                 # wait 500
                 sleep(0.5)
                 cnt += 1
+        if get_status:
+            return self.__get_status(get_status)
 
         return Status.NONE
 
@@ -334,18 +406,14 @@ class ShiftClient:
         soup = BSoup(r.text, "html.parser")
 
         # cache all unlocked rewards
-        return [el.text
-                for el in soup.find_all("div", class_="reward_unlocked")]
+        return [el.text for el in soup.find_all("div", class_="reward_unlocked")]
 
     def __redeem_form(self, data: dict[str, str]) -> Status:
         """Redeem a code with given form data"""
 
         the_url = f"{base_url}/code_redemptions"
         headers = {"Referer": f"{the_url}/new"}
-        r = self.client.post(the_url,
-                             data=data,
-                             headers=headers,
-                             allow_redirects=False)
+        r = self.client.post(the_url, data=data, headers=headers, allow_redirects=False)
         _L.debug(f"{r.request.method} {r.url} {r.status_code}")
         status = self.__check_redemption_status(r)
         # did we visit /code_redemptions/...... route?
@@ -356,6 +424,9 @@ class ShiftClient:
                 redemption = True
             _L.debug(f"redirect to '{status.value}'")
             r2 = self.client.get(status.value)
+            _L.debug(
+                f"redirect returned: {r2.request.method} {r2.url} {r2.status_code} {r2.reason}"
+            )
             status = self.__check_redemption_status(r2)
 
         # workaround for new SHiFT website.
@@ -365,4 +436,5 @@ class ShiftClient:
                 status = Status.REDEEMED
             else:
                 status = Status.TRYLATER
+        return status
         return status

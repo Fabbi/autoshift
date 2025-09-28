@@ -64,6 +64,7 @@ instance/
 
 # Scrapy stuff:
 .scrapy
+*.orig
 
 # Sphinx documentation
 docs/_build/
@@ -124,3 +125,11 @@ keys.db
 
 # notebooks folder
 notebooks/
+
+# vscode
+*.code-workspace
+
+
+# Ignore data folder
+/data
+data*
