@@ -56,7 +56,7 @@ uv run autoshift redeem steam <code>
 
 ### Configuration
 
-You can also configure the tool using a `.env` file. See [.env.defaults](.env.defaults) for all possible options.
+You can also configure the tool using a `.env` file. See [env.default](env.default) for all possible options.
 All those options can also be set via ENV-vars and mixed how you like
 
 Config precedence (from high to low):
