@@ -34,5 +34,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/autoshift:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/autoshift:${{ env.SHA_SHORT }}
+            ${{ secrets.DOCKERHUB_USER }}/autoshift:latest
+            ${{ secrets.DOCKERHUB_USER }}/autoshift:${{ env.SHA_SHORT }}
