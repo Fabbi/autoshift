@@ -10,13 +10,14 @@ ENV UV_PYTHON_DOWNLOADS=never
 ENV UV_PROJECT_ENVIRONMENT=/autoshift/.venv
 # should be default but better safe then sorry..
 ENV UV_CACHE_DIR=/root/.cache
+ENV UV_FROZEN=true
 
 WORKDIR /autoshift
 
 RUN --mount=type=cache,dst=/root/.cache/uv \
     --mount=type=bind,src=uv.lock,dst=uv.lock \
     --mount=type=bind,src=pyproject.toml,dst=pyproject.toml \
-    uv sync --frozen --no-install-project --no-group dev
+    uv sync --no-dev
 
 FROM base
 
@@ -24,14 +25,12 @@ FROM base
 ENV VIRTUAL_ENV=/autoshift/.venv
 ENV PATH="${VIRTUAL_ENV}/bin:$PATH"
 ENV PYTHONPATH=/autoshift
+ENV UV_NO_SYNC=true
+ENV UV_FROZEN=true
 
 WORKDIR /autoshift
 
 COPY . /autoshift/
 
-ENTRYPOINT ["uv", "run", "/autoshift/auto.py"]
-CMD [
-    "--games", "bl3 blps bl2 bl1",
-    "--platforms", "epic steam",
-    "--schedule"
-    ]
+ENTRYPOINT ["uv", "run", "--no-dev", "auto"]
+CMD ["schedule", "--bl4", "steam"]
