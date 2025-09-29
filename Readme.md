@@ -1,16 +1,14 @@
 # AutoSHiFt: Automatically redeem Gearbox SHiFT Codes
 
-- **Compatibility:** 3.9+.
+- **Compatibility:** 3.12+.
 - **Platform:** Crossplatform.
-- **Version:** 1.1.0
+- **Version:** 2.0.0
 - **Repo:** https://github.com/Fabbi/autoshift
 
-# Overview
+# Overview ⚠️ Needs Update ⚠️
 
-Data provided by [Orcicorn's SHiFT and VIP Code archive](https://shift.orcicorn.com/shift-code/).<br>
-`autoshift` detects and memorizes new games and platforms added to the orcicorn shift key database.
 
-To see which games and platforms are supported use the `auto.py --help` command.
+Data provided by [ugoogalizer's autoshift-scraper](https://github.com/ugoogalizer/autoshift-scraper).
 
 *This tool doesn't save your login data anywhere on your machine!*
 After your first login your login-cookie (a string of seemingly random characters) is saved to the `data` folder and reused every time you use `autoshift` after that.
@@ -21,190 +19,70 @@ You can choose to only redeem mods/skins etc, only golden keys or both. There is
 
 ## Installation
 
+you'll need to install [uv](https://docs.astral.sh/uv/getting-started/installation/#installation-methods)
+
+```sh
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+clone repo or download it as zip:
+
 ```sh
 git clone git@github.com:Fabbi/autoshift.git
 ```
 
-or download it as zip
-
-you'll need to install a few dependencies
-
-```sh
-pip install -r requirements.txt
-```
 
 ## Usage
 
 - for help
 ```sh
-./auto.py --help
+uv run autoshift --help
 ```
 
-- redeem codes for Borderlands 3 on Steam
+- redeem codes for Borderlands 4 on Steam (and keep redeeming every 2 hours)
 ```sh
-./auto.py --game bl3 --platform steam
+uv run autoshift schedule --game bl4 --platform steam
 ```
 
-- redeem codes for Borderlands 3 on Steam using Username and Password (Use quotes for User and Password)
+- redeem codes for Borderlands 4 on Steam using Username and Password (Use quotes for User and Password)
 ```sh
-./auto.py --game bl3 --platform steam --user "my@user.edu" --pass "p4ssw0rd!123"
+uv run autoshift schedule --game bl4 --platform steam --user "my@user.edu" --pass "p4ssw0rd!123"
 ```
 
-- keep redeeming every 2 hours
+- redeem a single code
 ```sh
-./auto.py --game bl3 --platform steam --schedule
+uv run autoshift redeem steam <code>
 ```
 
-- keep redeeming every `n` hours (values < 2 are not possible due to IP Bans)
-```sh
-./auto.py --game bl3 --platform steam --schedule 5 # redeem every 5 hours
-```
+### Configuration
 
-- only redeem golden keys
-```sh
-./auto.py --game bl3 --platform steam --schedule --golden
-```
+You can also configure the tool using a `.env` file. See [.env.defaults](.env.defaults) for all possible options.
+All those options can also be set via ENV-vars and mixed how you like
 
-- only redeem non-golden keys
-```sh
-./auto.py --game bl3 --platform steam --schedule --non-golden
-```
+Config precedence (from high to low):
+- passed command-line arguments
+- Environment variables
+- `.env`-file entries
 
-- only redeem up to 30 keys
-```sh
-./auto.py --game bl3 --platform steam --schedule --golden --limit 30
-```
-
-- only query new keys (why though..)
-```sh
-./auto.py --game bl3 --platform steam --golden --limit 0
-```
-
-## Code
-
-This tool consists of 3 parts:
-
-### `shift.py`
-
-This module handles the redemption of the SHiFT codes and could be used as standalone CLI tool to manually enter those codes.
-It queries login credentials on first use and saves the needed cookie to enable auto-login.
-
-### `query.py`
-
-This module parses the codes from wherever they may come from and creates/maintains the database.
-If you'd want to add other sources for SHiFT codes or future games, you'd make that here.
-
-
-### `auto.py`
-
-This one is the commandline interface you call to use this tool.
 
 # Docker
 
-Available as a docker image based on `python3.10-buster`
+Available as a docker image based on `python3.12-alpine`
 
 ## Usage
 
+All command-line arguments can be used just like running the script directly
+
 ```
-docker run \
+docker run --rm --name autoshift \
   --restart=always \
-  -e SHIFT_USER='<username>' \
-  -e SHIFT_PASS='<password>' \
-  -e SHIFT_GAMES='bl3 blps bl2 bl1 ttw' \
-  -e SHIFT_PLATFORMS='epic xboxlive psn' \
-  -e SHIFT_ARGS='--schedule -v' \
-  -e TZ='America/Chicago' \
   -v autoshift:/autoshift/data \
-  fabianschweinfurth/autoshift:latest
+  fabianschweinfurth/autoshift:latest schedule --user="<username>" --pw="<password>" --bl4=steam
 ```
 
-Compose:
-
 ```
----
-version: "3.0"
-services:
-  autoshift:
-    image: fabianschweinfurth/autoshift:latest
-    container_name: autoshift_all
-    restart: always
-    volumes:
-      - autoshift:/autoshift/data
-    environment:
-      - TZ=America/Denver
-      - SHIFT_PLATFORMS=epic xboxlive psn
-      - SHIFT_USER=<username>
-      - SHIFT_PASS=<password>
-      - SHIFT_GAMES=bl3 blps bl2 bl1 ttw gdfll
-      - SHIFT_ARGS=--schedule -v
+docker run --rm --name autoshift \
+  --restart=always \
+  -v autoshift:/autoshift/data \
+  fabianschweinfurth/autoshift:latest schedule --user="<username>" --pw="<password>" --bl4=steam
 ```
-
-## Variables
-
-#### **SHIFT_USER** (required)
-The username/email for your SHiFT account
-
-Example: `johndoe123`
-
-
-#### **SHIFT_PASS** (required)
-The password for your SHiFT account
-
-Example: `p@ssw0rd`
-
-
-#### **SHIFT_GAMES** (recommended)
-The game(s) you want to redeem codes for
-
-Default: `bl3 blps bl2 bl`
-
-Example: `blps` or `bl bl2 bl3`
-
-|Game|Code|
-|---|---|
-|Borderlands|`bl1`|
-|Borderlands 2|`bl2`|
-|Borderlands: The Pre-Sequel|`blps`|
-|Borderlands 3|`bl3`|
-|Tiny Tina's Wonderlands|`ttw`|
-|Godfall|`gdfll`|
-
-
-#### **SHIFT_PLATFORM** (recommended)
-The platform(s) you want to redeem codes for
-
-Default: `epic steam`
-
-Example: `xbox` or `xbox ps`
-
-|Platform|Code|
-|---|---|
-|PC (Epic)|`epic`|
-|PC (Steam)|`steam`|
-|Xbox|`xboxlive`|
-|Playstation|`psn`|
-|Stadia|`stadia`|
-
-
-#### **SHIFT_ARGS** (optional)
-Additional arguments to pass to the script
-
-Default: `--schedule`
-
-Example: `--schedule --golden --limit 30`
-
-|Arg|Description|
-|---|---|
-|`--golden`|Only redeem golden keys|
-|`--non-golden`|Only redeem non-golden keys|
-|`--limit n`|Max number of golden keys you want to redeem|
-|`--schedule`|Keep checking for keys and redeeming every hour|
-|`-v`|Verbose mode|
-
-
-#### **TZ** (optional)
-Your timezone
-
-Default: `America/Chicago`
-
-Example: `Europe/London`
