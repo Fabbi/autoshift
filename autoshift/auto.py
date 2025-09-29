@@ -20,6 +20,7 @@
 # along with autoshift.  If not, see <http://www.gnu.org/licenses/>.
 #
 #############################################################################
+from enum import Enum
 import json
 import logging
 import os
@@ -28,6 +29,7 @@ from collections.abc import Sequence
 from typing import (
     TYPE_CHECKING,
     Annotated,
+    Literal,
     cast,
 )
 
@@ -206,17 +208,21 @@ def redeem_one(
     redeem(db_key)
 
 
+# PlatformArg = Literal[[p.name for p in Platform] + ["all"]]
+PlatformArg = Enum("Platform", [(p.name, p.value) for p in Platform] + [("all", "all")])
+
+
 @app.command(
     "schedule",
 )
 def auto_redeem_codes(
-    bl1: Annotated[list[Platform] | None, typer.Option()] = None,
-    bl2: Annotated[list[Platform] | None, typer.Option()] = None,
-    bl3: Annotated[list[Platform] | None, typer.Option()] = None,
-    bl4: Annotated[list[Platform] | None, typer.Option()] = None,
-    blps: Annotated[list[Platform] | None, typer.Option()] = None,
-    ttw: Annotated[list[Platform] | None, typer.Option()] = None,
-    gdfll: Annotated[list[Platform] | None, typer.Option()] = None,
+    bl1: Annotated[list[PlatformArg] | None, typer.Option()] = None,
+    bl2: Annotated[list[PlatformArg] | None, typer.Option()] = None,
+    bl3: Annotated[list[PlatformArg] | None, typer.Option()] = None,
+    bl4: Annotated[list[PlatformArg] | None, typer.Option()] = None,
+    blps: Annotated[list[PlatformArg] | None, typer.Option()] = None,
+    ttw: Annotated[list[PlatformArg] | None, typer.Option()] = None,
+    gdfll: Annotated[list[PlatformArg] | None, typer.Option()] = None,
     interval: Annotated[
         int,
         typer.Option(
@@ -237,9 +243,15 @@ def auto_redeem_codes(
     if TYPE_CHECKING:
         _silence_unused = (bl1, bl2, bl3, bl4, blps, ttw, gdfll)
 
-    game_platform_map: dict[Game, list[Platform]] = {
-        game: cast(list, value) for game in Game if (value := locals().get(game.name))
-    }
+    game_platform_map: dict[Game, list[Platform]] = {}
+    for game in Game:
+        value = locals().get(game.name)
+        if value is None:
+            continue
+        if any(v == PlatformArg.all for v in value):  # pyright: ignore[reportAttributeAccessIssue]
+            value = list(Platform)
+        game_platform_map[game] = value
+
     if game_platform_map:
         settings._GAMES_PLATFORM_MAP.update(game_platform_map)
 
