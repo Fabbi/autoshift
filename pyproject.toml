@@ -1,6 +1,6 @@
 [project]
 name = "autoshift"
-version = "1.1.0"
+version = "2.0.0"
 description = "AutoSHIFt: Automatically redeem Gearbox SHIFt Codes"
 authors = [
     { name = "Fabian Schweinfurth", email = "fabbi@users.noreply.github.com"}
@@ -20,7 +20,7 @@ dependencies = [
 ]
 
 [project.scripts]
-auto = "autoshift:auto.app"
+autoshift = "autoshift:auto.app"
 
 [dependency-groups]
 dev = [
