@@ -20,17 +20,15 @@
 # along with autoshift.  If not, see <http://www.gnu.org/licenses/>.
 #
 #############################################################################
-from enum import Enum
 import json
 import logging
 import os
 import re
 from collections.abc import Sequence
+from enum import Enum
 from typing import (
     TYPE_CHECKING,
     Annotated,
-    Literal,
-    cast,
 )
 
 import httpx
@@ -205,6 +203,9 @@ def redeem_one(
             platform=platform,
             game="UNKNOWN",
         )
+    elif db_key.redeemed:
+        _L.info("You already redeemed that code.")
+        return
     redeem(db_key)
 
 

@@ -32,5 +32,5 @@ WORKDIR /autoshift
 
 COPY . /autoshift/
 
-ENTRYPOINT ["uv", "run", "--no-dev", "auto"]
+ENTRYPOINT ["uv", "run", "--no-dev", "autoshift"]
 CMD ["schedule", "--bl4", "steam"]

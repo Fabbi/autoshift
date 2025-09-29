@@ -20,6 +20,7 @@
 #
 #############################################################################
 import logging
+import logging.config
 import re
 from enum import StrEnum, auto
 from pathlib import Path
@@ -143,6 +144,7 @@ class SettingsFields(BaseSettings):
     )
 
     LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "WARNING"
+    HTTP_LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "WARNING"
 
     SCHEDULE: int | None = Field(
         default=120, description="Check for new keys every N minutes"
@@ -248,6 +250,42 @@ class Settings(SettingsFields):
 
 
 settings = Settings()
+
+
+logging.config.dictConfig(
+    dict(
+        version=1,
+        disable_existing_loggers=False,
+        level=settings.LOG_LEVEL,
+        handlers=dict(
+            console={
+                "class": "rich.logging.RichHandler",
+                "rich_tracebacks": True,
+                "enable_link_path": False,
+            },
+        ),
+        formatters=dict(
+            console=dict(format=("[%(levelname)s] %(name)s | %(message)s")),
+        ),
+        loggers={
+            "autoshift": {
+                "handlers": ["console"],
+                "propagate": False,
+                "level": settings.LOG_LEVEL,
+            },
+            "httpx": {
+                "handlers": ["console"],
+                "propagate": False,
+                "level": settings.HTTP_LOG_LEVEL,
+            },
+            "httpcore": {
+                "handlers": ["console"],
+                "propagate": False,
+                "level": settings.HTTP_LOG_LEVEL,
+            },
+        },
+    )
+)
 
 _L = logging.getLogger("autoshift")
 _L.setLevel(settings.LOG_LEVEL)
