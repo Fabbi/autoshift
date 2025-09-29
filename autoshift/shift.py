@@ -29,9 +29,8 @@ import typer
 from bs4 import BeautifulSoup as BSoup
 from bs4 import Tag
 
-from src.common import _L, settings
-from src.models import Key
-from src.query import db
+from autoshift.common import _L, settings
+from autoshift.models import Key
 
 base_url = "https://shift.gearboxsoftware.com"
 
@@ -129,11 +128,12 @@ class ShiftClient:
             self.client.cookies.update(pickle.loads(content))
         return True
 
-    def redeem(self, key: Key, game_longname: str | None = None) -> Status:
+    def redeem(self, key: Key) -> Status:
         from time import sleep
 
         retry = True
         status = Status.NONE
+        game_longname = key.game.long_name
 
         while retry:
             found, status_code, form_data = self.__get_redemption_form(
@@ -168,13 +168,13 @@ class ShiftClient:
             else:
                 retry = False
 
-            if status in (
-                Status.SUCCESS,
-                Status.REDEEMED,
-                Status.EXPIRED,
-                Status.INVALID,
-            ):
-                db.set_redeemed(key)
+            key.redeemed = status in (Status.SUCCESS, Status.REDEEMED)
+            key.expired = status in (Status.EXPIRED, Status.INVALID)
+            key.save()
+
+            if key.expired:
+                # set all keys with the same code as expired
+                (Key.update(expired=True).where(Key.code == key.code).execute())
 
         return status
 
@@ -320,7 +320,7 @@ class ShiftClient:
 
         return Status.NONE
 
-    def __query_rewards(self) -> list[str]:
+    def _query_rewards(self) -> list[str]:
         """Query reward list"""
         # self.old_rewards
         the_url = f"{base_url}/rewards"

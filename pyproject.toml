@@ -20,7 +20,7 @@ dependencies = [
 ]
 
 [project.scripts]
-auto = "src:auto.app"
+auto = "autoshift:auto.app"
 
 [dependency-groups]
 dev = [
@@ -38,15 +38,15 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src"]
+packages = ["autoshift"]
 
 [tool.uv.sources]
-src = { path = "./src" }
+autoshift = { path = "./autoshift" }
 
 [tool.pyright]
 typeCheckingMode = "standard"
 ignore = ["typings/**", "**/**.pyi"]
-include = ["src"]
+include = ["autoshift"]
 reportUnusedImport = "warning"
 reportMissingTypeStubs = false                                              #"information"
 reportUnknownMemberType = false

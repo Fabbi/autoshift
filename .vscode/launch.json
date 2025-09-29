@@ -5,7 +5,7 @@
             "name": "Debug Autoshift",
             "type": "debugpy",
             "request": "launch",
-            "program": "auto",
+            "program": "autoshift/auto.py",
             "args": [
                 "-v",
                 "--platforms",
