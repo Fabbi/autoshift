@@ -153,7 +153,8 @@ class SettingsFields(BaseSettings):
                       |  Set this to `None` to disable querying new keys.""",
     )
 
-    def write_defaults_file(self):
+    @staticmethod
+    def write_defaults_file():
         with (ROOT_DIR / "env.default").open("w") as f:
             f.write("# -*- mode: shell -*-\n\n")
             default_settings = SettingsFields().model_dump()
@@ -280,3 +281,6 @@ logging.config.dictConfig(
 
 _L = logging.getLogger("autoshift")
 _L.setLevel(settings.LOG_LEVEL)
+
+if __name__ == "__main__":
+    SettingsFields.write_defaults_file()
