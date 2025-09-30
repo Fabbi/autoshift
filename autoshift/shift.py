@@ -150,6 +150,8 @@ class ShiftClient:
                     status = Status.EXPIRED
                 elif "not available" in form_data:
                     status = Status.INVALID
+                elif "does not exist" in form_data:
+                    status = Status.INVALID
                 elif "already been redeemed" in form_data:
                     status = Status.REDEEMED
                 else:
