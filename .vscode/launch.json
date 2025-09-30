@@ -7,11 +7,9 @@
             "request": "launch",
             "program": "autoshift/auto.py",
             "args": [
-                "-v",
-                "--platforms",
-                "steam",
-                "redeem",
-                "JS63J-JSCWJ-CFTBW-3TJ3J-WJS5R"
+                "schedule",
+                "--interval",
+                "0"
             ]
         }
     ]
