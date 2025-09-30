@@ -209,13 +209,10 @@ def redeem_one(
     redeem(db_key)
 
 
-# PlatformArg = Literal[[p.name for p in Platform] + ["all"]]
 PlatformArg = Enum("Platform", [(p.name, p.value) for p in Platform] + [("all", "all")])
 
 
-@app.command(
-    "schedule",
-)
+@app.command("schedule")
 def auto_redeem_codes(
     bl1: Annotated[list[PlatformArg] | None, typer.Option()] = None,
     bl2: Annotated[list[PlatformArg] | None, typer.Option()] = None,

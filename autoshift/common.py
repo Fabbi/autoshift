@@ -75,20 +75,11 @@ def path(v: str):
     return v and Path(v)
 
 
-def list_string_to_list(value: str) -> list[str]:
-    value = value.removeprefix("[").removesuffix("]")
-    if "," in value:
-        lst = [p.strip() for p in value.split(",")]
-    else:
-        lst = [value.strip()]
-    return lst
-
-
 def validate_list(value):
     if not value:
         return []
     if isinstance(value, str):
-        return list_string_to_list(value)
+        return list(filter(len, re.split(r"\W+", value)))
     return value
 
 
@@ -241,7 +232,7 @@ class Settings(SettingsFields):
 
         for game in Game:
             if platforms := self.model_extra.get(f"shift_{game.name.lower()}"):
-                platforms = list_string_to_list(platforms)
+                platforms = validate_list(platforms)
                 self._GAMES_PLATFORM_MAP[game] = [
                     Platform(platform) for platform in platforms
                 ]
