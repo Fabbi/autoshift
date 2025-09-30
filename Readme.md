@@ -79,10 +79,3 @@ docker run --rm --name autoshift \
   -v autoshift:/autoshift/data \
   fabianschweinfurth/autoshift:latest schedule --user="<username>" --pw="<password>" --bl4=steam
 ```
-
-```
-docker run --rm --name autoshift \
-  --restart=always \
-  -v autoshift:/autoshift/data \
-  fabianschweinfurth/autoshift:latest schedule --user="<username>" --pw="<password>" --bl4=steam
-```
