@@ -212,7 +212,7 @@ class ShiftClient:
     ) -> tuple[Literal[False], int, str] | tuple[Literal[True], int, dict[str, str]]:
         """Get Form data for code redemption"""
 
-        the_url = f"{base_url}/code_redemptions/new"
+        the_url = f"{base_url}/rewards"
         status_code, token = self.__get_token(the_url)
         if not token:
             _L.debug("no token")
@@ -334,10 +334,12 @@ class ShiftClient:
         """Redeem a code with given form data"""
 
         the_url = f"{base_url}/code_redemptions"
-        headers = {"Referer": f"{the_url}/new"}
-        r = self.client.post(the_url, data=data, headers=headers, follow_redirects=False)
-        _L.debug(f"{r.request.method} {r.url} {r.status_code}")
-        status = self.__check_redemption_status(r)
+        headers = {"Referer": f"{base_url}/rewards"}
+        response = self.client.post(
+            the_url, data=data, headers=headers, follow_redirects=False
+        )
+        _L.debug(f"{response.request.method} {response.url} {response.status_code}")
+        status = self.__check_redemption_status(response)
         # did we visit /code_redemptions/...... route?
         redemption = False
         # keep following redirects
@@ -345,8 +347,8 @@ class ShiftClient:
             if "code_redemptions/" in status.value:
                 redemption = True
             _L.debug(f"redirect to '{status.value}'")
-            r2 = self.client.get(status.value)
-            status = self.__check_redemption_status(r2)
+            response2 = self.client.get(status.value, headers=headers)
+            status = self.__check_redemption_status(response2)
 
         # workaround for new SHiFT website.
         # it doesn't tell you to launch a "SHiFT-enabled title" anymore
