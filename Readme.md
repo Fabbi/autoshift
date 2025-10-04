@@ -41,12 +41,12 @@ uv run autoshift --help
 
 - redeem codes for Borderlands 4 on Steam (and keep redeeming every 2 hours)
 ```sh
-uv run autoshift schedule --game bl4 --platform steam
+uv run autoshift schedule --bl4=steam
 ```
 
 - redeem codes for Borderlands 4 on Steam using Username and Password (Use quotes for User and Password)
 ```sh
-uv run autoshift schedule --game bl4 --platform steam --user "my@user.edu" --pass "p4ssw0rd!123"
+uv run autoshift schedule --bl4=steam --user "my@user.edu" --pass "p4ssw0rd!123"
 ```
 
 - redeem a single code
