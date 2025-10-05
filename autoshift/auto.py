@@ -24,6 +24,7 @@ import json
 import logging
 import os
 import re
+import sys
 from collections.abc import Callable, Sequence
 from enum import Enum
 from typing import (
@@ -209,6 +210,10 @@ def callback(
         ),
     ] = False,
 ):
+    if "--help" in sys.argv or "-h" in sys.argv:
+        # shortcircuit
+        return
+
     if TYPE_CHECKING:
         _silence_unused = (bl1, bl2, bl3, bl4, blps, ttw, gdfll)
 
@@ -373,7 +378,7 @@ def wrap(command: click.Command, cb: click.Command) -> click.Command:
         return orig_cb(*args, **cmd_kwargs)
 
     command.callback = new_callback
-    command.params.extend(reversed(click_app.params))
+    command.params.extend(reversed(cb.params))
     return command
 
 
@@ -381,6 +386,10 @@ for name, cmd in click_app.commands.items():
     click_app.commands[name] = wrap(cmd, click_app)
 
 
-if __name__ == "__main__":
+def run():
     click_app()
     client.__save_cookie()
+
+
+if __name__ == "__main__":
+    run()
