@@ -83,11 +83,13 @@ class ShiftClient:
     logged_in: bool = False
 
     def __init__(self):
-        self.client = httpx.Client(follow_redirects=True)
         # try to load cookies. Query for login data if not present
-        self.logged_in = self.__load_cookie()
+        self.cookies = self.__load_cookie()
+        self.client = httpx.Client(follow_redirects=True, cookies=self.cookies)
 
     def login(self, user: str | None = None, pw: str | None = None):
+        if self.cookies:
+            self.logged_in = self.check_login()
         if self.logged_in:
             return True
         typer.echo("Login to your SHiFT account...")
@@ -105,28 +107,40 @@ class ShiftClient:
             _L.error("Couldn't login. Are your credentials correct?")
             exit(0)
 
+    def check_login(self) -> bool:
+        response = self.client.get(f"{base_url}/rewards")
+        return response.status_code == 200 and "Sign Out" in response.text
+
     def __save_cookie(self) -> bool:
         """Make ./data folder if not present"""
         if not settings.COOKIE_FILE.parent.exists():
             settings.COOKIE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
+        self.client.cookies.jar.clear_expired_cookies()
+
         """Save cookie for auto login"""
         with settings.COOKIE_FILE.open("wb") as f:
             if "si" in self.client.cookies:
-                pickle.dump(dict(self.client.cookies), f)
+                pickle.dump(self.client.cookies.jar._cookies, f)  # pyright: ignore[reportAttributeAccessIssue]
                 return True
         return False
 
-    def __load_cookie(self) -> bool:
+    def __load_cookie(self) -> httpx.Cookies | None:
         """Check if there is a saved cookie and load it."""
-        if not settings.COOKIE_FILE.exists():
-            return False
-        with settings.COOKIE_FILE.open("rb") as f:
-            content = f.read()
-            if not content:
-                return False
-            self.client.cookies.update(pickle.loads(content))
-        return True
+        if not settings.COOKIE_FILE.exists() or settings.COOKIE_FILE.stat().st_size == 0:
+            return None
+        try:
+            cookies = httpx.Cookies()
+            with settings.COOKIE_FILE.open("rb") as f:
+                jar_cookies = pickle.load(f)
+                for domain, pc in jar_cookies.items():
+                    for path, c in pc.items():
+                        for k, v in c.items():
+                            cookies.set(k, v.value, domain=domain, path=path)
+            return cookies
+        except Exception:
+            _L.error("Could not load cookies. Re-login required")
+            return None
 
     def redeem(self, key: Key) -> Status:
         from time import sleep
@@ -348,9 +362,20 @@ class ShiftClient:
         while status == Status.REDIRECT:
             if "code_redemptions/" in status.value:
                 redemption = True
-            _L.debug(f"redirect to '{status.value}'")
-            response2 = self.client.get(status.value, headers=headers)
-            status = self.__check_redemption_status(response2)
+                response2 = self.client.get(
+                    status.value,
+                    headers={
+                        "referer": status.value,
+                        "x-requested-with": "XMLHttpRequest",
+                        "accept": "application/json",
+                    },
+                )
+                json_data = response2.json()
+                status = self.__get_status(json_data["text"])
+            else:
+                _L.debug(f"redirect to '{status.value}'")
+                response2 = self.client.get(status.value)
+                status = self.__check_redemption_status(response2)
 
         # workaround for new SHiFT website.
         # it doesn't tell you to launch a "SHiFT-enabled title" anymore

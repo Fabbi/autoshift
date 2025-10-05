@@ -225,6 +225,10 @@ class Settings(SettingsFields):
         handler = rich.logging.RichHandler(show_path=False)
         logging.getLogger("autoshift").addHandler(handler)
 
+        # set default platform map
+        for game in Game:
+            self._GAMES_PLATFORM_MAP[game] = []
+
         for game in self.GAMES:
             self._GAMES_PLATFORM_MAP[game] = self.PLATFORMS.copy()
 
@@ -280,7 +284,6 @@ logging.config.dictConfig(
 )
 
 _L = logging.getLogger("autoshift")
-_L.setLevel(settings.LOG_LEVEL)
 
 if __name__ == "__main__":
     SettingsFields.write_defaults_file()

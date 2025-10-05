@@ -56,5 +56,5 @@ def get_keys(game_platform_map: dict[Game, list[Platform]]) -> list["Key"]:
     )
 
     keys = list(query.execute())
-    _L.debug(f"Found {len(keys)} keys")
+    _L.debug(f"Found {len(keys)} redeemable keys")
     return keys
