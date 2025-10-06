@@ -8,6 +8,10 @@ jobs:
   build_and_push:
     runs-on: ubuntu-latest
 
+    concurrency:
+      group: publish-dockerhub
+      cancel-in-progress: true
+
     steps:
 
       - name: Checkout
@@ -32,6 +36,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USER }}/autoshift:latest
