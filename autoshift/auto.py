@@ -36,6 +36,7 @@ from typing import (
 import click
 import httpx
 import typer
+from pydantic import SecretStr
 from typer import Typer
 
 from autoshift import storage
@@ -132,6 +133,7 @@ PlatformArg = Enum("Platform", [(p.name, p.value) for p in Platform] + [("all", 
 
 @app.callback()
 def callback(
+    ctx: typer.Context,
     bl1: Annotated[
         list[PlatformArg] | None, typer.Option(rich_help_panel="Platform Selection")
     ] = None,
@@ -204,11 +206,11 @@ def callback(
     if TYPE_CHECKING:
         _silence_unused = (bl1, bl2, bl3, bl4, blps, ttw, gdfll)
 
-    if not user:
-        user = settings.USER
+    if user:
+        settings.USER = user
 
-    if not password and settings.PASS:
-        password = settings.PASS.get_secret_value()
+    if password:
+        settings.PASS = SecretStr(password)
 
     if platforms:
         settings.PLATFORMS = platforms
@@ -231,6 +233,9 @@ def callback(
         _L.setLevel(logging.DEBUG)
         _L.debug("Debug mode on")
 
+    if not hasattr(ctx, "__run_command"):
+        return
+
     # Check for first-time usage
     if not settings.COOKIE_FILE.exists():
         typer.echo(LICENSE_TEXT)
@@ -242,12 +247,12 @@ def callback(
         run_migrations(database)
 
     # try logging in first. Does nothing if already logged in
-    client.login(user, password)
+    client.login(
+        settings.USER, settings.PASS.get_secret_value() if settings.PASS else None
+    )
 
 
-@app.command(
-    "redeem", context_settings=dict(allow_extra_args=True, ignore_unknown_options=True)
-)
+@app.command("redeem")
 def redeem_one(
     platform: Annotated[Platform, typer.Argument()],
     code: Annotated[str, typer.Argument()],
@@ -354,6 +359,8 @@ def wrap(command: click.Command, cb: click.Command) -> click.Command:
     cb_kwarg_names = {opt.name for opt in cb.params}
 
     def new_callback(*args, **kwargs):
+        ctx = click.get_current_context()
+        setattr(ctx, "__run_command", True)
         cb_kwargs: dict = {}
         cmd_kwargs: dict = {}
         for k, v in kwargs.items():

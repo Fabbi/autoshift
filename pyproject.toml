@@ -1,6 +1,6 @@
 [project]
 name = "autoshift"
-version = "2.1.2"
+version = "2.1.3"
 description = "AutoSHIFt: Automatically redeem Gearbox SHIFt Codes"
 authors = [
     { name = "Fabian Schweinfurth", email = "fabbi@users.noreply.github.com"}
