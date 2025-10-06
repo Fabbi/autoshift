@@ -282,11 +282,11 @@ def redeem_one(
 @app.command("schedule")
 def auto_redeem_codes(
     interval: Annotated[
-        int,
+        int | None,
         typer.Option(
             help="Keep checking for keys every N minutes (minimum 120)",
         ),
-    ] = 120,
+    ] = None,
     limit: Annotated[
         int | None,
         typer.Option(
@@ -299,7 +299,8 @@ def auto_redeem_codes(
 ):
     """Redeem SHiFT codes for specified games and platforms."""
 
-    settings.SCHEDULE = interval
+    if interval:
+        settings.SCHEDULE = interval
 
     if limit:
         settings.LIMIT = limit
