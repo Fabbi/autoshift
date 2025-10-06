@@ -20,7 +20,7 @@
 #
 #############################################################################
 
-from enum import StrEnum, auto
+from enum import Enum, StrEnum, auto
 from typing import TYPE_CHECKING, Any, ClassVar, override
 
 from peewee import (
@@ -43,9 +43,26 @@ if TYPE_CHECKING:
 
     def CharField(max_length: int = ..., *args, **kwargs) -> Any: ...
     def BooleanField(*args, **kwargs) -> Any: ...
+
+    EnumField = CharField
 else:
     CharField = PCharField
     BooleanField = PBooleanField
+
+    class EnumField(PCharField):
+        def __set_name__(self, cls, value: str) -> None:
+            self.enum_class = cls.__annotations__[value]
+
+        def db_value(self, value: Enum | None) -> Any:
+            if value is None:
+                return None
+
+            return value.value
+
+        def python_value(self, value: Any) -> Enum | None:
+            if value is None:
+                return None
+            return self.enum_class(value)
 
 
 class AltEnum(StrEnum):
@@ -96,8 +113,8 @@ class Key(BaseModel):
 
     id = AutoField()
     code: str = CharField()
-    game: Game = CharField(choices=list(Game))
-    platform: Platform = CharField(choices=list(Platform))
+    game: Game = EnumField(choices=list(Game))
+    platform: Platform = EnumField(choices=list(Platform))
     reward: str = CharField(default="")
     num_golden = IntegerField(null=True, default=None)
     expires = TimestampField(utc=True, null=True, default=None)

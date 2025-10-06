@@ -104,7 +104,7 @@ def clean_key_data(key_data: Sequence[dict]):
             yield data
 
 
-def query_keys(game_map: dict[Game, list[Platform]]) -> list[Key]:
+def query_keys(game_map: dict[Game, set[Platform]]) -> list[Key]:
     """Query new keys for given games and platforms
 
     Returns dict of dicts of lists with [game][platform] as keys"""
@@ -229,7 +229,7 @@ def callback(
         if games:
             settings.GAMES = games
             for game in games:
-                settings._GAMES_PLATFORM_MAP[game].extend(platforms)
+                settings._GAMES_PLATFORM_MAP[game].update(platforms)
 
     for game in Game:
         value = locals().get(game.name)
@@ -237,7 +237,7 @@ def callback(
             continue
         if any(v == PlatformArg.all for v in value):  # pyright: ignore[reportAttributeAccessIssue]
             value = list(Platform)
-        settings._GAMES_PLATFORM_MAP[game].extend(value)
+        settings._GAMES_PLATFORM_MAP[game].update(value)
 
     # Set up logging
     if verbose:

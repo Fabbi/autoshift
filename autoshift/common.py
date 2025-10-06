@@ -22,6 +22,7 @@
 import logging
 import logging.config
 import re
+from collections import defaultdict
 from enum import StrEnum, auto
 from pathlib import Path
 from typing import Annotated, Any, Literal, override
@@ -108,8 +109,8 @@ class SettingsFields(BaseSettings):
         NoDecode,
     ] = []
 
-    _GAMES_PLATFORM_MAP: dict[Game, list[Platform]] = PrivateAttr(
-        init=False, default_factory=dict
+    _GAMES_PLATFORM_MAP: dict[Game, set[Platform]] = PrivateAttr(
+        init=False, default_factory=lambda: defaultdict(set)
     )
 
     USER: str | None = Field(
@@ -156,7 +157,7 @@ class SettingsFields(BaseSettings):
     @staticmethod
     def write_defaults_file():
         with (ROOT_DIR / "env.default").open("w") as f:
-            f.write("# -*- mode: shell -*-\n\n")
+            f.write("# -*- mode: sh -*-\n\n")
             default_settings = SettingsFields().model_dump()
 
             default_settings["COOKIE_FILE"] = "${SHIFT_DATA_DIR}/.cookies.save"
@@ -204,6 +205,7 @@ class Settings(SettingsFields):
         env_prefix="SHIFT_",
         env_file_encoding="utf-8",
         env_ignore_empty=True,
+        env_parse_none_str="None",
         extra="allow",
     )
 
@@ -213,10 +215,7 @@ class Settings(SettingsFields):
         self.COOKIE_FILE.parent.mkdir(parents=True, exist_ok=True)
         self.DB_FILE.parent.mkdir(parents=True, exist_ok=True)
 
-        if self.SHIFT_SOURCE and not (
-            self.SHIFT_SOURCE.startswith("http://")
-            or self.SHIFT_SOURCE.startswith("https://")
-        ):
+        if self.SHIFT_SOURCE and not self.SHIFT_SOURCE.startswith("http"):
             path = Path(self.SHIFT_SOURCE)
             if not path.is_absolute():
                 path = ROOT_DIR / path
@@ -225,12 +224,8 @@ class Settings(SettingsFields):
         handler = rich.logging.RichHandler(show_path=False)
         logging.getLogger("autoshift").addHandler(handler)
 
-        # set default platform map
-        for game in Game:
-            self._GAMES_PLATFORM_MAP[game] = []
-
         for game in self.GAMES:
-            self._GAMES_PLATFORM_MAP[game] = self.PLATFORMS.copy()
+            self._GAMES_PLATFORM_MAP[game] = set(self.PLATFORMS)
 
         if not self.model_extra:
             return
@@ -238,9 +233,9 @@ class Settings(SettingsFields):
         for game in Game:
             if platforms := self.model_extra.get(f"shift_{game.name.lower()}"):
                 platforms = validate_list(platforms)
-                self._GAMES_PLATFORM_MAP[game] = [
+                self._GAMES_PLATFORM_MAP[game] = set(
                     Platform(platform) for platform in platforms
-                ]
+                )
 
         return
 

@@ -37,7 +37,7 @@ def col(prop: Any) -> pw.Field:
     return prop
 
 
-def get_keys(game_platform_map: dict[Game, list[Platform]]) -> list["Key"]:
+def get_keys(game_platform_map: dict[Game, set[Platform]]) -> list["Key"]:
     """Get all keys for the given game/platform map"""
     from autoshift.models import Key
 
@@ -55,6 +55,6 @@ def get_keys(game_platform_map: dict[Game, list[Platform]]) -> list["Key"]:
         & predicate
     )
 
-    keys = list(query.execute())
+    keys = list(query)
     _L.debug(f"Found {len(keys)} redeemable keys")
     return keys
