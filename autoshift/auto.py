@@ -127,19 +127,6 @@ def query_keys(game_map: dict[Game, set[Platform]]) -> list[Key]:
     return new_keys
 
 
-command_args = [
-    click.option(
-        "--bar",
-        help="Games you want to query SHiFT keys for",
-        type=click.Choice([g.name for g in Game], case_sensitive=False),
-    ),
-    click.option(
-        "--platforms",
-        help="Platforms you want to query SHiFT keys for (comma-separated)",
-        type=str,
-    ),
-]
-
 PlatformArg = Enum("Platform", [(p.name, p.value) for p in Platform] + [("all", "all")])
 
 
