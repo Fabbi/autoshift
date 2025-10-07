@@ -21,6 +21,7 @@
 #############################################################################
 
 import pickle
+import time
 from enum import Enum
 from typing import Any, Literal
 
@@ -362,16 +363,27 @@ class ShiftClient:
         while status == Status.REDIRECT:
             if "code_redemptions/" in status.value:
                 redemption = True
-                response2 = self.client.get(
-                    status.value,
-                    headers={
-                        "referer": status.value,
-                        "x-requested-with": "XMLHttpRequest",
-                        "accept": "application/json",
-                    },
-                )
-                json_data = response2.json()
-                status = self.__get_status(json_data["text"])
+                while True:
+                    response2 = self.client.get(
+                        status.value,
+                        headers={
+                            "referer": status.value,
+                            "x-requested-with": "XMLHttpRequest",
+                            "accept": "application/json",
+                        },
+                    )
+                    json_data = response2.json()
+                    if json_data.get("in_progress", False):
+                        time.sleep(0.5)
+                        continue
+                    try:
+                        status = self.__get_status(json_data["text"])
+                    except KeyError as e:
+                        _L.error("Unexpected JSON response. Please report this issue!")
+                        _L.error(f"JSON data: {json_data}")
+                        raise e
+                    break
+
             else:
                 _L.debug(f"redirect to '{status.value}'")
                 response2 = self.client.get(status.value)
