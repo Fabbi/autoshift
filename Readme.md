@@ -74,8 +74,26 @@ Available as a docker image based on `python3.12-alpine`
 All command-line arguments can be used just like running the script directly
 
 ```
-docker run --rm --name autoshift \
+  docker run --name autoshift \
   --restart=always \
   -v autoshift:/autoshift/data \
-  fabianschweinfurth/autoshift:latest schedule --user="<username>" --pw="<password>" --bl4=steam
+  fabianschweinfurth/autoshift:latest schedule --user="<username>" --pass="<password>" --bl4=steam
+```
+
+Or with docker-compose:
+
+```
+services:
+  autoshift:
+    container_name: autoshift
+    restart: always
+    volumes:
+      - ./autoshift:/autoshift/data
+    image: fabianschweinfurth/autoshift:latest
+    command: schedule --user="<username>" --pass="<password>" --bl4=steam
+volumes:
+  autoshift:
+    external: true
+    name: autoshift
+networks: {}
 ```
