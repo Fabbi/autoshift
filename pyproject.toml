@@ -1,19 +1,24 @@
 [tool.poetry]
 name = "autoshift"
-version = "1.1.0"
+version = "2.0.2"
 description = "AutoSHIFt: Automatically redeem Gearbox SHIFt Codes"
-authors = ["Fabian Schweinfurth <github@derfabbi.de>"]
+authors = [
+    "zarmstrong <git@traffid.com>",
+    "Fabian Schweinfurth <github@derfabbi.de>",
+]
 license = "GPLv3"
+requires-poetry = ">=2.4,<3.0"
 
 [tool.poetry.dependencies]
 python = "^3.9"
 APScheduler = "^3.9.1"
+apprise = ">=1,<2"
 beautifulsoup4 = "^4.11.1"
-lxml = "^4.9.0"
+lxml = ">=6,<7"
 requests = "^2.28.0"
 
-[tool.poetry.dev-dependencies]
-flake8 = "^4.0.1"
+[tool.poetry.group.dev.dependencies]
+flake8 = "^7.3.0"
 ipdb = "^0.13.9"
 jedi = "^0.18.1"
 mypy = "^0.961"
@@ -23,5 +28,5 @@ Flask = "^2.1.2"
 autoflake = "^1.4"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=2.4,<3.0"]
 build-backend = "poetry.core.masonry.api"

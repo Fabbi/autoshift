@@ -1,0 +1,72 @@
+name: Update GitHub clone count
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-traffic-badges
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ secrets.SECRET_TOKEN }}
+      GIST_ID: ${{ secrets.GIST_ID }}
+
+    steps:
+      - name: Validate configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$GH_TOKEN" || {
+            echo "::error::The SECRET_TOKEN repository secret is not configured."
+            exit 1
+          }
+          test -n "$GIST_ID" || {
+            echo "::error::The GIST_ID repository secret is not configured."
+            exit 1
+          }
+
+      - name: Fetch and aggregate clone statistics
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          gh api \
+            --header "Accept: application/vnd.github+json" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "repos/${{ github.repository }}/traffic/clones" > current.json
+
+          gh api "gists/$GIST_ID" \
+            --jq '.files["clone.json"].content // empty' > previous.json
+
+          if ! jq -e '.clones | type == "array"' previous.json >/dev/null 2>&1; then
+            printf '%s\n' '{"count":0,"uniques":0,"clones":[]}' > previous.json
+          fi
+
+          jq -s '
+            (.[0].clones + .[1].clones
+              | group_by(.timestamp)
+              | map(max_by(.count))) as $clones
+            | {
+                count: ($clones | map(.count) | add // 0),
+                uniques: ($clones | map(.uniques) | add // 0),
+                clones: $clones
+              }
+          ' previous.json current.json > clone.json
+
+      - name: Update clone-count gist
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq -n \
+            --arg content "$(jq -c . clone.json)" \
+            '{"files":{"clone.json":{"content":$content}}}' > payload.json
+          gh api --method PATCH "gists/$GIST_ID" --input payload.json >/dev/null

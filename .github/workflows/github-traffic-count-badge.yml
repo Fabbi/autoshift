@@ -1,0 +1,72 @@
+name: Update GitHub traffic count
+
+on:
+  schedule:
+    - cron: "5 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-traffic-badges
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ secrets.SECRET_TOKEN }}
+      TRAFFIC_ID: ${{ secrets.TRAFFIC_ID }}
+
+    steps:
+      - name: Validate configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$GH_TOKEN" || {
+            echo "::error::The SECRET_TOKEN repository secret is not configured."
+            exit 1
+          }
+          test -n "$TRAFFIC_ID" || {
+            echo "::error::The TRAFFIC_ID repository secret is not configured."
+            exit 1
+          }
+
+      - name: Fetch and aggregate traffic statistics
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          gh api \
+            --header "Accept: application/vnd.github+json" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "repos/${{ github.repository }}/traffic/views" > current.json
+
+          gh api "gists/$TRAFFIC_ID" \
+            --jq '.files["traffic.json"].content // empty' > previous.json
+
+          if ! jq -e '.views | type == "array"' previous.json >/dev/null 2>&1; then
+            printf '%s\n' '{"count":0,"uniques":0,"views":[]}' > previous.json
+          fi
+
+          jq -s '
+            (.[0].views + .[1].views
+              | group_by(.timestamp)
+              | map(max_by(.count))) as $views
+            | {
+                count: ($views | map(.count) | add // 0),
+                uniques: ($views | map(.uniques) | add // 0),
+                views: $views
+              }
+          ' previous.json current.json > traffic.json
+
+      - name: Update traffic-count gist
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq -n \
+            --arg content "$(jq -c . traffic.json)" \
+            '{"files":{"traffic.json":{"content":$content}}}' > payload.json
+          gh api --method PATCH "gists/$TRAFFIC_ID" --input payload.json >/dev/null
