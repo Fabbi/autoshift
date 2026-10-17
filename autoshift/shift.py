@@ -34,7 +34,9 @@ from autoshift.common import _L, settings
 from autoshift.models import Key
 
 base_url = "https://shift.gearboxsoftware.com"
-
+user_agent_header = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+}
 
 def json_headers(token: str) -> dict[str, str]:
     return {"x-csrf-token": token, "x-requested-with": "XMLHttpRequest"}
@@ -86,7 +88,7 @@ class ShiftClient:
     def __init__(self):
         # try to load cookies. Query for login data if not present
         self.cookies = self.__load_cookie()
-        self.client = httpx.Client(follow_redirects=True, cookies=self.cookies)
+        self.client = httpx.Client(follow_redirects=True, cookies=self.cookies, headers=user_agent_header)
 
     def login(self, user: str | None = None, pw: str | None = None):
         if self.cookies:
